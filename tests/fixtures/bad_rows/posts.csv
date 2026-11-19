@@ -1,0 +1,6 @@
+post_id,url,published_at,type,duration_s,caption,views,likes,comments,shares,saves,cover_url,cover_file,video_file,transcript_file,sound,is_pinned,is_paid,collaborators,read_at,source
+b1,https://www.tiktok.com/@bad/video/b1,2026-06-01T15:00:00Z,video,30,Quick tip,12.3K,50,2,4,3,,,,,,,,,,fixture
+b2,https://www.tiktok.com/@bad/video/b2,2026-06-01T15:00:00Z,video,30,Quick tip,1000,N/A,2,4,3,,,,,,,,,,fixture
+b3,https://www.tiktok.com/@bad/video/b3,2026-06-01T15:00:00Z,reel,30,Quick tip,1000,50,2,4,3,,,,,,,,,,fixture
+b4,https://www.tiktok.com/@bad/video/b4,1780000000,video,30,Quick tip,1000,50,2,4,3,,/abs/cover.jpg,,,,,,,,fixture
+b1,https://www.tiktok.com/@bad/video/b1,2026-06-01T15:00:00Z,video,30,Quick tip,1000,50,2,4,3,,,,,,,,,,fixture

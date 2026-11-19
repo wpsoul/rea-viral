@@ -1,0 +1,77 @@
+{
+  "schema": "rea-viral/findings@1",
+  "headline": {
+    "text": "It grows on one repeatable list format, and a single pricing post brought most of the year's jump.",
+    "evidence": "INFERRED",
+    "basis": "radar.json lift and follower pull; the 72 h gain after p087",
+    "posts": [
+      "p087"
+    ]
+  },
+  "mechanisms": [
+    {
+      "title": "A list format with a number in the hook",
+      "text": "Three mistakes beats the account's own baseline about 3x.",
+      "evidence": "MEASURED",
+      "from": "radar.json#formats.three-mistakes.lift"
+    },
+    {
+      "title": "The same backdrop every time",
+      "text": "Every three-mistakes video opens on a screenshot behind the speaker.",
+      "evidence": "SEEN",
+      "posts": [
+        "p087"
+      ]
+    }
+  ],
+  "did_not_work": [
+    {
+      "title": "The founder diary fades",
+      "text": "A quarter of the posts are diaries, and the later ones sit well under the earlier ones.",
+      "evidence": "MEASURED",
+      "from": "radar.json#formats.founder-diary.direction"
+    },
+    {
+      "title": "Long one-take stories",
+      "text": "Four of the five flops are long stories.",
+      "evidence": "MEASURED",
+      "from": "analysis.json#flops"
+    }
+  ],
+  "comment_tactics": [
+    {
+      "text": "A word in the caption turns comments into a lead list.",
+      "evidence": "MEASURED",
+      "from": "comments.json#comment_a_word"
+    }
+  ],
+  "plays": [
+    {
+      "title": "Run your own three-mistakes series",
+      "what": "Three numbered mistakes in under 30 s, screenshot behind you.",
+      "evidence": "INFERRED",
+      "basis": "the format's lift and hit rate",
+      "effort": "low",
+      "first_result": "views within 48 h",
+      "dont_copy": "their face and their customer stories",
+      "prompt": "Write three 25-second scripts in the three-mistakes format for my product.\nOne mistake per beat, a fix at the end."
+    },
+    {
+      "title": "Ask for one word",
+      "what": "Close with a one-word ask that sends a checklist.",
+      "evidence": "SEEN",
+      "posts": [
+        "p087"
+      ],
+      "effort": "low",
+      "dont_copy": "nothing",
+      "prompt": "Write a caption that ends with: Comment PLAN and I'll send it."
+    }
+  ],
+  "not_read": [
+    {
+      "what": "Paid ads",
+      "why": "no ad library was read in this test"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+<!doctype html>
+<!--
+  REA Viral, Basic remake: a format as a plain HTML page, with the timings as data.
+  Open it in a browser to watch it play. Render it to MP4, frame-exact:
+    node <skill>/scripts/render_page.mjs basic-format.html --out remake.mp4
+  Change only the two JSON blocks below (and the files in this folder). Everything on screen is drawn from the time
+  t by draw(t), so the render's clock and a browser's clock give the same frames.
+  Scene parts: bg (CSS background), media {type: image|video, src, in, fit} (the user's own footage or picture),
+  character (a stand-in shape; drop it when the user has their own footage), chips [{text, at}] (the word-bank
+  captions), card {title, options, pick: {index, at}} (the user's own interface as the caption), caption {text, at}.
+  All times are seconds on the page's timeline. A scene ends where the next starts: that is a hard cut.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  body { font-family: Nunito, "Arial Rounded MT Bold", Arial, sans-serif; }
+  .scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; }
+  .media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .chips { position: absolute; left: 0; right: 0; top: 330px; display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; padding: 0 70px; }
+  .chip { background: #fff; color: #3c3c3c; font-weight: 800; font-size: 74px; padding: 18px 34px; border-radius: 30px;
+          border: 4px solid #e5e5e5; box-shadow: 0 8px 0 #e5e5e5; transform-origin: 50% 80%; }
+  .char { position: absolute; left: 50%; top: 980px; width: 520px; height: 560px; margin-left: -260px; }
+  /* A neutral stand-in, not anyone's mascot: replace it with the user's own footage, product or character. */
+  .char .body { position: absolute; inset: 0; background: linear-gradient(160deg, #ffb36b, #ff7a3d 70%); border-radius: 140px; box-shadow: 0 30px 0 rgba(0,0,0,.16); }
+  .char .eye { position: absolute; top: 170px; width: 64px; height: 92px; background: #1d2a3a; border-radius: 40px; }
+  .char .eye.l { left: 150px; } .char .eye.r { right: 150px; }
+  .char .smile { position: absolute; left: 50%; top: 320px; width: 150px; height: 70px; margin-left: -75px; border: 14px solid #1d2a3a; border-top: none; border-radius: 0 0 90px 90px; }
+  .card { position: absolute; left: 70px; right: 70px; top: 260px; background: #fff; border-radius: 36px; padding: 60px 56px; color: #3c3c3c; }
+  .card h2 { font-size: 66px; margin: 0 0 40px; font-weight: 900; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .opt { border: 5px solid #e5e5e5; border-radius: 28px; padding: 48px 20px; text-align: center; font-size: 56px; font-weight: 800; box-shadow: 0 8px 0 #e5e5e5; }
+  .opt.on { border-color: #33c27a; background: #d7ffe4; color: #1f7a4a; box-shadow: 0 8px 0 #33c27a; }
+  .caption { position: absolute; left: 60px; right: 60px; bottom: 260px; text-align: center; color: #1f2430; font-weight: 900; font-size: 84px;
+             line-height: 1.12; }
+  .caption.light { color: #fff; text-shadow: 0 6px 0 rgba(0,0,0,.35); }   /* "light": true, over footage or a dark scene */
+</style>
+</head>
+<body>
+<script type="application/json" id="rea-render">{"width":1080,"height":1920,"fps":30,"duration":9,"audio":[{"src":"beat.wav","at":0,"gain_db":-3}]}</script>
+<script type="application/json" id="timeline">{
+  "scenes": [
+    {"start": 0, "bg": "linear-gradient(180deg,#bfe9ff 0%,#eaf7ff 55%,#cfe9c0 56%,#a9d68f 100%)",
+     "character": true,
+     "chips": [{"text": "Why", "at": 0.15}, {"text": "do", "at": 0.6}, {"text": "they", "at": 1.0}, {"text": "grow?", "at": 1.5}]},
+    {"start": 2.2, "bg": "#f7f7f7",
+     "card": {"title": "Select the format", "options": ["Scale it", "Underused", "Fading", "Drop"], "pick": {"index": 0, "at": 3.1}},
+     "caption": {"text": "One line in.", "at": 4.5},
+     "chips": [{"text": "why", "at": 6.0}, {"text": "they", "at": 6.3}, {"text": "grow,", "at": 6.6}, {"text": "out", "at": 7.0}]}
+  ]
+}</script>
+<div id="stage"></div>
+<script>
+(function () {
+  var T = JSON.parse(document.getElementById('timeline').textContent);
+  var stage = document.getElementById('stage');
+  var scenes = T.scenes.map(function (s, i) {
+    var end = i + 1 < T.scenes.length ? T.scenes[i + 1].start : 1e9;
+    var el = document.createElement('div');
+    el.className = 'scene';
+    el.style.background = s.bg || '#000';
+    var parts = {};
+    if (s.media) {
+      var m = document.createElement(s.media.type === 'video' ? 'video' : 'img');
+      m.className = 'media'; m.src = s.media.src;
+      if (s.media.type === 'video') { m.muted = true; m.playsInline = true; m.preload = 'auto'; m.dataset.start = s.start; m.dataset.in = s.media.in || 0; }
+      el.appendChild(m);
+    }
+    if (s.character) {
+      var c = document.createElement('div'); c.className = 'char';
+      c.innerHTML = '<div class="body"></div><div class="eye l"></div><div class="eye r"></div><div class="smile"></div>';
+      el.appendChild(c); parts.char = c;
+    }
+    if (s.card) {
+      var card = document.createElement('div'); card.className = 'card';
+      var h = document.createElement('h2'); h.textContent = s.card.title; card.appendChild(h);
+      var o = document.createElement('div'); o.className = 'opts';
+      parts.opts = s.card.options.map(function (t) { var d = document.createElement('div'); d.className = 'opt'; d.textContent = t; o.appendChild(d); return d; });
+      card.appendChild(o); el.appendChild(card);
+    }
+    if (s.chips) {
+      var row = document.createElement('div'); row.className = 'chips';
+      if (s.card) row.style.top = '1180px';
+      parts.chips = s.chips.map(function (c) { var d = document.createElement('div'); d.className = 'chip'; d.textContent = c.text; row.appendChild(d); return { el: d, at: c.at }; });
+      el.appendChild(row);
+    }
+    if (s.caption) {
+      var cap = document.createElement('div'); cap.className = 'caption' + (s.caption.light ? ' light' : ''); cap.textContent = s.caption.text; el.appendChild(cap); parts.caption = cap;
+    }
+    stage.appendChild(el);
+    return { s: s, start: s.start, end: end, el: el, parts: parts };
+  });
+  function backOut(x) { var c = 1.70158; x = Math.min(1, Math.max(0, x)); return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }
+  function draw(t) {
+    scenes.forEach(function (sc) {
+      var on = t >= sc.start && t < sc.end;
+      sc.el.style.visibility = on ? 'visible' : 'hidden';
+      if (!on) return;
+      var p = sc.parts, local = t - sc.start;
+      if (p.char) p.char.style.transform = 'translateY(' + (Math.sin(local * 6.0) * 14).toFixed(2) + 'px) scale(' + (1 + 0.04 * Math.sin(local * 12)).toFixed(4) + ')';
+      (p.chips || []).forEach(function (c) { var k = (t - c.at) / 0.18; c.el.style.opacity = k <= 0 ? 0 : 1; c.el.style.transform = 'scale(' + (k <= 0 ? 0.4 : backOut(k)).toFixed(4) + ')'; });
+      if (p.opts && sc.s.card.pick) p.opts.forEach(function (o, i) { o.classList.toggle('on', i === sc.s.card.pick.index && t >= sc.s.card.pick.at); });
+      if (p.caption) { var k2 = Math.min(1, Math.max(0, (t - sc.s.caption.at) / 0.25)); p.caption.style.opacity = k2; p.caption.style.transform = 'translateY(' + ((1 - k2) * 40).toFixed(1) + 'px)'; }
+    });
+  }
+  window.reaSeek = function (t) { draw(t); };
+  function loop(ms) { var d = JSON.parse(document.getElementById('rea-render').textContent).duration || 9; draw((ms / 1000) % d); requestAnimationFrame(loop); }
+  draw(0);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

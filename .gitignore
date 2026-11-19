@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Run folders: the skill writes its runs in a rea-viral/ folder of the working folder
+/rea-viral/
+
+# Test tools (npm install --prefix tests)
+tests/node_modules/
+tests/package-lock.json

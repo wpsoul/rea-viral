@@ -1,0 +1,29 @@
+{
+  "schema": "rea-viral/account@1",
+  "network": "tiktok",
+  "handle": "bad_rows",
+  "name": "Bad_Rows",
+  "url": "https://www.tiktok.com/@bad_rows",
+  "bio": "A made-up account for tests.",
+  "link": null,
+  "followers": 50000,
+  "followers_exact": true,
+  "following": 120,
+  "posts_total": null,
+  "verified": false,
+  "private": false,
+  "read_at": "2026-11-14T12:00:00Z",
+  "window": {
+    "from": "2025-11-14",
+    "to": "2026-11-13"
+  },
+  "follower_history": [],
+  "sources": [
+    {
+      "what": "posts and comments",
+      "via": "make_fixtures.py",
+      "cost_usd": 0
+    }
+  ],
+  "spend_ceiling_usd": 3
+}

@@ -1,0 +1,66 @@
+{
+  "injection_post": "p025",
+  "new_format": {
+    "id": "pov-skit",
+    "first": "2026-06-24T04:14:06Z"
+  },
+  "formats": {
+    "three-mistakes": "scale_it",
+    "founder-diary": "fading",
+    "long-story": "drop",
+    "pov-skit": "underused"
+  },
+  "lift_three_mistakes_about": 3.0,
+  "jump_post": "p087",
+  "jump_size": 6000,
+  "too_new": [
+    "p141",
+    "p142"
+  ],
+  "warmup": [
+    "p001",
+    "p002",
+    "p003",
+    "p004",
+    "p005",
+    "p006",
+    "p007",
+    "p008",
+    "p009",
+    "p010",
+    "p011",
+    "p012",
+    "p013",
+    "p014",
+    "p015",
+    "p016",
+    "p017",
+    "p018",
+    "p019",
+    "p020"
+  ],
+  "series_first": null,
+  "gap": [
+    "2026-03-10T00:00:00Z",
+    "2026-03-13T00:00:00Z"
+  ],
+  "gap_posts": [
+    "p059",
+    "p060"
+  ],
+  "comments": {
+    "posts_read": 15,
+    "own_comment_posts": 12,
+    "pinned_posts": 6,
+    "posts_asking": 30,
+    "echo_posts": 10,
+    "echo_word": "guide",
+    "echo_share": 0.4,
+    "reply_rate": 0.3,
+    "median_reply_minutes": 25.0,
+    "follow_comments": 6,
+    "follow_on_jump_post": 5,
+    "objections_at_least": 4
+  },
+  "estimated_top": "p087"
+}

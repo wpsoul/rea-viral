@@ -1,0 +1,2 @@
+post_id,url,published_at,type,duration_s,caption,views,likes,comments,shares,saves,cover_url,cover_file,video_file,transcript_file,sound,is_pinned,is_paid,collaborators,read_at,source
+only1,https://www.tiktok.com/@one/video/only1,2026-06-01T15:00:00Z,video,30,Quick tip,5000,250,10,20,15,,,,,,,,,,fixture

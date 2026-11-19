@@ -1,0 +1,10 @@
+{
+  "errors": [
+    "posts.csv:row 2:views",
+    "posts.csv:row 3:likes",
+    "posts.csv:row 4:type",
+    "posts.csv:row 5:published_at",
+    "posts.csv:row 5:cover_file",
+    "posts.csv:row 6:post_id"
+  ]
+}

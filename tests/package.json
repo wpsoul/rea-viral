@@ -1,0 +1,8 @@
+{
+  "name": "rea-viral-tests",
+  "private": true,
+  "description": "Playwright for the REA Viral tests: opens the report pages headless and renders the Basic remake.",
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}

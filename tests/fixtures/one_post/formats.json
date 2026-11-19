@@ -1,0 +1,17 @@
+{
+  "schema": "rea-viral/formats@1",
+  "formats": [
+    {
+      "id": "solo",
+      "name": "Solo",
+      "hook": "h",
+      "structure": "s",
+      "look": "l",
+      "length": "10 s",
+      "effort": "low",
+      "posts": [
+        "only1"
+      ]
+    }
+  ]
+}

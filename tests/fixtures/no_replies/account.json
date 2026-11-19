@@ -1,0 +1,34 @@
+{
+  "schema": "rea-viral/account@1",
+  "network": "tiktok",
+  "handle": "no_replies",
+  "name": "No_Replies",
+  "url": "https://www.tiktok.com/@no_replies",
+  "bio": "A made-up account for tests.",
+  "link": null,
+  "followers": 50000,
+  "followers_exact": true,
+  "following": 120,
+  "posts_total": null,
+  "verified": false,
+  "private": false,
+  "read_at": "2026-11-14T12:00:00Z",
+  "window": {
+    "from": "2025-11-14",
+    "to": "2026-11-13"
+  },
+  "follower_history": [],
+  "sources": [
+    {
+      "what": "posts and comments",
+      "via": "make_fixtures.py",
+      "cost_usd": 0
+    }
+  ],
+  "spend_ceiling_usd": 3,
+  "comments_read": {
+    "posts": 5,
+    "per_post": 20,
+    "replies_read": true
+  }
+}

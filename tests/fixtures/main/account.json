@@ -1,0 +1,2134 @@
+{
+  "schema": "rea-viral/account@1",
+  "network": "tiktok",
+  "handle": "fixture_main",
+  "name": "Fixture Main",
+  "url": "https://www.tiktok.com/@fixture_main",
+  "bio": "A made-up account for tests.",
+  "link": null,
+  "followers": 77196,
+  "followers_exact": true,
+  "following": 120,
+  "posts_total": null,
+  "verified": false,
+  "private": false,
+  "read_at": "2026-11-14T12:00:00Z",
+  "window": {
+    "from": "2025-11-14",
+    "to": "2026-11-13"
+  },
+  "follower_history": [
+    {
+      "at": "2025-09-20T00:00:00Z",
+      "followers": 40000,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-21T00:00:00Z",
+      "followers": 40064,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-22T00:00:00Z",
+      "followers": 40121,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-23T00:00:00Z",
+      "followers": 40196,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-24T00:00:00Z",
+      "followers": 40257,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-25T00:00:00Z",
+      "followers": 40330,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-26T00:00:00Z",
+      "followers": 40378,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-27T00:00:00Z",
+      "followers": 40453,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-28T00:00:00Z",
+      "followers": 40503,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-29T00:00:00Z",
+      "followers": 40577,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-09-30T00:00:00Z",
+      "followers": 40630,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-01T00:00:00Z",
+      "followers": 40678,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-02T00:00:00Z",
+      "followers": 40736,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-03T00:00:00Z",
+      "followers": 40803,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-04T00:00:00Z",
+      "followers": 40857,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-05T00:00:00Z",
+      "followers": 40920,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-06T00:00:00Z",
+      "followers": 40981,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-07T00:00:00Z",
+      "followers": 41037,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-08T00:00:00Z",
+      "followers": 41100,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-09T00:00:00Z",
+      "followers": 41152,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-10T00:00:00Z",
+      "followers": 41219,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-11T00:00:00Z",
+      "followers": 41264,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-12T00:00:00Z",
+      "followers": 41336,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-13T00:00:00Z",
+      "followers": 41398,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-14T00:00:00Z",
+      "followers": 41464,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-15T00:00:00Z",
+      "followers": 41531,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-16T00:00:00Z",
+      "followers": 41596,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-17T00:00:00Z",
+      "followers": 41652,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-18T00:00:00Z",
+      "followers": 41700,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-19T00:00:00Z",
+      "followers": 41764,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-20T00:00:00Z",
+      "followers": 41819,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-21T00:00:00Z",
+      "followers": 41874,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-22T00:00:00Z",
+      "followers": 41944,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-23T00:00:00Z",
+      "followers": 42011,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-24T00:00:00Z",
+      "followers": 42065,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-25T00:00:00Z",
+      "followers": 42119,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-26T00:00:00Z",
+      "followers": 42176,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-27T00:00:00Z",
+      "followers": 42233,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-28T00:00:00Z",
+      "followers": 42287,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-29T00:00:00Z",
+      "followers": 42336,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-30T00:00:00Z",
+      "followers": 42394,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-10-31T00:00:00Z",
+      "followers": 42467,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-01T00:00:00Z",
+      "followers": 42532,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-02T00:00:00Z",
+      "followers": 42604,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-03T00:00:00Z",
+      "followers": 42668,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-04T00:00:00Z",
+      "followers": 42722,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-05T00:00:00Z",
+      "followers": 42783,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-06T00:00:00Z",
+      "followers": 42828,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-07T00:00:00Z",
+      "followers": 42882,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-08T00:00:00Z",
+      "followers": 42940,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-09T00:00:00Z",
+      "followers": 43002,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-10T00:00:00Z",
+      "followers": 43067,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-11T00:00:00Z",
+      "followers": 43126,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-12T00:00:00Z",
+      "followers": 43184,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-13T00:00:00Z",
+      "followers": 43235,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-14T00:00:00Z",
+      "followers": 43295,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-15T00:00:00Z",
+      "followers": 43367,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-16T00:00:00Z",
+      "followers": 43436,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-17T00:00:00Z",
+      "followers": 43486,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-18T00:00:00Z",
+      "followers": 43533,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-19T00:00:00Z",
+      "followers": 43594,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-20T00:00:00Z",
+      "followers": 43658,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-21T00:00:00Z",
+      "followers": 43713,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-22T00:00:00Z",
+      "followers": 43782,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-23T00:00:00Z",
+      "followers": 43850,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-24T00:00:00Z",
+      "followers": 43915,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-25T00:00:00Z",
+      "followers": 43967,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-26T00:00:00Z",
+      "followers": 44018,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-27T00:00:00Z",
+      "followers": 44063,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-28T00:00:00Z",
+      "followers": 44116,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-29T00:00:00Z",
+      "followers": 44175,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-11-30T00:00:00Z",
+      "followers": 44245,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-01T00:00:00Z",
+      "followers": 44293,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-02T00:00:00Z",
+      "followers": 44400,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-03T00:00:00Z",
+      "followers": 44564,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-04T00:00:00Z",
+      "followers": 44665,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-05T00:00:00Z",
+      "followers": 44731,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-06T00:00:00Z",
+      "followers": 44791,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-07T00:00:00Z",
+      "followers": 44843,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-08T00:00:00Z",
+      "followers": 44908,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-09T00:00:00Z",
+      "followers": 44953,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-10T00:00:00Z",
+      "followers": 45020,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-11T00:00:00Z",
+      "followers": 45155,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-12T00:00:00Z",
+      "followers": 45303,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-13T00:00:00Z",
+      "followers": 45394,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-14T00:00:00Z",
+      "followers": 45445,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-15T00:00:00Z",
+      "followers": 45518,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-16T00:00:00Z",
+      "followers": 45579,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-17T00:00:00Z",
+      "followers": 45625,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-18T00:00:00Z",
+      "followers": 45678,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-19T00:00:00Z",
+      "followers": 45748,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-20T00:00:00Z",
+      "followers": 45881,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-21T00:00:00Z",
+      "followers": 46050,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-22T00:00:00Z",
+      "followers": 46141,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-23T00:00:00Z",
+      "followers": 46216,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-24T00:00:00Z",
+      "followers": 46279,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-25T00:00:00Z",
+      "followers": 46352,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-26T00:00:00Z",
+      "followers": 46424,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-27T00:00:00Z",
+      "followers": 46487,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-28T00:00:00Z",
+      "followers": 46554,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-29T00:00:00Z",
+      "followers": 46614,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-30T00:00:00Z",
+      "followers": 46684,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2025-12-31T00:00:00Z",
+      "followers": 46745,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-01T00:00:00Z",
+      "followers": 46817,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-02T00:00:00Z",
+      "followers": 46884,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-03T00:00:00Z",
+      "followers": 46944,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-04T00:00:00Z",
+      "followers": 46996,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-05T00:00:00Z",
+      "followers": 47049,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-06T00:00:00Z",
+      "followers": 47113,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-07T00:00:00Z",
+      "followers": 47273,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-08T00:00:00Z",
+      "followers": 47434,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-09T00:00:00Z",
+      "followers": 47505,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-10T00:00:00Z",
+      "followers": 47559,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-11T00:00:00Z",
+      "followers": 47606,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-12T00:00:00Z",
+      "followers": 47660,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-13T00:00:00Z",
+      "followers": 47713,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-14T00:00:00Z",
+      "followers": 47767,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-15T00:00:00Z",
+      "followers": 47829,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-16T00:00:00Z",
+      "followers": 47975,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-17T00:00:00Z",
+      "followers": 48127,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-18T00:00:00Z",
+      "followers": 48195,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-19T00:00:00Z",
+      "followers": 48262,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-20T00:00:00Z",
+      "followers": 48309,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-21T00:00:00Z",
+      "followers": 48366,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-22T00:00:00Z",
+      "followers": 48427,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-23T00:00:00Z",
+      "followers": 48485,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-24T00:00:00Z",
+      "followers": 48536,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-25T00:00:00Z",
+      "followers": 48593,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-26T00:00:00Z",
+      "followers": 48666,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-27T00:00:00Z",
+      "followers": 48728,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-28T00:00:00Z",
+      "followers": 48794,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-29T00:00:00Z",
+      "followers": 48865,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-30T00:00:00Z",
+      "followers": 48933,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-01-31T00:00:00Z",
+      "followers": 48989,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-01T00:00:00Z",
+      "followers": 49034,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-02T00:00:00Z",
+      "followers": 49125,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-03T00:00:00Z",
+      "followers": 49292,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-04T00:00:00Z",
+      "followers": 49428,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-05T00:00:00Z",
+      "followers": 49502,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-06T00:00:00Z",
+      "followers": 49559,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-07T00:00:00Z",
+      "followers": 49627,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-08T00:00:00Z",
+      "followers": 49711,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-09T00:00:00Z",
+      "followers": 49874,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-10T00:00:00Z",
+      "followers": 50003,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-11T00:00:00Z",
+      "followers": 50087,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-12T00:00:00Z",
+      "followers": 50245,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-13T00:00:00Z",
+      "followers": 50358,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-14T00:00:00Z",
+      "followers": 50413,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-15T00:00:00Z",
+      "followers": 50479,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-16T00:00:00Z",
+      "followers": 50536,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-17T00:00:00Z",
+      "followers": 50586,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-18T00:00:00Z",
+      "followers": 50645,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-19T00:00:00Z",
+      "followers": 50694,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-20T00:00:00Z",
+      "followers": 50757,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-21T00:00:00Z",
+      "followers": 50803,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-22T00:00:00Z",
+      "followers": 50860,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-23T00:00:00Z",
+      "followers": 50922,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-24T00:00:00Z",
+      "followers": 50968,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-25T00:00:00Z",
+      "followers": 51032,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-26T00:00:00Z",
+      "followers": 51136,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-27T00:00:00Z",
+      "followers": 51295,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-02-28T00:00:00Z",
+      "followers": 51386,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-01T00:00:00Z",
+      "followers": 51443,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-02T00:00:00Z",
+      "followers": 51494,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-03T00:00:00Z",
+      "followers": 51549,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-04T00:00:00Z",
+      "followers": 51617,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-05T00:00:00Z",
+      "followers": 51673,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-06T00:00:00Z",
+      "followers": 51741,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-07T00:00:00Z",
+      "followers": 51869,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-08T00:00:00Z",
+      "followers": 52022,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-09T00:00:00Z",
+      "followers": 52111,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-10T00:00:00Z",
+      "followers": 52212,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-13T00:00:00Z",
+      "followers": 52614,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-14T00:00:00Z",
+      "followers": 52779,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-15T00:00:00Z",
+      "followers": 52881,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-16T00:00:00Z",
+      "followers": 52945,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-17T00:00:00Z",
+      "followers": 53013,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-18T00:00:00Z",
+      "followers": 53086,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-19T00:00:00Z",
+      "followers": 53137,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-20T00:00:00Z",
+      "followers": 53183,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-21T00:00:00Z",
+      "followers": 53233,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-22T00:00:00Z",
+      "followers": 53281,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-23T00:00:00Z",
+      "followers": 53346,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-24T00:00:00Z",
+      "followers": 53408,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-25T00:00:00Z",
+      "followers": 53460,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-26T00:00:00Z",
+      "followers": 53526,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-27T00:00:00Z",
+      "followers": 53594,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-28T00:00:00Z",
+      "followers": 53644,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-29T00:00:00Z",
+      "followers": 53707,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-30T00:00:00Z",
+      "followers": 53775,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-03-31T00:00:00Z",
+      "followers": 53823,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-01T00:00:00Z",
+      "followers": 53893,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-02T00:00:00Z",
+      "followers": 53967,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-03T00:00:00Z",
+      "followers": 54015,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-04T00:00:00Z",
+      "followers": 54061,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-05T00:00:00Z",
+      "followers": 54116,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-06T00:00:00Z",
+      "followers": 54281,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-07T00:00:00Z",
+      "followers": 54454,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-08T00:00:00Z",
+      "followers": 54511,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-09T00:00:00Z",
+      "followers": 54577,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-10T00:00:00Z",
+      "followers": 54625,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-11T00:00:00Z",
+      "followers": 54690,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-12T00:00:00Z",
+      "followers": 54754,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-13T00:00:00Z",
+      "followers": 54802,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-14T00:00:00Z",
+      "followers": 54879,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-15T00:00:00Z",
+      "followers": 55050,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-16T00:00:00Z",
+      "followers": 55204,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-17T00:00:00Z",
+      "followers": 55253,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-18T00:00:00Z",
+      "followers": 55327,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-19T00:00:00Z",
+      "followers": 55396,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-20T00:00:00Z",
+      "followers": 55451,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-21T00:00:00Z",
+      "followers": 55509,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-22T00:00:00Z",
+      "followers": 55565,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-23T00:00:00Z",
+      "followers": 55625,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-24T00:00:00Z",
+      "followers": 55680,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-25T00:00:00Z",
+      "followers": 55751,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-26T00:00:00Z",
+      "followers": 55821,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-27T00:00:00Z",
+      "followers": 55869,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-28T00:00:00Z",
+      "followers": 55942,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-29T00:00:00Z",
+      "followers": 56007,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-04-30T00:00:00Z",
+      "followers": 56076,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-01T00:00:00Z",
+      "followers": 56143,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-02T00:00:00Z",
+      "followers": 56201,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-03T00:00:00Z",
+      "followers": 56268,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-04T00:00:00Z",
+      "followers": 56342,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-05T00:00:00Z",
+      "followers": 56395,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-06T00:00:00Z",
+      "followers": 56464,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-07T00:00:00Z",
+      "followers": 56525,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-08T00:00:00Z",
+      "followers": 56626,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-09T00:00:00Z",
+      "followers": 56784,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-10T00:00:00Z",
+      "followers": 56910,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-11T00:00:00Z",
+      "followers": 56963,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-12T00:00:00Z",
+      "followers": 57033,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-13T00:00:00Z",
+      "followers": 57103,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-14T00:00:00Z",
+      "followers": 57178,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-15T00:00:00Z",
+      "followers": 57349,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-16T00:00:00Z",
+      "followers": 57475,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-17T00:00:00Z",
+      "followers": 57534,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-18T00:00:00Z",
+      "followers": 57597,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-19T00:00:00Z",
+      "followers": 57653,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-20T00:00:00Z",
+      "followers": 57699,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-21T00:00:00Z",
+      "followers": 57770,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-22T00:00:00Z",
+      "followers": 57820,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-23T00:00:00Z",
+      "followers": 57916,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-24T00:00:00Z",
+      "followers": 58085,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-25T00:00:00Z",
+      "followers": 58196,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-26T00:00:00Z",
+      "followers": 58311,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-27T00:00:00Z",
+      "followers": 58477,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-28T00:00:00Z",
+      "followers": 58586,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-29T00:00:00Z",
+      "followers": 58632,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-30T00:00:00Z",
+      "followers": 58705,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-05-31T00:00:00Z",
+      "followers": 58753,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-01T00:00:00Z",
+      "followers": 60803,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-02T00:00:00Z",
+      "followers": 63201,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-03T00:00:00Z",
+      "followers": 64608,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-04T00:00:00Z",
+      "followers": 65012,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-05T00:00:00Z",
+      "followers": 65077,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-06T00:00:00Z",
+      "followers": 65136,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-07T00:00:00Z",
+      "followers": 65205,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-08T00:00:00Z",
+      "followers": 65253,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-09T00:00:00Z",
+      "followers": 65305,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-10T00:00:00Z",
+      "followers": 65370,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-11T00:00:00Z",
+      "followers": 65425,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-12T00:00:00Z",
+      "followers": 65487,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-13T00:00:00Z",
+      "followers": 65546,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-14T00:00:00Z",
+      "followers": 65607,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-15T00:00:00Z",
+      "followers": 65665,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-16T00:00:00Z",
+      "followers": 65732,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-17T00:00:00Z",
+      "followers": 65787,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-18T00:00:00Z",
+      "followers": 65853,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-19T00:00:00Z",
+      "followers": 65977,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-20T00:00:00Z",
+      "followers": 66129,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-21T00:00:00Z",
+      "followers": 66208,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-22T00:00:00Z",
+      "followers": 66258,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-23T00:00:00Z",
+      "followers": 66307,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-24T00:00:00Z",
+      "followers": 66368,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-25T00:00:00Z",
+      "followers": 66436,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-26T00:00:00Z",
+      "followers": 66486,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-27T00:00:00Z",
+      "followers": 66538,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-28T00:00:00Z",
+      "followers": 66597,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-29T00:00:00Z",
+      "followers": 66664,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-06-30T00:00:00Z",
+      "followers": 66739,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-01T00:00:00Z",
+      "followers": 66799,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-02T00:00:00Z",
+      "followers": 66853,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-03T00:00:00Z",
+      "followers": 66901,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-04T00:00:00Z",
+      "followers": 67049,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-05T00:00:00Z",
+      "followers": 67201,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-06T00:00:00Z",
+      "followers": 67254,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-07T00:00:00Z",
+      "followers": 67299,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-08T00:00:00Z",
+      "followers": 67360,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-09T00:00:00Z",
+      "followers": 67423,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-10T00:00:00Z",
+      "followers": 67597,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-11T00:00:00Z",
+      "followers": 67749,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-12T00:00:00Z",
+      "followers": 67815,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-13T00:00:00Z",
+      "followers": 67864,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-14T00:00:00Z",
+      "followers": 67935,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-15T00:00:00Z",
+      "followers": 67995,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-16T00:00:00Z",
+      "followers": 68066,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-17T00:00:00Z",
+      "followers": 68128,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-18T00:00:00Z",
+      "followers": 68187,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-19T00:00:00Z",
+      "followers": 68245,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-20T00:00:00Z",
+      "followers": 68296,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-21T00:00:00Z",
+      "followers": 68343,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-22T00:00:00Z",
+      "followers": 68416,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-23T00:00:00Z",
+      "followers": 68475,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-24T00:00:00Z",
+      "followers": 68545,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-25T00:00:00Z",
+      "followers": 68602,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-26T00:00:00Z",
+      "followers": 68649,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-27T00:00:00Z",
+      "followers": 68713,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-28T00:00:00Z",
+      "followers": 68760,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-29T00:00:00Z",
+      "followers": 68809,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-30T00:00:00Z",
+      "followers": 68871,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-07-31T00:00:00Z",
+      "followers": 68925,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-01T00:00:00Z",
+      "followers": 69000,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-02T00:00:00Z",
+      "followers": 69078,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-03T00:00:00Z",
+      "followers": 69246,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-04T00:00:00Z",
+      "followers": 69379,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-05T00:00:00Z",
+      "followers": 69448,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-06T00:00:00Z",
+      "followers": 69500,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-07T00:00:00Z",
+      "followers": 69561,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-08T00:00:00Z",
+      "followers": 69667,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-09T00:00:00Z",
+      "followers": 69825,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-10T00:00:00Z",
+      "followers": 69948,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-11T00:00:00Z",
+      "followers": 70023,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-12T00:00:00Z",
+      "followers": 70077,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-13T00:00:00Z",
+      "followers": 70141,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-14T00:00:00Z",
+      "followers": 70204,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-15T00:00:00Z",
+      "followers": 70271,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-16T00:00:00Z",
+      "followers": 70345,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-17T00:00:00Z",
+      "followers": 70396,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-18T00:00:00Z",
+      "followers": 70447,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-19T00:00:00Z",
+      "followers": 70512,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "followers": 70562,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-21T00:00:00Z",
+      "followers": 70612,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "followers": 70659,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "followers": 70704,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-24T00:00:00Z",
+      "followers": 70763,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-25T00:00:00Z",
+      "followers": 70826,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-26T00:00:00Z",
+      "followers": 70939,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-27T00:00:00Z",
+      "followers": 71091,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-28T00:00:00Z",
+      "followers": 71198,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-29T00:00:00Z",
+      "followers": 71264,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-30T00:00:00Z",
+      "followers": 71322,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-08-31T00:00:00Z",
+      "followers": 71388,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-01T00:00:00Z",
+      "followers": 71461,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-02T00:00:00Z",
+      "followers": 71529,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-03T00:00:00Z",
+      "followers": 71593,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-04T00:00:00Z",
+      "followers": 71658,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-05T00:00:00Z",
+      "followers": 71731,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-06T00:00:00Z",
+      "followers": 71789,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-07T00:00:00Z",
+      "followers": 71850,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-08T00:00:00Z",
+      "followers": 71914,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-09T00:00:00Z",
+      "followers": 71987,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-10T00:00:00Z",
+      "followers": 72142,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-11T00:00:00Z",
+      "followers": 72289,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-12T00:00:00Z",
+      "followers": 72354,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-13T00:00:00Z",
+      "followers": 72408,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-14T00:00:00Z",
+      "followers": 72475,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-15T00:00:00Z",
+      "followers": 72537,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-16T00:00:00Z",
+      "followers": 72667,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-17T00:00:00Z",
+      "followers": 72815,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-18T00:00:00Z",
+      "followers": 72905,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-19T00:00:00Z",
+      "followers": 72971,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-20T00:00:00Z",
+      "followers": 73045,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-21T00:00:00Z",
+      "followers": 73105,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-22T00:00:00Z",
+      "followers": 73164,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-23T00:00:00Z",
+      "followers": 73212,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-24T00:00:00Z",
+      "followers": 73258,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-25T00:00:00Z",
+      "followers": 73316,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-26T00:00:00Z",
+      "followers": 73371,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-27T00:00:00Z",
+      "followers": 73427,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-28T00:00:00Z",
+      "followers": 73574,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-29T00:00:00Z",
+      "followers": 73745,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-09-30T00:00:00Z",
+      "followers": 73815,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-01T00:00:00Z",
+      "followers": 73877,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-02T00:00:00Z",
+      "followers": 73951,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-03T00:00:00Z",
+      "followers": 74026,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-04T00:00:00Z",
+      "followers": 74091,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-05T00:00:00Z",
+      "followers": 74144,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-06T00:00:00Z",
+      "followers": 74190,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-07T00:00:00Z",
+      "followers": 74258,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-08T00:00:00Z",
+      "followers": 74317,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-09T00:00:00Z",
+      "followers": 74381,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-10T00:00:00Z",
+      "followers": 74454,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-11T00:00:00Z",
+      "followers": 74504,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-12T00:00:00Z",
+      "followers": 74583,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-13T00:00:00Z",
+      "followers": 74747,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-14T00:00:00Z",
+      "followers": 74891,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-15T00:00:00Z",
+      "followers": 74938,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-16T00:00:00Z",
+      "followers": 74994,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-17T00:00:00Z",
+      "followers": 75049,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-18T00:00:00Z",
+      "followers": 75114,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-19T00:00:00Z",
+      "followers": 75185,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-20T00:00:00Z",
+      "followers": 75240,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-21T00:00:00Z",
+      "followers": 75305,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-22T00:00:00Z",
+      "followers": 75359,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-23T00:00:00Z",
+      "followers": 75432,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-24T00:00:00Z",
+      "followers": 75502,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-25T00:00:00Z",
+      "followers": 75563,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-26T00:00:00Z",
+      "followers": 75622,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-27T00:00:00Z",
+      "followers": 75676,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-28T00:00:00Z",
+      "followers": 75731,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-29T00:00:00Z",
+      "followers": 75805,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-30T00:00:00Z",
+      "followers": 75890,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-10-31T00:00:00Z",
+      "followers": 76050,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-01T00:00:00Z",
+      "followers": 76197,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-02T00:00:00Z",
+      "followers": 76294,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-03T00:00:00Z",
+      "followers": 76455,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-04T00:00:00Z",
+      "followers": 76581,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-05T00:00:00Z",
+      "followers": 76631,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-06T00:00:00Z",
+      "followers": 76687,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-07T00:00:00Z",
+      "followers": 76755,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "followers": 76819,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-09T00:00:00Z",
+      "followers": 76887,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-10T00:00:00Z",
+      "followers": 76938,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-11T00:00:00Z",
+      "followers": 76999,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-12T00:00:00Z",
+      "followers": 77072,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-13T00:00:00Z",
+      "followers": 77130,
+      "source": "fixture daily counts"
+    },
+    {
+      "at": "2026-11-14T00:00:00Z",
+      "followers": 77196,
+      "source": "fixture daily counts"
+    }
+  ],
+  "sources": [
+    {
+      "what": "posts and comments",
+      "via": "make_fixtures.py",
+      "cost_usd": 0
+    }
+  ],
+  "spend_ceiling_usd": 3,
+  "comments_read": {
+    "posts": 15,
+    "per_post": 30,
+    "replies_read": true
+  },
+  "user": {
+    "handle": null,
+    "niche": "SaaS founders"
+  }
+}
