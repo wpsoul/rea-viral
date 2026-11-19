@@ -96,8 +96,18 @@ format's recipe has beats from watched videos. Every result is checked against t
 
 ## With a planner connector
 
-The skill knows a planner connector by its tools, not by its name, and works the same without one. The example is the
-[GreenLight Pulse](https://greenlightdash.pro/) connector:
+The skill knows a planner connector by its tools, not by its name, and works the same without one. The example is
+**GreenLight Pulse**, a planner your agent works in: it keeps the reports, the saved formats (its Format Radar), the
+trends, your drafts and your posting plan, and shows them on a page inside the chat.
+
+- **The connector:** `https://mcp.greenlightdash.pro/pulse`. Add this address as a custom connector in Claude or
+  ChatGPT (their connector settings, "Add custom connector"), then ask your agent to open Pulse. Looking around needs
+  no sign-in; the first thing you save asks you to sign in with Google, and everything is kept in a folder of your own
+  Google Drive, not on our server.
+- **The app:** [GreenLight Dash](https://greenlightdash.pro/) has the same Pulse built in, with Format Radar and
+  Reports, and stays in step with the chat planner.
+
+What the skill hands to it:
 
 | A tool that | Pulse's tool | What the skill sends |
 |---|---|---|
