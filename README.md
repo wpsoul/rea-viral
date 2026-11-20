@@ -87,7 +87,7 @@ format's recipe has beats from watched videos. Every result is checked against t
 
 - **Basic**: an HTML page rendered to MP4 in a headless browser, frame by frame. The page stays, to change and render
   again.
-- **Standard**: an editable video project, your pick of two: [GreenLight Motion](https://greenlightdash.pro/) (a page
+- **Standard**: an editable video project, your pick of two: [GreenLight Motion](https://www.npmjs.com/package/greenlight-motion) (the open [GreenLight Motion Engine](https://github.com/wpsoul/greenlight-motion-engine); also a chat connector at `https://mcp.greenlightdash.pro/motion`) (a page
   with options and a Render button; the project also opens in GreenLight Dash) or HyperFrames (HTML scenes, with its
   own agent skills and preview).
 - **Advanced**: [GreenLight Dash](https://greenlightdash.pro/)'s Rebuild by Style (PRO): the reference post's style
