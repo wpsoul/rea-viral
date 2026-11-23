@@ -37,7 +37,7 @@ import sys
 
 sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill folder
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import SKILL_VERSION, die, iso, now_utc, read_csv, read_json, write_text  # noqa: E402
+from common import SKILL_VERSION, die, iso, now_utc, read_csv, read_json, upgrade_radar, write_text  # noqa: E402
 import validate  # noqa: E402
 import brief  # noqa: E402
 import hand_over  # noqa: E402
@@ -132,7 +132,7 @@ def page_data(folder, light=False):
     an = load_opt(folder, "analysis.json")
     if an is None:
         die("no analysis.json: run analyze.py first", 1)
-    radar = load_opt(folder, "radar.json")
+    radar = upgrade_radar(load_opt(folder, "radar.json"))
     com = load_opt(folder, "comments.json")
     wr = load_opt(folder, "writing.json")
     problems = [p for p in (stale(folder, an, "analysis.json", "analyze.py"),
@@ -204,6 +204,7 @@ def page_data(folder, light=False):
         "voice": voice_view(folder),
         "videos": vids,
         "not_working": nw,
+        "limits": page_kit.dedupe_limits(page_kit.run_limits("account", folder), findings),
         "missing_files": None,
         "cost": cost(folder),
         "pictures": pics.summary(),
@@ -214,7 +215,7 @@ def page_data(folder, light=False):
 # ---------------------------------------------------------------------------------------------- what did not work
 
 def not_working(an, radar, wr, vids):
-    """What did not work, from the scripts' own files: the formats under the account's usual or weakening (radar.json),
+    """What did not work, from the scripts' own files: the formats under the account's usual or fading (radar.json),
     the flops and what the watched ones show (analysis.json, videos/*/notes.json), and what sinks in the words
     (writing.json). MEASURED and SEEN only; the agent's reading of it is findings.json `did_not_work`. Says "not
     enough data" where that is the truth, and never names a cause: a flop shows what was there, not why it flopped."""
@@ -237,7 +238,7 @@ def not_working(an, radar, wr, vids):
             if f.get("quadrant") == "too_few" or f.get("lift") is None:
                 continue
             under = f["lift"] < 1.0
-            weak = f.get("direction_label") == "weakening"
+            weak = f.get("direction_label") == "fading"
             if not (under or weak):
                 continue
             ids = set(f.get("post_ids") or [])
@@ -247,7 +248,7 @@ def not_working(an, radar, wr, vids):
                 "lift": f["lift"], "share": f.get("share"), "posts_total": f.get("posts_total"),
                 "posts_scored": f.get("posts_scored"), "hit_rate": f.get("hit_rate"), "direction": f.get("direction"),
                 "direction_label": f.get("direction_label"), "few_posts": bool(f.get("few_posts")),
-                "under": under, "weakening": weak, "flops": sum(1 for i in flops_all if i in ids),
+                "under": under, "fading": weak, "flops": sum(1 for i in flops_all if i in ids),
                 "lowest": [{"post_id": i, "ratio": ratio[i]} for i in scored[:3]],
                 "evidence": "MEASURED", "from": "radar.json#formats.%s" % f["id"]})
         formats.sort(key=lambda x: x["lift"])
@@ -451,16 +452,21 @@ def account_md(d):
     outl = an.get("outliers") or []
     L.append("| Which posts beat the account's usual? | %d at 2x or more: %s | posts_scored.csv |" % (
         len(outl), (", ".join(outl[:5]) + (", …" if len(outl) > 5 else "")) or "none"))
-    for q in ("scale_it", "underused", "fading", "drop"):
-        names = [f["name"] + (" (few posts)" if f.get("few_posts") else "") for f in fm if f["quadrant"] == q]
+    for q in ("scale_it", "underused", "overused", "drop"):
+        names = [f["name"] + (" (few posts)" if f.get("few_posts") else "") + (" (fading)" if f.get("direction_label") == "fading" else "")
+                 for f in fm if f["quadrant"] == q and not (q in ("scale_it", "underused") and f.get("direction_label") == "fading")]
         if names:
-            L.append("| Formats to %s | %s | radar.json, formats/*.md |" % (
-                {"scale_it": "scale", "underused": "use more (underused)", "fading": "watch (fading)", "drop": "drop"}[q],
+            L.append("| %s | %s | radar.json, formats/*.md |" % (
+                {"scale_it": "Formats to scale (Scale it: used a lot, lifting)", "underused": "Formats to use more (Underused: rare, lifting)",
+                 "overused": "Used a lot, lifting little (Overused)", "drop": "Formats to drop (Drop: rare, lifting little)"}[q],
                 "; ".join(names)))
+    fad = [f["name"] for f in fm if f.get("direction_label") == "fading"]
+    if fad:
+        L.append("| Fading over the window (later posts under earlier ones) | %s | radar.json#formats.<id>.direction |" % "; ".join(fad))
     nfl, wd = nw.get("flops") or {}, nw.get("words") or {}
     dnw = []
     if nw.get("formats"):
-        dnw.append("formats under its usual or weakening: " + "; ".join(
+        dnw.append("formats under its usual or fading: " + "; ".join(
             "%s %s" % (f["name"], xr(f["lift"])) + (" (few posts)" if f.get("few_posts") else "") for f in nw["formats"]))
     elif nw.get("formats_note"):
         dnw.append(nw["formats_note"])
@@ -498,8 +504,8 @@ def account_md(d):
         L.append("| How does it write? | %s | writing.json, voice.md |" % short)
     if fi.get("plays"):
         L.append("| What should the user do? | %s | findings.json#plays |" % "; ".join(p["title"] for p in fi["plays"][:5]))
-    L.append("| What was not read? | %s | findings.json#not_read |" % (
-        "; ".join(n["what"] for n in (fi.get("not_read") or [])) or "nothing listed"))
+    L.append("| What was not read? | %s | findings.json#not_read and this run's own lines below |" % (
+        "; ".join([n["what"] for n in (fi.get("not_read") or [])] + [n["what"] for n in d.get("limits") or []]) or "nothing listed"))
     L.append("| What did it cost? | $%.4f | cost.csv |" % d["cost"]["total_usd"])
     L.append("")
     L.append("## Layer 2: detail")
@@ -608,11 +614,13 @@ def account_md(d):
                 L.append("   Do not copy: %s" % p["dont_copy"])
             L.append("   Prompt: %s" % p.get("prompt", "").replace("\n", " "))
         L.append("")
-    if fi.get("not_read"):
+    if fi.get("not_read") or d.get("limits"):
         L.append("### Not read")
         L.append("")
-        for n in fi["not_read"]:
+        for n in fi.get("not_read") or []:
             L.append("- %s: %s" % (n["what"], n["why"]))
+        for n in d.get("limits") or []:
+            L.append("- [MEASURED] %s: %s" % (n["what"], n["why"]))
         L.append("")
     L.append("### Files")
     L.append("")
@@ -685,7 +693,7 @@ td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
 .num{text-align:right;white-space:nowrap}
 .q{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px;color:var(--accent-text)}
-.q.scale_it{background:var(--scale)}.q.underused{background:var(--under)}.q.fading{background:var(--fading)}.q.drop{background:var(--drop)}
+.q.scale_it{background:var(--scale)}.q.underused{background:var(--under)}.q.overused,.q.fading{background:var(--fading)}.q.drop{background:var(--drop)}
 .q.too_few{background:var(--faint)}
 svg text{font-family:inherit;fill:var(--muted);font-size:11px}
 svg .axis{stroke:var(--line)}
@@ -762,6 +770,7 @@ function sv(tag, attrs){
   for (var k in attrs || {}) { if (attrs[k] != null) { if (k === 'text') n.textContent = attrs[k]; else n.setAttribute(k, attrs[k]); } }
   return n;
 }
+/*__LABELS_JS__*/
 function safeHref(u){ u = String(u || ''); return /^https?:\/\//i.test(u) ? u : (/^[\w./-]+$/.test(u) && u.indexOf('..') < 0 ? u : null); }
 function safeSrc(u){ u = String(u || ''); if (/^https:\/\//i.test(u) || /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u)) return u; return (/^[\w./-]+$/.test(u) && u.indexOf('..') < 0) ? u : null; }
 function num(n){ if (n == null) return '—'; var a = Math.abs(n);
@@ -773,8 +782,8 @@ function date(s){ return s ? String(s).slice(0, 10) : '—'; }
 function chip(ev){ return el('span', {cls: 'ev ' + (ev || 'NONE'), text: ev || 'UNKNOWN', title: EVTIP[ev] || 'not known'}); }
 var EVTIP = {MEASURED: 'Computed by the skill\'s scripts from the data files', SEEN: 'A frame, a comment or a row shows it (linked)', INFERRED: 'Reasoned, with the basis written out'};
 var POSTS = {}; (D.posts || []).forEach(function(p){ POSTS[p.id] = p; });
-var QN = {scale_it: 'Scale it', underused: 'Underused', fading: 'Fading', drop: 'Drop', too_few: 'Too few posts'};
-var QC = {scale_it: 'var(--scale)', underused: 'var(--under)', fading: 'var(--fading)', drop: 'var(--drop)', too_few: 'var(--faint)'};
+var QN = {scale_it: 'Scale it', underused: 'Underused', overused: 'Overused', fading: 'Overused', drop: 'Drop', too_few: 'Too few posts'};
+var QC = {scale_it: 'var(--scale)', underused: 'var(--under)', overused: 'var(--fading)', fading: 'var(--fading)', drop: 'var(--drop)', too_few: 'var(--faint)'};
 var A = D.analysis || {}, R = D.radar || {}, F = D.findings || {}, C = D.comments || null, acc = D.account || {};
 var app = document.getElementById('app');
 
@@ -837,17 +846,17 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
 /* ---------- what did not work */
 (function(){
   var NW = D.not_working || {}, FL = NW.flops || {}, WD = NW.words || {};
-  var s = section('not-working', 'What did not work', 'What sits under the account\'s own usual: its formats under 1× or weakening, its flops, and what sinks in its words. A flop shows what was there, never on its own why it flopped.');
+  var s = section('not-working', 'What did not work', 'What sits under the account\'s own usual: its formats under 1× or fading, its flops, and what sinks in its words. A flop shows what was there, never on its own why it flopped.');
   var p = el('div', {cls: 'panel'}); s.appendChild(p);
   if (NW.note) p.appendChild(el('div', {cls: 'empty', style: 'margin-bottom:8px', text: NW.note}));
   var mine = el('div'); (F.did_not_work || []).forEach(function(c){ mine.appendChild(claim(c)); drawn.not_working++; });
   if ((F.did_not_work || []).length) p.appendChild(mine);
-  p.appendChild(el('h3', {text: 'Formats under its usual or weakening', style: 'margin-top:12px'}));
+  p.appendChild(el('h3', {text: 'Formats under its usual or fading', style: 'margin-top:12px'}));
   if (!(NW.formats || []).length) p.appendChild(el('div', {cls: 'empty', text: NW.formats_note || 'No format sits under the account\'s usual or weakens.'}));
   (NW.formats || []).forEach(function(f){
     p.appendChild(el('div', {cls: 'fmt'},
       el('div', {cls: 'row'}, el('a', {href: '#fmt-' + f.id, text: f.name}), el('span', {cls: 'q ' + f.quadrant, text: QN[f.quadrant]}), f.few_posts ? el('span', {cls: 'pill', text: 'few posts: not a finding on its own'}) : null),
-      el('div', {cls: 'small', style: 'margin-top:4px'}, chip('MEASURED'), f.posts_scored + ' scored posts at ' + xr(f.lift) + ' the account\'s own usual' + (f.under ? '' : ' (over 1×, but weakening)') +
+      el('div', {cls: 'small', style: 'margin-top:4px'}, chip('MEASURED'), f.posts_scored + ' scored posts at ' + xr(f.lift) + ' the account\'s own usual' + (f.under ? '' : ' (over 1×, but fading)') +
         (f.direction != null ? '; direction ' + xr(f.direction) + ' (' + f.direction_label + ')' : '; direction: not enough posts') + (f.flops ? '; ' + f.flops + ' of the ' + FL.count + ' flops' : '') + '. ', el('span', {cls: 'muted', text: 'From ' + f.from})),
       el('div', {cls: 'thumbs'}, (f.lowest || []).map(function(x){ return thumb(x.post_id, x.ratio); }))));
     drawn.not_working++;
@@ -943,12 +952,15 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
   function Y(v){ return T + (H - T - B) * (yhi - Math.log2(Math.max(v, Math.pow(2, ylo)))) / (yhi - ylo); }
   var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, 'class': 'chart', role: 'img', 'aria-label': 'Format map', 'data-chart': 'radar'});
   var xs = (R.rules || {}).often_share || 0.15, ys = (R.rules || {}).strong_lift || 1;
-  svg.appendChild(sv('rect', {x: L, y: T, width: W - L - Rr, height: H - T - B, fill: 'var(--panel2)', rx: 8}));
+  svg.appendChild(sv('rect', {x: L, y: T, width: W - L - Rr, height: H - T - B, fill: 'var(--panel2)', rx: 8, 'class': 'plot'}));
+  var corners = [];
   svg.appendChild(sv('line', {x1: X(xs), x2: X(xs), y1: T, y2: H - B, 'class': 'split'}));
   svg.appendChild(sv('line', {x1: L, x2: W - Rr, y1: Y(ys), y2: Y(ys), 'class': 'split'}));
   [['Scale it', W - Rr - 8, T + 18, 'end', 'var(--scale)'], ['Underused', L + 8, T + 18, 'start', 'var(--under)'],
-   ['Fading', W - Rr - 8, H - B - 10, 'end', 'var(--fading)'], ['Drop', L + 8, H - B - 10, 'start', 'var(--drop)']].forEach(function(q){
-    svg.appendChild(sv('text', {x: q[1], y: q[2], 'text-anchor': q[3], text: q[0], fill: q[4], 'font-weight': 800, 'font-size': 13})); });
+   ['Overused', W - Rr - 8, H - B - 10, 'end', 'var(--fading)'], ['Drop', L + 8, H - B - 10, 'start', 'var(--drop)']].forEach(function(q){
+    svg.appendChild(sv('text', {x: q[1], y: q[2], 'text-anchor': q[3], text: q[0], fill: q[4], 'font-weight': 800, 'font-size': 13}));
+    corners.push(cornerBox(q[1], q[2], q[0], q[3])); });
+  var numOf = {}; placed.forEach(function(f, i){ numOf[f.id] = i + 1; });
   for (var e = ylo; e <= yhi; e++){ svg.appendChild(sv('text', {x: L - 6, y: Y(Math.pow(2, e)) + 4, 'text-anchor': 'end', text: (e >= 0 ? Math.pow(2, e) : '1/' + Math.pow(2, -e)) + '×'})); }
   [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].forEach(function(v){ if (v > xmax) return; svg.appendChild(sv('text', {x: X(v), y: H - B + 16, 'text-anchor': 'middle', text: Math.round(v * 100) + '%'})); });
   svg.appendChild(sv('text', {x: (L + W - Rr) / 2, y: H - 8, 'text-anchor': 'middle', text: 'share of posts'}));
@@ -961,30 +973,22 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
     var r = 9 + 24 * Math.sqrt(Math.max(0, Math.min(1, n)));
     var cx = X(f.share), cy = Y(f.lift), g = sv('g', {'data-format': f.id});
     g.appendChild(sv('circle', {cx: cx, cy: cy, r: r, fill: QC[f.quadrant], 'fill-opacity': pull.level === 'none' ? 0.08 : 0.28, stroke: QC[f.quadrant], 'stroke-width': 2}));
+    var len = 0;
     if (f.direction != null){
-      var len = Math.max(-1, Math.min(1, Math.log2(f.direction))) * 26;
+      len = Math.max(-1, Math.min(1, Math.log2(f.direction))) * 26;
       if (Math.abs(len) > 3){ var y2 = cy - len; g.appendChild(sv('line', {x1: cx, y1: cy, x2: cx, y2: y2, stroke: 'var(--text)', 'stroke-width': 2}));
         g.appendChild(sv('path', {d: 'M' + (cx - 5) + ' ' + (y2 + (len > 0 ? 6 : -6)) + 'L' + cx + ' ' + y2 + 'L' + (cx + 5) + ' ' + (y2 + (len > 0 ? 6 : -6)), fill: 'none', stroke: 'var(--text)', 'stroke-width': 2})); }
     }
-    labels.push({cx: cx, cy: cy, r: r, name: f.name.length > 26 ? f.name.slice(0, 25) + '…' : f.name, g: g});
+    bubbleNumber(g, cx, cy, numOf[f.id], r, len);
+    labels.push({cx: cx, cy: cy, r: r, name: f.name.length > 26 ? f.name.slice(0, 25) + '…' : f.name, g: g, n: numOf[f.id], full: f.name});
     g.appendChild(sv('title', {text: f.name + ' · ' + QN[f.quadrant] + ' · ' + pct(f.share) + ' of posts · lift ' + xr(f.lift) + ' · hit rate ' + pct(f.hit_rate) + ' · ' + (pull.label || '')}));
     svg.appendChild(g); drawn.radar++;
   });
-  // Labels: right of the bubble, or left of it in the right half; pushed down when they would overlap.
-  var taken = [];
-  labels.sort(function(a, b){ return a.cy - b.cy; }).forEach(function(l){
-    var w = l.name.length * 6.6, left = l.cx > (L + W - Rr) / 2;
-    var x = left ? l.cx - l.r - 6 - w : l.cx + l.r + 6, y = l.cy + 4;
-    for (var k = 0; k < 12; k++){
-      var hit = taken.some(function(t){ return x < t.x + t.w && t.x < x + w && Math.abs(t.y - y) < 15; });
-      if (!hit) break; y += 15;
-    }
-    taken.push({x: x, y: y, w: w});
-    l.g.appendChild(sv('text', {x: x, y: y, text: l.name, fill: 'var(--text)', 'font-weight': 700, 'font-size': 12}));
-  });
-  p.appendChild(el('div', {cls: 'panel'}, svg));
-  var tbl = el('table', null, el('tr', null, el('th', {text: 'Format'}), el('th', {text: 'Corner'}), el('th', {cls: 'num', text: 'Posts'}), el('th', {cls: 'num', text: 'Lift'}), el('th', {cls: 'num', text: 'Hits'}), el('th', {text: 'Direction'})));
-  fm.forEach(function(f){ tbl.appendChild(el('tr', null, el('td', null, el('a', {href: '#fmt-' + f.id, text: f.name})), el('td', null, el('span', {cls: 'q ' + f.quadrant, text: QN[f.quadrant]})),
+  var off = placeLabels(labels, {x0: L, y0: T, x1: W - Rr, y1: H - B}, corners);
+  drawn.labels_off = off.length;
+  p.appendChild(el('div', {cls: 'panel'}, svg, off.length ? el('div', {cls: 'small muted', style: 'margin-top:6px', text: 'Named by number (no room beside the bubble): ' + off.sort(function(a, b){ return a.n - b.n; }).map(function(l){ return l.n + ' ' + l.full; }).join(' · ')}) : null));
+  var tbl = el('table', null, el('tr', null, el('th', {cls: 'num', text: '#'}), el('th', {text: 'Format'}), el('th', {text: 'Corner'}), el('th', {cls: 'num', text: 'Posts'}), el('th', {cls: 'num', text: 'Lift'}), el('th', {cls: 'num', text: 'Hits'}), el('th', {text: 'Direction'})));
+  fm.forEach(function(f){ tbl.appendChild(el('tr', null, el('td', {cls: 'num muted', text: numOf[f.id] || ''}), el('td', null, el('a', {href: '#fmt-' + f.id, text: f.name})), el('td', null, el('span', {cls: 'q ' + f.quadrant, text: QN[f.quadrant]})),
     el('td', {cls: 'num', text: f.posts_total + ' · ' + pct(f.share)}), el('td', {cls: 'num', text: xr(f.lift)}), el('td', {cls: 'num', text: pct(f.hit_rate)}),
     el('td', {cls: 'small', text: f.direction == null ? 'not enough posts' : xr(f.direction) + ' ' + (f.direction_label || '')}))); });
   var un = R.unformatted || {};
@@ -1067,7 +1071,7 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
     if (!col[1].length) pn.appendChild(el('div', {cls: 'empty', text: 'No scored posts.'}));
     col[1].forEach(function(x){
       pn.appendChild(el('div', {cls: 'fl'}, el('div', {cls: 'r', text: xr(x.ratio)}), el('div', {cls: 't'}, '"' + (x.first_line || '') + '"',
-        el('div', {cls: 'small muted'}, postLink(x.post_id), ' · ' + (x.chars != null ? x.chars + ' characters' : '') + (x.openings && x.openings.length ? ' · ' + x.openings.map(openLabel).join(', ') : ''))))); drawn.first_lines++; });
+        el('div', {cls: 'small muted'}, postLink(x.post_id), ' · ' + (x.chars != null ? x.chars + ' characters' : '') + (x.openings && x.openings.length ? ' · ' + x.openings.map(openLabel).join(', ') : '') + (x.first_part_only ? ' · thread: first part only' : ''))))); drawn.first_lines++; });
     g.appendChild(pn);
   });
   s.appendChild(g);
@@ -1165,7 +1169,7 @@ function thumb(id, ratio){
       el('div', {cls: 'row'}, el('strong', null, postLink(id)), el('span', {cls: 'pill', text: (role[id] || 'read') + ' · ' + xr(q.ratio)}), el('span', {cls: 'pill', text: num(q.views) + ' views'})));
     if (n.read === true){
       body.appendChild(el('div', {cls: 'kv'},
-        el('span', {cls: 'k', text: 'Length'}), el('span', null, chip('MEASURED'), (m.length_s != null ? m.length_s.toFixed(1) + ' s' : '—') + ' · ' + (m.cuts_per_10s != null ? m.cuts_per_10s + ' cuts per 10 s' : '') + (m.words_per_minute != null ? ' · ' + m.words_per_minute + ' words/min' : '')),
+        el('span', {cls: 'k', text: 'Length'}), el('span', null, chip('MEASURED'), (m.length_s != null ? m.length_s.toFixed(1) + ' s' : '—') + ' · ' + (m.cuts_per_10s != null ? m.cuts_per_10s + ' cuts per 10 s' : '') + (m.words_per_minute != null ? ' · ' + m.words_per_minute + ' words/min' : ' · words/min not measured: no subtitles')),
         row('Hook', se.hook), row('First frame', se.first_frame), row('On screen', se.text_on_screen), row('Sound', se.sound), row('The turn', se.turn), row('The ask', se.ask)));
     } else {
       body.appendChild(el('div', {cls: 'empty', text: 'Not read: ' + (n.not_read_reason || pr.not_read_reason || 'the frames were not looked at yet')}));
@@ -1249,8 +1253,9 @@ function thumb(id, ratio){
   (D.sources || []).forEach(function(x){ left.appendChild(el('div', {cls: 'small', style: 'margin:4px 0'}, el('strong', {text: (x.what || '') + ': '}), (x.via || '') + (x.cost_usd != null ? ' · $' + x.cost_usd : '') + (x.notes ? ' · ' + x.notes : ''))); });
   var nr = F.not_read || [];
   left.appendChild(el('h3', {text: 'Not read', style: 'margin-top:12px'}));
-  if (!nr.length) left.appendChild(el('div', {cls: 'empty', text: 'Nothing listed.'}));
+  if (!nr.length && !(D.limits || []).length) left.appendChild(el('div', {cls: 'empty', text: 'Nothing listed.'}));
   nr.forEach(function(n){ left.appendChild(el('div', {cls: 'small', style: 'margin:4px 0'}, el('strong', {text: n.what + ': '}), n.why)); });
+  (D.limits || []).forEach(function(n){ left.appendChild(el('div', {cls: 'small', style: 'margin:4px 0', 'data-limit': n.what}, chip('MEASURED'), el('strong', {text: n.what + ': '}), n.why)); });
   var ex = A.excluded || [];
   if (ex.length) left.appendChild(el('div', {cls: 'small muted', style: 'margin-top:8px', text: ex.length + ' posts left out of the numbers: ' + summarize(ex)}));
   (A.warnings || []).slice(0, 6).forEach(function(w){ left.appendChild(el('div', {cls: 'small muted', text: 'Note: ' + w})); });
@@ -1298,7 +1303,8 @@ def build(folder, light_only=False):
     title = "%s · Account report · REA Viral" % (a.get("name") or a.get("handle") or "Account")
 
     def page(data):
-        return PAGE.replace("__TITLE__", title.replace("&", "&amp;").replace("<", "&lt;")).replace("__DATA__", embed(data))
+        return PAGE.replace("/*__LABELS_JS__*/", page_kit.LABELS_JS).replace(
+            "__TITLE__", title.replace("&", "&amp;").replace("<", "&lt;")).replace("__DATA__", embed(data))
     if not light_only:
         write_text(os.path.join(folder, "report.html"), page(d))
     write_text(os.path.join(folder, "report-light.html"), page(light_account(d)))
@@ -1364,7 +1370,7 @@ def strongest_format(fm):
     """The format worth offering: Scale it first, then Underused, 6 scored posts or more, the best lift first."""
     order = {"scale_it": 0, "underused": 1}
     best = [f for f in fm or [] if f.get("quadrant") in order and not f.get("few_posts")]
-    best.sort(key=lambda f: (order[f["quadrant"]], -(f.get("lift") or 0)))
+    best.sort(key=lambda f: (f.get("direction_label") == "fading", order[f["quadrant"]], -(f.get("lift") or 0)))
     return best[0] if best else None
 
 
@@ -1420,8 +1426,8 @@ def main(argv):
     d = build(folder, light_only="--light" in argv)
     page = os.path.join(folder, "report.html")
     if kind == "niche":
-        print("The Niche report: report.html and NICHE.md written (%d creators, %d posts, %d formats, %d of them formats "
-              "of the niche, %d on the watchlist)" % (d["trends"]["counts"]["creators"], len(d["posts"]), len(d["formats"]),
+        print("The Niche report: report.html and NICHE.md written (%d creators with posts in the window, %d posts, %d formats, %d of them formats "
+              "of the niche, %d on the watchlist)" % (d["trends"]["counts"].get("creators_active", d["trends"]["counts"]["creators"]), len(d["posts"]), len(d["formats"]),
                                                      sum(1 for f in d["formats"] if f.get("niche_format")), len(d["watchlist"])))
     elif kind == "post":
         print("The Post report: report.html and POST.md written (the post run's short page)")
@@ -1429,7 +1435,7 @@ def main(argv):
         read = sum(1 for v in d["videos"].values() if (v.get("notes") or {}).get("read") is True)
         cut = sum(1 for v in d["videos"].values() if (v.get("probe") or {}).get("read") is True)
         print("The Account report: report.html and ACCOUNT.md written (%d posts, %d formats, %d under its usual or "
-              "weakening, %d videos cut, %d looked at, %d plays)" % (
+              "fading, %d videos cut, %d looked at, %d plays)" % (
                   len(d["posts"]), len((d["radar"] or {}).get("formats") or []), len(d["not_working"]["formats"]), cut,
                   read, len((d["findings"] or {}).get("plays") or [])))
     if d.get("light_only"):

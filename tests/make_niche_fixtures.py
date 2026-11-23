@@ -10,7 +10,7 @@ niche_main: 11 creators of a made-up niche ("AI video editing tools").
   - before-after-split RISES across 5 creators (c2..c6): early-half posts at 1.2x their own usual, late-half posts at
     2.8x and 3.4x; used more in the late half. Must come out a format of the niche, Scale it, rising.
   - studio-desk-review is ONE creator's habit (c1, a big studio): 6 posts at 4x. Must NOT be a format of the niche.
-  - prompt-reveal FADES across 4 creators (c7..c10): early posts at 2.4x, late posts at 0.55x. Corner Fading, fading.
+  - prompt-reveal FADES across 4 creators (c7..c10): early posts at 2.4x, late posts at 0.55x. Corner Scale it (it sits high: 2.48x, 4 of 10 creators), direction fading.
   - posts opening with a QUESTION lift across 8 creators (2 each, about 2.6x). Must come out as the niche's lifting
     opening (with has_question, the same posts). c1's habit posts all open with a number: that lifts on c1's posts
     alone, so it must come out "few creators", never a finding of the niche.
@@ -284,7 +284,7 @@ def make_niche(out):
                                                "niche_format": True},
                         "studio-desk-review": {"quadrant": "too_few", "scope_status": "creator habit", "creators": 1,
                                                "niche_format": False},
-                        "prompt-reveal": {"quadrant": "fading", "direction_label": "fading", "creators": 4,
+                        "prompt-reveal": {"quadrant": "scale_it", "direction_label": "fading", "creators": 4,
                                           "niche_format": True}}
     known["lifting_openings"] = ["has_question", "opens_question"]
     known["habit_opening"] = "opens_number"

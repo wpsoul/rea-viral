@@ -7,7 +7,7 @@ flops, each post against its own creator's usual. It works from every way in:
 | Way in | Run | What you get |
 |---|---|---|
 | An account | `text_probe.py <account folder>` | Its voice sheet, `voice.md`: how this account writes, against its own results |
-| A niche | `text_probe.py <niche folder>` | `hooks.md`: what the niche's winning posts open with, across creators (below) |
+| A niche | `text_probe.py <niche folder>` | `hooks.md`: what the niche's winning posts open with, across creators (below). No voice sheet: a voice is one account's |
 | A post | `post_probe.py <post folder>` | The post's words beside its creator's usual (`post_probe.json#words`) |
 | Words only | Any of the above, or the user's own draft with `draft_check.py --general` | See "Words only" at the end |
 
@@ -23,6 +23,15 @@ It reads each post's words: the caption; for a text post, the post itself; a thr
 replies; and a watched video's first line on screen when the deep read wrote it down (`notes.json`
 `seen.first_line`). It recomputes the numbers first, then writes `writing.json`, `posts_text.csv` (every post's
 features, to check any number by hand) and, the first time, a skeleton `voice.md`.
+
+**A thread read as its first part only** (type `thread` with no `parts`: the reader gave only the first post) keeps
+its opening and nothing else: its length, lines, list and ask are unknown, never judged from one part, and the report
+says "thread: first part only" beside it and under "Not read". Read the parts when the thread matters (`data-shape.md`,
+"Text networks"). Replies are not posts and are left out of every number (`data-shape.md`, "Replies").
+
+**A name in the opening** is an @handle, a name's possessive ("Maria's launch") or two capitalised words that are not
+a sentence's ordinary start. Contractions ("Let's", "Here's", "It's", "I'm", "Don't") are never a name: the list is in
+`data/writing-words.json` (`contractions`), so a language can add its own.
 
 ## What it measures (writing.json, MEASURED)
 
@@ -171,7 +180,8 @@ creator's usual (`numbers.md`, "A niche"). Two differences from one account:
   `verdict_before_creators` says what it would have been): that creator's habit, never the niche's.
 - **No line list filled by one creator.** The best and worst first lines hold at most 2 of any one creator.
 
-`hooks.md` is the niche's voice sheet: the same `rea-voice` block (so `draft_check.py <niche folder>` checks drafts
+**A niche run writes no voice sheet** (`voice.md`): a voice is one account's, and a niche's posts are many voices.
+`hooks.md` takes its place: the same `rea-voice` block (so `draft_check.py <niche folder>` checks drafts
 written with the niche's hooks, and its reuse check covers every creator's posts), then your prose: the openings that
 work, each with real first lines of at least two creators and their ratios (SEEN, post ids); what the hits share and
 what the flops share too; what only one creator does; where the niche's numbers disagree with general advice.
@@ -184,7 +194,9 @@ When the user asks about words and nothing else:
   only: `text_probe.py`, the voice sheet, no videos needed. A text network needs nothing more.
 - **"What hooks work in X?"** → the niche run's corpus (`niche.md`, steps 1 to 3) and step 6 only: `text_probe.py`
   on the niche, `hooks.md`.
-- **"Write posts like @x" or "with the niche's hooks"** → the above, then "Write like it" with that voice sheet.
+- **"Write posts like @x" or "with the niche's hooks"** → the above, then "Write like it" with that voice sheet (or
+  `hooks.md`). For the voice of one creator found in a niche run: words only on that creator (copy its folder from
+  `accounts/<network>-<handle>/` and run `text_probe.py` there) or its account run; a niche run gives none.
 - **The user's own draft to check** → with a voice sheet to check it against (their own account's, a creator's, or a
   niche's), `draft_check.py <that run> <draft.md>`. With none, the editor's pass above and
   `draft_check.py <any folder> <draft.md> --general`: the network's length limit, one ask that fits the purpose, no

@@ -15,8 +15,10 @@ import re
 import statistics
 import sys
 import tempfile
+import urllib.error
+import urllib.request
 
-SKILL_VERSION = "0.4.0"  # the account first; reports with what worked and what did not; hand-over files for a planner
+SKILL_VERSION = "0.4.1"  # 0.4.1 (2026-11-23): every cover on the sheet, own videos only, covers fetched like a browser, corner names that describe position
 # Shape version 2 (2026-11-16) adds the text networks. It only ADDS: new networks, new post types and new optional
 # columns. A version-1 run (account.json "rea-viral/account@1", the old posts.csv header) is read exactly as before.
 NETWORKS = ("instagram", "tiktok", "youtube", "x", "threads", "linkedin")
@@ -32,8 +34,13 @@ POST_COLUMNS = [
     "sound", "is_pinned", "is_paid", "collaborators", "read_at", "source",
     # shape 2: text networks (all optional)
     "reposts", "quotes", "bookmarks", "lang", "parts", "author_replies", "quoted_url",
+    # 0.4.1 (optional): the post's OWN media, never a quoted or reposted post's; whom a row replies to
+    "own_media", "reply_to", "reply_to_id",
 ]
-V2_POST_COLUMNS = ["reposts", "quotes", "bookmarks", "lang", "parts", "author_replies", "quoted_url"]
+V2_POST_COLUMNS = ["reposts", "quotes", "bookmarks", "lang", "parts", "author_replies", "quoted_url", "own_media",
+                   "reply_to", "reply_to_id"]
+OWN_MEDIA = ("video", "images", "image", "none")
+VIDEO_NETWORKS = ("youtube", "tiktok", "instagram")
 REQUIRED_POST_COLUMNS = ["post_id", "url", "published_at", "type"]
 COUNT_COLUMNS = ["views", "likes", "comments", "shares", "saves", "reposts", "quotes", "bookmarks"]
 # Language tags a network gives when a post has no words to tell by (X: zxx, und, qme, qht, qam, qct, qst).
@@ -308,8 +315,83 @@ def account_window(acc):
     return lo, hi
 
 
-def load_posts(folder):
-    """Typed post rows. Unparseable cells become None here; validate.py is the strict reader."""
+REPLY_RE = re.compile(r"^\s*@([A-Za-z0-9_.]{1,40})\b")
+
+
+def reply_kind(p, own_handle, network):
+    """"other" for a reply to another account, "self" for the account's own reply under its post (a thread
+    continuation), None for a post. The reader's reply_to (a handle) decides; without it, on X and Threads, a text
+    that opens with @handle is a reply (their replies start with the handle they answer)."""
+    rt = norm_handle(p.get("reply_to"))
+    if not rt and network in ("x", "threads"):
+        m = REPLY_RE.match(p.get("caption") or "")
+        rt = norm_handle(m.group(1)) if m else ""
+    if not rt:
+        return None
+    return "self" if own_handle and rt == norm_handle(own_handle) else "other"
+
+
+def load_posts(folder, keep_replies=False):
+    """Typed post rows. Unparseable cells become None here; validate.py is the strict reader.
+
+    Replies are not posts (references/data-shape.md, "Replies"): a reply to another account is left out; the account's
+    own reply under one of its posts is folded into that post when the row names it (reply_to_id): a thread part
+    when it came within 2 minutes, else one of the author's later replies with its minutes; one that names no post it
+    belongs to is left out. replies_left_out(folder) counts them. keep_replies=True gives every row (validate)."""
+    rows_all = _load_rows(folder)
+    if keep_replies:
+        return rows_all
+    try:
+        acc = read_json(os.path.join(folder, "account.json"))
+    except (OSError, ValueError):
+        acc = {}
+    own, net = acc.get("handle"), acc.get("network")
+    by_id = dict((p["post_id"], p) for p in rows_all)
+    out = []
+    for p in rows_all:
+        k = reply_kind(p, own, net)
+        p["reply"] = k
+        if k is None:
+            out.append(p)
+    for p in rows_all:
+        if p["reply"] != "self":
+            continue
+        parent = by_id.get(p.get("reply_to_id") or "")
+        if not parent or parent.get("reply") is not None:
+            continue
+        text = REPLY_RE.sub("", p.get("caption") or "", count=1).strip()
+        mins = None
+        if parent.get("published_at") and p.get("published_at"):
+            mins = round((p["published_at"] - parent["published_at"]).total_seconds() / 60.0, 1)
+        if mins is not None and 0 <= mins <= 2:
+            parent["parts"] = (parent.get("parts") or [parent.get("caption") or ""]) + [text]
+            if parent.get("type") in ("text", "image", "carousel", "video", "other"):
+                parent["type"] = "thread"
+        else:
+            parent["author_replies"] = (parent.get("author_replies") or []) + [{"text": text, "minutes_after": mins}]
+        p["reply"] = "folded"
+    return out
+
+
+def replies_left_out(folder):
+    """{"other": replies to other accounts, "self": own replies that named no post, "folded": own replies folded}."""
+    out = {"other": 0, "self": 0, "folded": 0}
+    try:
+        acc = read_json(os.path.join(folder, "account.json"))
+    except (OSError, ValueError):
+        acc = {}
+    rows = load_posts(folder, keep_replies=True)
+    by_id = dict((p["post_id"], p) for p in rows)
+    for p in rows:
+        k = reply_kind(p, acc.get("handle"), acc.get("network"))
+        if k == "self" and (p.get("reply_to_id") or "") in by_id and reply_kind(by_id[p["reply_to_id"]], acc.get("handle"), acc.get("network")) is None:
+            k = "folded"
+        if k:
+            out[k] += 1
+    return out
+
+
+def _load_rows(folder):
     path = os.path.join(folder, "posts.csv")
     if not os.path.exists(path):
         return []
@@ -344,6 +426,9 @@ def load_posts(folder):
                 p[k] = None
         p["lang"] = (r.get("lang") or "").strip().lower()
         p["quoted_url"] = (r.get("quoted_url") or "").strip()
+        p["own_media"] = (r.get("own_media") or "").strip().lower() or None
+        p["reply_to"] = (r.get("reply_to") or "").strip().lstrip("@") or None
+        p["reply_to_id"] = (r.get("reply_to_id") or "").strip() or None
         try:
             p["parts"] = parse_parts(r.get("parts"))
         except ShapeError:
@@ -524,3 +609,134 @@ def rel(folder, path):
 
 def script_dir():
     return os.path.dirname(os.path.abspath(__file__))
+
+
+# ---------------------------------------------------------------------------------------------- own video
+# A post is watched as a video only when the post ITSELF carries a video by its own author (references/data-shape.md,
+# "own_media"). A quoted or reposted post's video is that post's, never this one's.
+
+def own_video(p, network):
+    """True when the post's own media is a video; False when it is known not to be; None when the row does not say.
+    own_media decides when the reader gave it. Without it: on YouTube, TikTok and Instagram a post of type video is
+    its own video (those networks have no quotes); on X, Threads and LinkedIn the row does not say (a quote or a
+    repost may show another post's video), so None: not probed, and the report says the video was not read."""
+    om = (p.get("own_media") or "").strip().lower() if isinstance(p.get("own_media"), str) else p.get("own_media")
+    if om:
+        return om == "video"
+    if (p.get("type") or "") in ("text", "thread", "article", "image", "carousel"):
+        return False
+    if network in VIDEO_NETWORKS or network not in TEXT_NETWORKS:
+        return (p.get("type") or "") in ("video", "live")
+    return None
+
+
+# ---------------------------------------------------------------------------------------------- fetching over HTTP
+# Every HTTP fetch of the scripts goes through here: a normal browser's User-Agent and Accept (some picture servers
+# answer 403 to a script's own User-Agent or none), redirects followed (urllib does), a timeout, and an answer instead
+# of an exception: the caller marks a cover "not read" with the status and goes on.
+
+BROWSER_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/126.0.0.0 Safari/537.36",
+    "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+def http_get(url, accept=None, timeout=20, max_bytes=25000000):
+    """GET url like a browser. Returns (status, body, why): status is the HTTP code (None when nothing answered),
+    body the bytes (None unless 2xx), why a short reason when it failed ("HTTP 403", "timed out", ...)."""
+    headers = dict(BROWSER_HEADERS)
+    if accept:
+        headers["Accept"] = accept
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            body = r.read(max_bytes + 1)
+            if len(body) > max_bytes:
+                return r.status, None, "over %d MB" % (max_bytes // 1000000)
+            return r.status, body, None
+    except urllib.error.HTTPError as e:
+        return e.code, None, "HTTP %d" % e.code
+    except urllib.error.URLError as e:
+        return None, None, "no answer (%s)" % (getattr(e, "reason", None) or e)
+    except (OSError, ValueError) as e:
+        return None, None, "no answer (%s)" % e
+
+
+def picture_ext(body):
+    """The file ending of a picture by its first bytes (.jpg, .png, .webp, .gif), or None when it is not one."""
+    if body[:3] == b"\xff\xd8\xff":
+        return ".jpg"
+    if body[:8] == b"\x89PNG\r\n\x1a\n":
+        return ".png"
+    if body[:4] == b"RIFF" and body[8:12] == b"WEBP":
+        return ".webp"
+    if body[:6] in (b"GIF87a", b"GIF89a"):
+        return ".gif"
+    return None
+
+
+def save_picture(url, dest_stem, timeout=20):
+    """Fetch a picture (a cover, a profile picture) to dest_stem + its real ending. Returns (path, why): the saved
+    path, or None and why it was not read ("HTTP 403", "not a picture", ...). Never raises."""
+    status, body, why = http_get(url, timeout=timeout)
+    if body is None:
+        return None, why or "no answer"
+    ext = picture_ext(body)
+    if not ext or len(body) < 200:
+        return None, "not a picture (HTTP %s, %d bytes)" % (status, len(body))
+    path = dest_stem + ext
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(body)
+    return path, None
+
+
+NOT_READ_COVERS = "covers/not_read.json"
+
+
+def note_cover_not_read(folder, post_id, why):
+    """Keep why a post's cover could not be saved (covers/not_read.json): the sheet and the report say "not read"
+    with that reason, never a guess."""
+    path = os.path.join(folder, NOT_READ_COVERS)
+    doc = {}
+    if os.path.exists(path):
+        try:
+            doc = read_json(path)
+        except ValueError:
+            doc = {}
+    if why:
+        doc[post_id] = why
+    else:
+        doc.pop(post_id, None)
+    write_json(path, doc)
+
+
+# ---------------------------------------------------------------------------------------------- older radar.json
+# Before 0.4.1 the corner "used a lot, lifting little" was called "fading", and it also took a format that lifted but
+# whose later posts did worse; an account's falling direction was "weakening". The corner is now where a format sits
+# (share x lift) and nothing else, and rising / steady / fading are only the direction. An older file is read in
+# today's words (it is not rewritten).
+
+def upgrade_radar(doc):
+    if not doc:
+        return doc
+    rules = doc.get("rules") or {}
+    shared = doc.get("scope") == "shared"
+    split_x = rules.get("often_creators_share" if shared else "often_share", 0.4 if shared else 0.15)
+    split_y = rules.get("strong_lift", 1.0)
+    names = {"scale_it": "Scale it", "underused": "Underused", "overused": "Overused", "drop": "Drop"}
+    for f in doc.get("formats") or []:
+        if f.get("direction_label") == "weakening":
+            f["direction_label"] = "fading"
+        q = f.get("quadrant")
+        if q in (None, "too_few") or f.get("lift") is None:
+            continue
+        x = f.get("creators_share" if shared else "share")
+        if x is None:
+            continue
+        often, strong = x >= split_x, f["lift"] >= split_y
+        f["quadrant"] = ("scale_it" if often else "underused") if strong else ("overused" if often else "drop")
+        f["quadrant_name"] = names[f["quadrant"]]
+    return doc

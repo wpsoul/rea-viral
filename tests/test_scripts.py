@@ -9,7 +9,7 @@ the follower jump found at the MEASURED level and the same post found at the EST
 missing dates, zero views, one post, private and empty accounts; comment tactics; comments without replies; the report
 refusing unlabelled, misquoted or stale claims; a caption with a script tag shown as data; the video probe on a
 synthetic video with known cuts and words; the ledger's ceiling; the app check against a stand-in server.
-Version 0.4.0: the Account report's "What did not work" (formats under the usual or weakening, the flops, what sinks
+Version 0.4.0: the Account report's "What did not work" (formats under the usual or fading, the flops, what sinks
 in the words, "not enough data" said, did_not_work claims checked); the hand-over files for a planner connector
 (report_record.json, radar_rows.json: shapes, the 600-character summary, stable keys, the recipe's beats); and the
 report as ONE file (pictures inside, smaller with ffmpeg, under the caps and the budget, under 3 MB with heavy covers;
@@ -128,7 +128,7 @@ class Numbers(unittest.TestCase):
         self.assertGreaterEqual(tm["hit_rate"], 0.9)
         fd = [f for f in self.radar["formats"] if f["id"] == "founder-diary"][0]
         self.assertLess(fd["direction"], 0.75)                          # built from 1.7x down to 0.6x
-        self.assertEqual(fd["direction_label"], "weakening")
+        self.assertEqual(fd["direction_label"], "fading")      # 0.4.1: rising / steady / fading only
 
     def test_new_format_mark(self):
         marks = [m for m in self.radar["timeline_marks"] if m["kind"] == "format"]
@@ -370,7 +370,7 @@ def build_main(with_pictures=False, env=None):
 
 
 class WhatDidNotWork(unittest.TestCase):
-    """The Account report's part of its own beside what worked: formats under the usual or weakening, the flops,
+    """The Account report's part of its own beside what worked: formats under the usual or fading, the flops,
     what sinks in the words; the agent's did_not_work claims checked like every claim."""
 
     @classmethod
@@ -379,12 +379,12 @@ class WhatDidNotWork(unittest.TestCase):
         cls.code, cls.out = run("build_report.py", cls.d)
         cls.D = page_data(cls.d)
 
-    def test_formats_under_the_usual_or_weakening(self):
+    def test_formats_under_the_usual_or_fading(self):
         nw = self.D["not_working"]
         self.assertEqual([f["id"] for f in nw["formats"]], ["long-story", "founder-diary"])   # lowest lift first
         ls, fd = nw["formats"]
-        self.assertTrue(ls["under"] and not ls["weakening"])
-        self.assertTrue(fd["weakening"])
+        self.assertTrue(ls["under"] and not ls["fading"])
+        self.assertTrue(fd["fading"])
         self.assertEqual(ls["flops"], 4)                       # 4 of the 5 flops are long stories (planted)
         self.assertEqual(len(ls["lowest"]), 3)
         self.assertTrue(all(x["ratio"] < 1 for x in ls["lowest"]))
@@ -466,7 +466,7 @@ class HandOverFiles(unittest.TestCase):
         self.assertTrue(r["summary"].startswith("It grows on one repeatable list format"))
         self.assertIn("What did not work: A quarter of the posts are diaries", r["summary"])
         self.assertEqual(r["read"], {"posts": 142, "creators": 1})
-        self.assertEqual(r["skill"], {"name": "rea-viral", "version": "0.4.0"})
+        self.assertEqual(r["skill"], {"name": "rea-viral", "version": "0.4.1"})
         self.assertEqual(r["cost_usd"], 0)
         self.assertEqual(jload(self.d, "report_record.json")["file"]["size"], os.path.getsize(os.path.join(self.d, "report.html")))
         self.assertEqual(self.rec["formats"], {"file": "radar_rows.json", "rows": 1})
@@ -771,9 +771,14 @@ class NoVideo(unittest.TestCase):
         code, out = run("video_probe.py", d, "--picks", "--not-read", "no network to download videos")
         picks = jload(d, "analysis.json")["deep_read"]
         ids = picks["outliers"] + picks["ordinary"] + picks["flops"]
+        kinds = dict((p["post_id"], p["type"]) for p in jload(d, "analysis.json")["posts"])
         for pid in ids:
+            if kinds[pid] != "video":                     # a carousel has no video of its own: never cut, no stub
+                self.assertFalse(os.path.exists(os.path.join(d, "videos", pid)), pid)
+                continue
             n = jload(d, "videos", pid, "notes.json")
             self.assertEqual((n["read"], n["not_read_reason"]), (False, "no network to download videos"))
+        self.assertTrue(any(kinds[i] != "video" for i in ids))   # the fixture's picks hold a carousel
         run("radar.py", d)
         self.assertTrue(all(f["videos_read"] == 0 for f in jload(d, "radar.json")["formats"]))   # stubs measure nothing
         code, out = run("validate.py", d)

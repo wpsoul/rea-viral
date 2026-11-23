@@ -203,8 +203,8 @@ def words_items(wr, verdict, n, usual="its usual"):
 
 
 def failing_stat(f, usual):
-    """What is wrong with a format under not_worked: under its usual, its lift (below 1); over it but fading or
-    weakening, its direction (the later posts against the earlier, below 1)."""
+    """What is wrong with a format under not_worked: under its usual, its lift (below 1); over it but fading, its
+    direction (the later posts against the earlier, below 1)."""
     if f.get("lift") is not None and f["lift"] < 1.0:
         return "%s %s" % (xr(f["lift"]), usual)
     if f.get("direction") is not None:
@@ -227,7 +227,8 @@ def measured_answer(kind, d):
             return "Measured: %s" % (an.get("status_note") or an.get("status"))
         order = {"scale_it": 0, "underused": 1}
         fm = [f for f in r.get("formats") or [] if f.get("quadrant") != "too_few" and f.get("lift") is not None]
-        good = sorted([f for f in fm if f.get("quadrant") in order], key=lambda f: (order[f["quadrant"]], -(f["lift"])))
+        good = sorted([f for f in fm if f.get("quadrant") in ("scale_it", "underused")],
+                      key=lambda f: (f.get("direction_label") == "fading", order[f["quadrant"]], -(f["lift"])))
         best = good[0] if good else (max(fm, key=lambda f: f["lift"]) if fm else None)
         parts = []
         if best and good:
@@ -251,7 +252,7 @@ def measured_answer(kind, d):
     t = d["trends"]
     if t.get("status") != "ok":
         return "Measured: %s" % (t.get("status_note") or t.get("status"))
-    order = {"scale_it": 0, "underused": 1, "fading": 2, "drop": 3}
+    order = {"scale_it": 0, "underused": 1, "overused": 2, "drop": 3}
     placed = sorted([f for f in d["formats"] if f.get("niche_format") and f.get("lift") is not None],
                     key=lambda f: (order.get(f["quadrant"], 9), -f["lift"]))
     parts = []
@@ -277,7 +278,9 @@ def account(folder, d, keys, fallback):
             number("Followers", short(acc.get("followers")) if acc.get("followers") is not None else "-"),
             number("Spent on data", spent(d.get("cost"), d.get("sources")))]
     order = {"scale_it": 0, "underused": 1}
-    good = sorted([f for f in fm if f.get("quadrant") in order], key=lambda f: (order[f["quadrant"]], -(f.get("lift") or 0)))
+    weak_ids = set(f["id"] for f in nw.get("formats") or [])        # a fading one is told under not_worked, not here
+    good = sorted([f for f in fm if f.get("quadrant") in order and f["id"] not in weak_ids],
+                  key=lambda f: (order[f["quadrant"]], -(f.get("lift") or 0)))
     worked = [item(f["name"], "%s: %d posts, %s of the window; %s of them at 2× or more%s%s." % (
         f["quadrant_name"], f["posts_total"], pct(f["share"]), pct(f["hit_rate"]),
         ("; %s" % f["direction_label"]) if f.get("direction_label") else "",
@@ -352,7 +355,7 @@ def niche(folder, d, keys, fallback):
             number("Scored", c.get("scored")), number("At 2× or more", c.get("hits")),
             number("Formats of the niche", len(placed)), number("Spent on data", spent(d.get("cost"), d.get("sources")))]
     weak = set(f["id"] for f in nw.get("formats") or [])
-    order = {"scale_it": 0, "underused": 1, "fading": 2, "drop": 3}
+    order = {"scale_it": 0, "underused": 1, "overused": 2, "drop": 3}
     good = sorted([f for f in placed if f["id"] not in weak and f.get("lift") is not None],
                   key=lambda f: (order.get(f["quadrant"], 9), -(f.get("lift") or 0)))
     worked = [item(f["name"], "%s: %d creators, %d scored posts%s%s." % (

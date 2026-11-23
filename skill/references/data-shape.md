@@ -9,7 +9,9 @@ checks every rule below and names the file, row and column of each mistake.
 `threads` and `linkedin`, the post types `thread`, `article` and `quote`, and seven optional posts.csv columns
 (`reposts`, `quotes`, `bookmarks`, `lang`, `parts`, `author_replies`, `quoted_url`). It only adds: a version-1 run
 (`rea-viral/account@1` and the old header) validates and is analysed exactly as before, and nothing is converted. Write
-`@2` for a new run; the validator only warns when a file uses version-2 values under `@1`.
+`@2` for a new run; the validator only warns when a file uses version-2 values under `@1`. Version 0.4.1 of the skill
+adds three optional columns on any network, `own_media`, `reply_to` and `reply_to_id` ("Own media" and "Replies"
+below): a file without them reads as before.
 
 General rules:
 
@@ -45,6 +47,7 @@ General rules:
   "sources": [{"what": "profile and posts", "via": "the tool you used", "cost_usd": 0.012, "notes": "anything odd"}],
   "comments_read": {"posts": 14, "per_post": 60, "replies_read": true},
   "picture_file": "covers/_profile.jpg",
+  "sampled": {"read": 25, "of": 75, "how": "spread across the latest 75"},
   "user": {"handle": "the user's own account or null", "niche": "their niche or null"},
   "spend_ceiling_usd": 3
 }
@@ -64,14 +67,16 @@ General rules:
 | `comments_read.replies_read` | when comments.csv exists | Whether replies were read. Without it the reply rate is unknown |
 | `spend_ceiling_usd` | no | Default 3. `ledger.py` stops at it |
 | `picture_file` | no | The account's own picture (its avatar), saved in the run folder. It becomes the Account report's cover for a planner (`report-cover.jpg`). Leave it out when none was saved |
+| `sampled` | no | When only some of the account's latest posts were read (a prolific creator): `read`, `of` and `how`. The report says it under "Not read" (`ytdlp_reader.py --spread` writes it) |
 
 ## posts.csv
 
 Header (this order is the one the readers write; any order is read):
 
-`post_id,url,published_at,type,duration_s,caption,views,likes,comments,shares,saves,cover_url,cover_file,video_file,transcript_file,sound,is_pinned,is_paid,collaborators,read_at,source,reposts,quotes,bookmarks,lang,parts,author_replies,quoted_url`
+`post_id,url,published_at,type,duration_s,caption,views,likes,comments,shares,saves,cover_url,cover_file,video_file,transcript_file,sound,is_pinned,is_paid,collaborators,read_at,source,reposts,quotes,bookmarks,lang,parts,author_replies,quoted_url,own_media,reply_to,reply_to_id`
 
-(The last seven are version 2 and optional; a version-1 file simply has none of them.)
+(`reposts` to `quoted_url` are version 2 and optional; a version-1 file simply has none of them. `own_media`,
+`reply_to` and `reply_to_id` are optional on any network, 0.4.1.)
 
 | Column | Required | Unit, values |
 |---|---|---|
@@ -87,6 +92,9 @@ Header (this order is the one the readers write; any order is read):
 | `parts` | no | A thread: every part's text in order, as a JSON list of strings, the first equal to `caption` |
 | `author_replies` | no | The account's own replies under the post that are not thread parts: a JSON list of `{"text": "...", "minutes_after": 270}` (`null` minutes when unknown). `[]` = read, none; empty cell = not read |
 | `quoted_url` | no | For a quote post: the link of the post it quotes |
+| `own_media` | no (warned on X, Threads, LinkedIn for a video or quote row) | The post's OWN attachments, never the quoted or reposted post's: `video`, `images` (2 or more pictures), `image`, `none`. Empty = not known. Only `video` is watched ("Own media") |
+| `reply_to` | no | When the row is a reply: the handle it answers (without `@`). Such a row is not a post ("Replies") |
+| `reply_to_id` | no | For the account's own reply: the `post_id` of the post it sits under |
 | `cover_url` | no | Where the cover was (it may expire) |
 | `cover_file` `video_file` `transcript_file` | no | Saved files, relative paths. `video_probe.py` also finds `videos/<id>/video.*` |
 | `sound` | no | The audio's name or id |
@@ -97,12 +105,38 @@ Header (this order is the one the readers write; any order is read):
 
 A private or empty account: `posts.csv` with the header row only.
 
+### Own media (0.4.1)
+
+`own_media` says what the post itself carries. A quote post that adds nothing but words is `none` even when the post
+it quotes is a video: that video is the other post's. Only a post with `own_media: video` is fetched and cut by
+`video_probe.py`; a picture or carousel post goes to its cover (and its slides), a text post to its words. Without the
+column: on YouTube, TikTok and Instagram a `video` row is its own video; on X, Threads and LinkedIn a `video` or
+`quote` row is not watched (it is marked "not read: the row does not say whether the video is this post's own") and the
+report says the video was not read. How to fill it from a reader: `connections.md`, "Own media and quoted media".
+
+### Replies (0.4.1)
+
+A reply is not a post: it would pull the usual down (replies get a fraction of a post's views) and its words are an
+answer, not a hook. Leave replies out of `posts.csv`. When a reader's rows still hold them, the scripts filter them
+themselves and count them:
+
+- **A reply to another account** (`reply_to` set to a handle that is not the account's own; on X and Threads also a
+  text that opens with `@handle`, as those networks write replies) is left out of every number: the usual, the
+  formats, the words, the trends. The report says how many ("12 replies left out of the numbers").
+- **The account's own reply under its own post** (`reply_to` is the account's own handle) is folded into the post
+  `reply_to_id` names: within 2 minutes it is a thread part (`parts`; the post becomes a `thread`), later it is one of
+  `author_replies` with its minutes. An own reply that names no post is left out and counted.
+
+`validate.py` warns with both counts. Better still, fold the author's own replies yourself as "Text networks" says.
+
 ### Text networks (X, Threads, LinkedIn): mapping a reader's rows
 
 Learned from real X rows (2026-11-16). Whatever reader you use:
 
 - **Only the account's own posts are rows.** Leave out reposts of other accounts (on X a text starting `RT @`, or a
-  repost flag) and replies to other accounts. A quote post is the account's own: type `quote`, with `quoted_url`.
+  repost flag) and replies to other accounts ("Replies"). A quote post is the account's own: type `quote`, with
+  `quoted_url`, and `own_media` from its OWN attachments only: the quoted post's video or pictures are never this
+  post's (`connections.md`, "Own media and quoted media").
 - **Fold the account's own replies under its posts.** Replies it posted at once (within 2 minutes) under a post that
   is a thread (it says so: a thread mark, "thread", "1/"; or 2+ replies came at once) are the thread's `parts`. Every
   other reply of its own goes into `author_replies` with its minutes after the post: a link put in the first reply, a
@@ -155,6 +189,17 @@ Learned from real X rows (2026-11-16). Whatever reader you use:
 `id` is a slug (`a-z`, `0-9`, `-`). `effort` is `low`, `medium` or `high`. A post belongs to at most one format.
 `series` lists parts in order (at least two); a series' first part gets the "part 2 held" signal.
 
+Two optional fields per format help `formats_check.py` check your grouping (0.4.1; `radar.md`, "Check the grouping"):
+`examples` (the post ids that show the format best; each must fit the format, else the check fails) and `match`:
+
+```json
+"match": {"opens": ["^\\d+ (mistakes|ways)\\b"], "patterns": ["before and after"], "types": ["video"], "min_s": 15, "max_s": 35}
+```
+
+`opens` are regular expressions on the first line, `patterns` on the whole caption (any one is enough), `types` the
+post types it takes, `min_s` and `max_s` the length; a post matches when every condition given holds, case ignored.
+`validate.py` names a pattern that is not a regular expression and an example that is not a post.
+
 ## videos/<post_id>/notes.json (you fill it; video_probe.py writes the template)
 
 ```json
@@ -177,7 +222,8 @@ Learned from real X rows (2026-11-16). Whatever reader you use:
 ```
 
 `read: true` needs every `seen` field filled (write `none` when there is none). `read: false` needs
-`not_read_reason`. `read: null` (the template) blocks the report until you decide. Optional
+`not_read_reason`; `"not_read_by": "video_probe.py"` marks one the script wrote (no video of its own, or none could
+be had), which a later read of the video replaces. `read: null` (the template) blocks the report until you decide. Optional
 `"first_line": "the first words on screen, verbatim"`: `text_probe.py` measures it beside the captions.
 
 ## findings.json
@@ -235,7 +281,7 @@ used (the niche's window is).
   "question": "what works now in AI video editing on YouTube Shorts",
   "words": ["ai video editing", "motion design"],
   "tags": ["#aivideoediting"],
-  "seed_accounts": [{"network": "youtube", "handle": "example"}],
+  "seed_accounts": [{"network": "youtube", "handle": "example", "status": "found", "note": "the newest Short is from 2026-11-12", "checked_at": "2026-11-16T11:40:00Z"}],
   "networks": ["youtube"],
   "read_at": "2026-11-16T12:00:00Z",
   "window": {"from": "2026-10-17", "to": "2026-11-16"},
@@ -252,6 +298,7 @@ used (the niche's window is).
 | `read_at` | yes | When the posts were read. Post ages count from each row's or creator's own `read_at`, else this |
 | `window` | yes (warned) | The period whose posts are scored. Default: the 30 days before `read_at` |
 | `words`, `tags`, `seed_accounts` | one of them | How the niche was searched |
+| `seed_accounts[].status` | warned until set | Checked before anything is read (`niche.md`, step 2): `found`, `not_found` (no such account: a misspelt or gone handle, never swapped for a near spelling) or `inactive` (no post in the window), with a `note` saying what was seen. Only found, active creators count; the others are named in the report |
 | `networks`, `sources` | warned | What was searched, with what, at what cost |
 | `spend_ceiling_usd` | no | `ledger.py` reads it for a niche run |
 
@@ -275,7 +322,11 @@ other posts with the same container.
 
 ## The scripts' outputs
 
-`analysis.json` (`rea-viral/analysis@1`), `posts_scored.csv`, `comments.json` (`rea-viral/comments@1`),
+`covers_sheet.json` (the sheets and, per tile, its sheet, post, ratio, and `cover` read or not read with `why`),
+`covers/not_read.json` (`{post_id: why}` for the covers that could not be saved), `formats_check.json`
+(`rea-viral/formats-check@1`: per format its posts, what its match takes, samples, the examples' check; `overlaps`;
+`unassigned` with `top_openers`; `problems`),
+`analysis.json` (`rea-viral/analysis@1`; `counts.replies_left_out` and `counts.own_replies_folded`), `posts_scored.csv`, `comments.json` (`rea-viral/comments@1`),
 `radar.json` (`rea-viral/radar@1`, both scopes in `radar.md`), `writing.json` (`rea-viral/writing@1`, keys in
 `writing.md`; a niche's adds `scope: "shared"`, per feature `creators_with`) and `posts_text.csv` (a niche's starts
 with `account`), `videos/<id>/probe.json` (`rea-viral/probe@1`). Each output records a hash of its inputs;
@@ -284,7 +335,8 @@ removed) and names the script to run.
 
 A niche run adds:
 
-- `trends.json` (`rea-viral/trends@1`): `status`, `counts`, `rules`, `window`, `creators` (per creator, `id` =
+- `trends.json` (`rea-viral/trends@1`): `status`, `counts` (`creators` read, `creators_active` with posts in the
+  window, `replies_left_out`, …), `seeds` (`found`, `not_found`, `inactive`, `unchecked`), `rules`, `window`, `creators` (per creator, `id` =
   `<network>-<handle>`: posts read, settled, scored, hits, `usual` and how many posts it is from, `basis`, `best`),
   `ranked` (post ids, best first), `leads_weaker_basis`, `too_new`, and `posts` (each with `id`, `creator`, `account`,
   `status` `scored`, `too_new`, `weaker_basis`, `no_baseline`, `baseline_only`, `no_date` or `no_metric`, `basis`
@@ -294,7 +346,7 @@ A niche run adds:
 - `watchlist.csv`: `rank,network,handle,url,followers,followers_exact,posts_read,basis,usual,usual_from_posts,scored,
   hits,hit_rate,best_ratio,best_post,best_url,formats,why,watch_command`.
 - `planner_rows.json` (`rea-viral/planner-rows@1`): `rows` for a planner connector's trend tools (`niche.md`).
-- `hooks.md`: the niche's voice sheet (the same `rea-voice` block, so `draft_check.py` reads it).
+- `hooks.md`: the niche's hooks in place of a voice sheet (the same `rea-voice` block, so `draft_check.py` reads it; a niche run writes no `voice.md`).
 - `NICHE.md` and `report.html`.
 
 A post run adds `post_probe.json` (`rea-viral/post-probe@1`: `status`, `post` with its `ratio`, `usual`,

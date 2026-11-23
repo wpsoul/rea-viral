@@ -61,7 +61,14 @@ Each result is checked against the format's timing.
 
 ## What is proven and what is not
 
-Proven by running it (2026-11-19, version 0.4.0):
+Version 0.4.1 (2026-11-23) fixes what a real run on an X niche showed: every cover now lands on numbered sheets that
+are checked; only a post's own video is watched (never the video a post quotes); covers are fetched like a browser;
+the chart's names stay inside it, on a phone too; the corner "Fading" is now "Overused", and rising, steady and fading
+only ever say the direction; replies are left out and counted; "Let's connect" is no longer read as a name; a speech
+rate without subtitles is "not measured"; seed accounts are checked first; a new check of the format grouping; and
+every report says what its run did not read. Each fix has its own test on made-up data.
+
+Proven by running it (2026-11-19, version 0.4.0; the tests rerun for 0.4.1):
 
 - **Made-up data with planted answers**: an account where one format really lifts, one fades, and one sits under the
   usual and holds four of the five flops, and an X account whose posts with a link sink: the Account report's "What
@@ -73,7 +80,7 @@ Proven by running it (2026-11-19, version 0.4.0):
   2.4 MB page; without ffmpeg the big pictures are left out, named, and the page stays at 0.3 MB.
 - **The planner files**: the report's record, its short brief within the planner's limits, and the formats as rows,
   checked field by field, the same keys on every rebuild.
-- **All of it in this repository**: 112 tests on made-up data (`tests/run_all.sh`). Earlier versions were also tried
+- **All of it in this repository**: 131 tests on made-up data (`tests/run_all.sh`). Earlier versions were also tried
   on real public data read free (a YouTube Shorts niche, one of its Shorts, Duolingo's YouTube Shorts and an X
   account); those rows are not in this repository.
 

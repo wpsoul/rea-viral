@@ -12,11 +12,12 @@ block's "measured" object and the table between the rea:measured markers).
 
 Per format (definitions in references/radar.md): posts and share of the window, lift (median of its posts' ratios to
 their own baselines), hit rate (share at 2x or more), direction (median ratio of its last third against its first
-third, 6+ posts), follower pull (at the level the data allows), effort (the agent's call), and the corner of the
-chart (across: how often, split at 15% of the window's posts; up: lift, split at 1x, the account's own usual):
-  Scale it  = often and lift >= 1 (top right), unless its direction is under 0.75: then Fading
+third, 6+ posts: rising, steady or fading), follower pull (at the level the data allows), effort (the agent's call),
+and the corner of the chart. The corner is where the format SITS, nothing else (across: how often, split at 15% of the
+window's posts; up: lift, split at 1x, the account's own usual); the direction is the arrow, never the corner:
+  Scale it  = often and lift >= 1 (top right)
   Underused = rare and lift >= 1 (top left)
-  Fading    = often and lift under 1 (bottom right), or often, strong and weakening
+  Overused  = often and lift under 1 (bottom right; called Fading before 0.4.1, which could read against a rising arrow)
   Drop      = rare and lift under 1 (bottom left)
 Under 20 dated posts in the window the radar lists the posts and calls no format. A format with fewer than 3 scored
 posts is listed but not placed.
@@ -36,7 +37,7 @@ import analyze  # noqa: E402
 RULES = {
     "often_share": 0.15,
     "strong_lift": 1.0,
-    "weakening_direction": 0.75,
+    "fading_direction": 0.75,      # direction under this: fading (0.4.1; was "weakening_direction")
     "rising_direction": 1.33,
     "hit_ratio": 2.0,
     "min_posts_window": 20,
@@ -49,20 +50,17 @@ RECIPE_RE = re.compile(r"```json rea-recipe\s*\n(.*?)\n```", re.S)
 
 
 def quadrant(f):
+    """Where the format sits on the chart: position only (share x lift). The direction never moves it."""
     if f["posts_scored"] < RULES["min_posts_format"]:
         return "too_few"
     often = f["share"] >= RULES["often_share"]
     strong = f["lift"] >= RULES["strong_lift"]
     if not strong:
-        return "fading" if often else "drop"
-    if not often:
-        return "underused"
-    if f["direction"] is not None and f["direction"] < RULES["weakening_direction"]:
-        return "fading"
-    return "scale_it"
+        return "overused" if often else "drop"
+    return "scale_it" if often else "underused"
 
 
-QUADRANT_NAMES = {"scale_it": "Scale it", "underused": "Underused", "fading": "Fading", "drop": "Drop",
+QUADRANT_NAMES = {"scale_it": "Scale it", "underused": "Underused", "overused": "Overused", "drop": "Drop",
                   "too_few": "Too few posts to place"}
 
 
@@ -109,7 +107,7 @@ def measure(folder, an, fdoc):
         dlabel = None
         if direction is not None:
             dlabel = "rising" if direction >= RULES["rising_direction"] else (
-                "weakening" if direction < RULES["weakening_direction"] else "steady")
+                "fading" if direction < RULES["fading_direction"] else "steady")
         meas = [p for p in sc if (p["followers"] or {}).get("level") in ("measured", "watched")]
         est = [p for p in sc if (p["followers"] or {}).get("level") == "estimated"]
         if sc and len(meas) * 2 >= len(sc):
@@ -328,17 +326,14 @@ SHARED_RULES = {
 
 
 def shared_quadrant(f):
+    """Where a format of the niche sits: position only (creators x lift). The direction is its arrow, never its corner."""
     if not f["niche_format"]:
         return "too_few"
     often = f["creators_share"] >= SHARED_RULES["often_creators_share"]
     strong = f["lift"] >= SHARED_RULES["strong_lift"]
     if not strong:
-        return "fading" if often else "drop"
-    if not often:
-        return "underused"
-    if f["direction"] is not None and f["direction"] < SHARED_RULES["fading_direction"]:
-        return "fading"
-    return "scale_it"
+        return "overused" if often else "drop"
+    return "scale_it" if often else "underused"
 
 
 def probe_numbers_shared(folder, posts_by_id, ids):

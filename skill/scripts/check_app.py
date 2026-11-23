@@ -11,8 +11,10 @@ It reads nothing else and changes nothing. It never starts the app.
 import json
 import os
 import sys
-import urllib.error
-import urllib.request
+
+sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill folder
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import http_get  # noqa: E402
 
 
 def main(argv):
@@ -26,18 +28,18 @@ def main(argv):
     timeout = float(argv[argv.index("--timeout") + 1]) if "--timeout" in argv else 1.5
     url = base.rstrip("/") + "/api/moodboards"
     res = {"running": False, "base": base}
-    try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"Accept": "application/json"}), timeout=timeout) as r:
-            body = r.read(200000)
-        data = json.loads(body.decode("utf-8", "replace"))
+    status, body, why = http_get(url, accept="application/json", timeout=timeout, max_bytes=200000)
+    if body is None:
+        res["why"] = ("an app answered with HTTP %d; not taken as GreenLight Dash" % status) if status else (why or "no answer")
+    else:
+        try:
+            data = json.loads(body.decode("utf-8", "replace"))
+        except ValueError:
+            data = None
         if isinstance(data, list):
             res.update({"running": True, "why": "the board API answered"})
         else:
             res["why"] = "something answered on %s, but not the GreenLight Dash board API" % base
-    except urllib.error.HTTPError as e:
-        res["why"] = "an app answered with HTTP %d; not taken as GreenLight Dash" % e.code
-    except (urllib.error.URLError, OSError, ValueError) as e:
-        res["why"] = "no answer (%s)" % (getattr(e, "reason", None) or e)
     print(json.dumps(res))
     return 0 if res["running"] else 1
 

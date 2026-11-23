@@ -238,7 +238,9 @@ class Niche(unittest.TestCase):
         self.assertEqual([x["post_id"] for x in nw["flops"]["picks"]], self.tr["deep_read"]["flops"])
         self.assertIn("across 3 creators", nw["words"]["note"])
         md = read_text(os.path.join(self.d, "NICHE.md"))
-        self.assertIn("- [MEASURED] What did not work: Prompt reveal (Fading), 4 creators", md)
+        self.assertIn("- [MEASURED] What did not work: Prompt reveal (Scale it), 4 creators", md)   # a corner says where it sits
+        self.assertIn("| Fading over the window (later half under the earlier) | Prompt reveal |", md)  # the arrow, apart
+        self.assertNotIn("Formats to make now (Scale it: many creators, lifting) | Before / after split; Prompt reveal", md)
         self.assertIn("### What did not work", md)
         self.assertIn("Prompt reveals are fading", md)                             # the agent's did_not_work claim
         self.assertIn("'What did not work'", read_text(os.path.join(self.d, "report.html")))

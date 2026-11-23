@@ -35,7 +35,9 @@ them on the network (lower case, no spaces: `aivideoediting`). A niche can mean 
 that edit, or videos made by AI): name the one you will search in the proposal.
 
 Write `niche.json` (`data-shape.md`, "A niche run"): the name, the question, the words and tags, the seed accounts,
-the networks, `read_at`, the window, the caps, the ceiling, the sources.
+the networks, `read_at`, the window, the caps, the ceiling, the sources. When the user named accounts, check them
+first (step 2, "Check the seeds") and say in the setup message, by name, any that was not found or posted nothing in
+the window; when they come in the answer, check them before anything else is read and say it in one line then.
 
 ## Step 1: Connections, and what a free reader can do here
 
@@ -57,6 +59,19 @@ can't search it." Never ask for a key. Read every paid tool's price before its f
 
 ## Step 2: Find the posts, then the creators
 
+0. **Check the seeds** (the accounts the user named) before reading anything else: each must exist and have posts in
+   the window. On YouTube one command checks them all and writes each one's `status` into `niche.json`:
+
+   ```
+   python3 SKILL_DIR/scripts/readers/ytdlp_reader.py seeds <niche>
+   ```
+
+   On another network ask your reader for the account and its newest post (one cheap call each), and write the same
+   `status` yourself: `found`, `not_found` (no such account) or `inactive` (no post in the window), with a `note`
+   saying what you saw. Name every seed that is not found or inactive in your answer ("@x: not found", "@y: no posts in
+   the window"), never swap a handle that is not found for a near spelling or guess who was meant, and go on with the
+   rest. Only found, active creators are read; they alone count as the niche's creators and toward the 3-creator rule,
+   and the report lists the others under "Not read" (`validate.py` warns while a seed is unchecked).
 1. **Find** with every way you have, in this order: the seed accounts' recent posts, the niche's tags, its words, a
    trending list where a reader gives one. Keep only the window's posts. Write each found post to `found.csv`
    (`post_id,url,network,account,found_by,query`; `found_by` is `search`, `tag`, `trending`, `seed_account`,
@@ -92,10 +107,12 @@ can't search it." Never ask for a key. Read every paid tool's price before its f
    `--spread 75` lists the creator's latest 75 posts (one request) and reads 25 of them, evenly spread. Without it, a
    creator who posts twice a day is read for its last 12 days only, its last 7 days are too new to score, and the
    early half of the window holds none of its posts, so no direction can be measured (seen on a real run). Say in the
-   report how far back each creator's reads reach (`trends.json` `creators[].span`).
+   report how far back each creator's reads reach (`trends.json` `creators[].span`). A creator read as a sample
+   (`account.json` `sampled`) is named under "Not read" in the report.
 
-   Covers are saved at once into each creator folder (`covers/`). Add each reader you used to `niche.json`
-   `sources`.
+   Covers are saved at once into each creator folder (`covers/`; `covers_sheet.py <niche> --fetch` saves the missing
+   ones like a browser and keeps a 403 as "not read"). Leave replies out of the rows and write each post's
+   `own_media` (`data-shape.md`). Add each reader you used to `niche.json` `sources`.
 4. `python3 SKILL_DIR/scripts/validate.py <niche>`: it checks `niche.json`, every creator folder, that a post id is
    unique across the niche, and `found.csv`. Go on only at 0 errors.
 
@@ -121,7 +138,8 @@ Writes `trends.json`, `trends.csv` (every post with its ratio and its basis, bes
 python3 SKILL_DIR/scripts/covers_sheet.py <niche> --sort ratio
 ```
 
-Every cover of the window on one numbered sheet, best first, each tile naming its creator. Then watch the videos
+Every cover of the window on numbered sheets of 50, best first, each tile naming its creator; it prints "drew N of M
+on K sheets": look at every sheet. Then watch the videos
 `trends.json` `deep_read` picked: the top trends, **at most 2 per creator** so one creator cannot fill the reading,
 3 ordinary posts (near 1×) and 2 flops, of different creators. Each is cut in its creator's folder:
 
@@ -129,8 +147,9 @@ Every cover of the window on one numbered sheet, best first, each tile naming it
 python3 SKILL_DIR/scripts/video_probe.py <niche> --picks --fetch          # or name post ids instead of --picks
 ```
 
-Fill each `notes.json` as in `deep-read.md`. A video that could not be read is "not read", never described from its
-caption.
+Fill each `notes.json` as in `deep-read.md`. Only a post's own video is cut; a pick whose video cannot be had is
+marked not read with why, and the run goes on. A video that could not be read is "not read", never described from its
+caption or from a video it quotes.
 
 ## Step 5: The formats, across creators
 
@@ -138,7 +157,14 @@ Group the window's posts into formats from the covers sheet and the videos you w
 the niche folder (the same shape as an account's; a post id from any creator folder; each post in at most one
 format). A format is a container (hook, structure, look, length), never a topic. Name one when you see it at more
 than one creator; list a single creator's series too: `radar.py` marks it as that creator's habit. Write in `basis`
-what showed you the container, at which creators. Then:
+what showed you the container, at which creators. Give each format its `examples` and, where the words show it, a
+`match`, then check the grouping and fix what it shows before measuring (`radar.md`, "Check the grouping"):
+
+```
+python3 SKILL_DIR/scripts/formats_check.py <niche>
+```
+
+Then:
 
 ```
 python3 SKILL_DIR/scripts/radar.py <niche>
@@ -158,8 +184,11 @@ python3 SKILL_DIR/scripts/text_probe.py <niche>
 The same measures as an account's words (`writing.md`), each post against its own creator's usual. A feature lifts
 or sinks for the niche only when its posts come from 3 creators or more; one creator's habit comes out "few
 creators". The best and worst first lines hold at most 2 of any creator. It writes `writing.json`, `posts_text.csv`
-and `hooks.md`, the niche's twin of a voice sheet: fill its prose with real first lines of at least two creators and
-their numbers (SEEN, post ids).
+and `hooks.md`, which takes the place of a voice sheet: fill its prose with real first lines of at least two creators and
+their numbers (SEEN, post ids). **A niche run writes no voice sheet** (`voice.md`): a voice is one account's, and the
+niche's posts are many voices. Say so when the user asks for one, and offer the way to get it: an account run on one
+creator (`account-run.md`), or words only on that creator (`writing.md`). The Niche report says it too, beside the
+hooks and in `NICHE.md`.
 
 ## Step 7: Your reading, and the hand-over
 
@@ -181,9 +210,11 @@ It writes the Niche report (`report.html`, one file: the chart of the formats of
 formats with small pictures of the posts that prove each, each linked to its original and never a video, what did not
 work, the trends, the hooks, who to watch), `NICHE.md` for agents, and the planner files (`report_record.json`; `brief.json`, the report's short view; and
 `radar_rows.json`: one row per format of the niche, 3 creators or more, with its recipe and the links of the posts
-that prove it). Tell the user: the path, three lines (what works now; the strongest format of the niche with its
-creators, lift and direction; what fades, or the hook that lifts, or "nothing in the words lifts across creators"),
-what was not read, and the cost.
+that prove it). Its "Not read" part lists what this run could not read, from what happened (seeds not found or
+inactive, creators read as a sample, replies left out, threads read as their first part, covers not saved, videos not
+watched, speech without subtitles). Tell the user: the path, three lines (what works now; the strongest format of the
+niche with its creators, lift and direction; what fades, or the hook that lifts, or "nothing in the words lifts across
+creators"), what was not read, and the cost.
 
 ## A planner connector
 

@@ -32,8 +32,8 @@ sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill fold
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (  # noqa: E402
     SKILL_VERSION, account_read_at, day, die, iso, load_formats, load_niche, load_posts, median, niche_creator_dirs,
-    niche_input_files, norm_handle, now_utc, parse_time, read_csv, read_json, rnd, save_like, share_like, write_csv,
-    write_json,
+    niche_input_files, norm_handle, now_utc, parse_time, read_csv, read_json, replies_left_out, rnd, save_like,
+    share_like, write_csv, write_json,
 )
 import analyze  # noqa: E402
 
@@ -177,6 +177,8 @@ def run(folder, opts=None):
         acc = read_json(os.path.join(folder, d, "account.json"))
         ps = load_posts(os.path.join(folder, d))
         summary = creator_numbers(ps, acc, lo, hi, rules)
+        rl = replies_left_out(os.path.join(folder, d))
+        summary["replies_left_out"] = rl["other"] + rl["self"]
         cid = d.split("/", 1)[1]
         summary.update({"id": cid, "dir": d, "network": acc.get("network"), "handle": norm_handle(acc.get("handle")),
                         "name": acc.get("name"), "url": acc.get("url"), "found_by": acc.get("found_by")})
@@ -206,6 +208,13 @@ def run(folder, opts=None):
     young = sorted([p for p in posts if p["status"] == "too_new"], key=lambda p: -(p["ratio_so_far"] or 0))
     scored_creators = sorted(set(p["creator"] for p in scored))
     picks = deep_read_picks(scored, rules)
+    # Seeds (0.4.1): each seed checked before the reading (niche.md, step 2): found, not_found or inactive. Only creators
+    # with posts in the window count as the niche's creators; the 3-creator rule counts creators scored on their own usual.
+    seeds = {"found": [], "not_found": [], "inactive": [], "unchecked": []}
+    for sd in niche.get("seed_accounts") or []:
+        st = sd.get("status") if sd.get("status") in ("found", "not_found", "inactive") else "unchecked"
+        seeds[st].append({"handle": norm_handle(sd.get("handle")), "network": sd.get("network"), "note": sd.get("note")})
+    active = sorted(set(p["creator"] for p in posts if p["in_window"]))
     out = {
         "schema": "rea-viral/trends@1",
         "skill_version": SKILL_VERSION,
@@ -216,15 +225,17 @@ def run(folder, opts=None):
         "window": {"from": day(lo), "to": day(hi)},
         "rules": rules,
         "counts": {
-            "creators": len(creators), "creators_scored": len(scored_creators),
+            "creators": len(creators), "creators_active": len(active), "creators_scored": len(scored_creators),
             "creators_weaker_basis": sum(1 for c in creators if c["scored"] == 0 and c["basis"] == "followers"),
             "posts_read": len(posts), "in_window": sum(1 for p in posts if p["in_window"]),
             "scored": len(scored), "hits": sum(1 for p in scored if p["hit"]),
             "too_new": len(young), "weaker_basis": len(weak),
             "no_baseline": sum(1 for p in posts if p["status"] == "no_baseline"),
             "no_date": sum(1 for p in posts if p["status"] == "no_date"),
+            "replies_left_out": sum(c.get("replies_left_out") or 0 for c in creators),
         },
         "creators": creators,
+        "seeds": seeds,
         "ranked": [p["post_id"] for p in scored],
         "leads_weaker_basis": [p["post_id"] for p in weak],
         "too_new": [p["post_id"] for p in young],

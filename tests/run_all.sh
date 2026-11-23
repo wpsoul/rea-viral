@@ -23,6 +23,8 @@ step "Scout and Watch"
 python3 "$HERE/test_watch.py"; check $? test_watch.py
 step "the other ways in: a niche (its formats across creators) and one post, against planted answers"
 python3 "$HERE/test_niche.py"; check $? test_niche.py
+step "cases a real run met (0.4.1): covers sheets, own videos, speech rate, names, replies, corner words, formats_check, fetching, seeds, what was not read"
+python3 "$HERE/test_field_cases.py"; check $? test_field_cases.py
 step "Basic remake renderer: frame-exact (WebM clip, Playwright's Chromium)"
 python3 "$HERE/test_render.py" --work "$WORK/render-webm"; check $? "test_render.py webm"
 if [ -d "/Applications/Google Chrome.app" ] || command -v google-chrome >/dev/null 2>&1; then
@@ -47,6 +49,14 @@ python3 "$HERE/add_pictures.py" "$MP" >/dev/null && python3 -I "$SK/analyze.py" 
 check $? "build the made-up report with pictures"
 node "$HERE/verify_report.mjs" "$MP/report.html" "$WORK/shots-main-pictures" --radar 4 --timeline --not-working 6 --pictures 30
 check $? "verify_report main with pictures"
+step "the format map with five long names crowded near the bottom (made-up account): every name inside the chart, none over another"
+C="$WORK/fx/crowded"
+python3 -I "$SK/analyze.py" "$C" >/dev/null && python3 -I "$SK/radar.py" "$C" >/dev/null && \
+  python3 -I "$SK/build_report.py" "$C" >/dev/null
+check $? "build the crowded report"
+node "$HERE/verify_report.mjs" "$C/report.html" "$WORK/shots-crowded" --radar 5; check $? "verify_report crowded"
+step "the covers sheets of the account with 142 covers (numbered, paged, each sheet checked against its tiles)"
+python3 -I "$SK/covers_sheet.py" "$MP" --sort ratio | tail -1; check ${PIPESTATUS[0]} "covers_sheet main with pictures"
 step "the report page with How it writes (made-up X account: 1 lift, 1 sink)"
 W="$WORK/fx/writing_x"
 python3 -I "$SK/text_probe.py" "$W" >/dev/null && python3 -I "$SK/build_report.py" "$W" >/dev/null

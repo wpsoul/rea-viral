@@ -81,9 +81,9 @@ Each way uses these in its own order (its reference has the exact commands):
 |---|---|---|---|
 | Corpus | The normalised files: one account folder per creator (`account.json`, `posts.csv`); `niche.json` and `post.json` say which way | `validate.py` | `data-shape.md` |
 | Numbers | Each post against its own creator's usual | `analyze.py` (account), `post_probe.py` (post), `trends.py` (niche) | `numbers.md` |
-| Look | Covers on one sheet; the videos cut and measured, then you look (hits, ordinary posts and flops) | `covers_sheet.py`, `video_probe.py` | `deep-read.md` |
+| Look | Covers on numbered sheets (each checked); each post's own video cut and measured, then you look (hits, ordinary posts and flops) | `covers_sheet.py`, `video_probe.py` | `deep-read.md` |
 | Words | Openings, shape, voice, asks against the usual | `text_probe.py` | `writing.md` |
-| Formats | You group posts into formats; the script measures and places them | `radar.py` | `radar.md` |
+| Formats | You group posts into formats and check the grouping; the script measures and places them | `formats_check.py`, `radar.py` | `radar.md` |
 | Comments | The comment section as a tactic (account run) | `comment_tactics.py` | `comments.md` |
 | Reading | Your claims, each labelled: what worked and what did not | `findings.json` | `handover.md` |
 | Hand-over | The report (one file), the file for agents, the planner files | `build_report.py` | `handover.md` |
@@ -95,7 +95,7 @@ Always `validate.py <run>` after writing the corpus, and go on only at 0 errors.
 
 **An account** (`rea-viral/<network>-<handle>/`, the main way): setup → the corpus → `analyze.py` → watch the
 deep-read picks (outliers, ordinary posts, flops) → comments → `text_probe.py` (`voice.md`) → `formats.json` →
-`radar.py` (its Format map) → `findings.json` (what worked, and `did_not_work`) → `build_report.py` (the Account
+`formats_check.py` (fix overlaps and misfits) → `radar.py` (its Format map) → `findings.json` (what worked, and `did_not_work`) → `build_report.py` (the Account
 report, `report.html`; `ACCOUNT.md`; `report_record.json`, `radar_rows.json` with its strongest format).
 
 **A post** (`rea-viral/post-<network>-<post_id>/`): the post and its creator's 25 to 40 recent posts → watch it →
@@ -103,10 +103,13 @@ mark its format in `formats.json` → `post_probe.py` → `findings.json` (why i
 `build_report.py` (the Post report, a short `report.html`; `POST.md`; the planner files with the post's own format).
 
 **A niche** (`rea-viral/niche-<slug>/`): setup (the niche's words or tags, one network, the last 30 days, up to 10
-creators and 25 posts each) → find posts (seed accounts, tags, words, trending lists) into `found.csv` → each
+creators and 25 posts each) → check the seed accounts first (`ytdlp_reader.py seeds`, or your reader: found, not
+found, no posts in the window; name the missing ones, never guess) → find posts (seed accounts, tags, words, trending
+lists) into `found.csv` → each
 creator's recent posts into `accounts/<network>-<handle>/` → `trends.py` → `covers_sheet.py`, `video_probe.py <niche>
 --picks --fetch` (the top trends, 2 per creator at most, ordinary posts and flops) → `formats.json` across creators →
-`radar.py` (the niche's formats) → `text_probe.py` (the hooks, `hooks.md`) → `findings.json` → `build_report.py` (the
+`formats_check.py` → `radar.py` (the niche's formats) → `text_probe.py` (the hooks, `hooks.md`; a niche run writes no
+voice sheet) → `findings.json` → `build_report.py` (the
 Niche report; `NICHE.md`; `radar_rows.json`, one row per format of the niche). `trends.py` also writes the trends as
 planner rows (`planner_rows.json`).
 
@@ -118,7 +121,8 @@ checked by `draft_check.py`; the user's own draft with no reference: the editor'
 
 What a post opens with, its shape, its voice and its ask, measured against the creator's own usual: `text_probe.py`
 on any run folder. On an account it writes the voice sheet (`voice.md`); on a niche, the hooks of the winning posts
-across creators (`hooks.md`); on a post, `post_probe.py` sets the post's words beside its creator's usual. Drafts in
+across creators (`hooks.md`), and no voice sheet (a voice is one account's: for one creator's, run words only or an
+account run on that creator); on a post, `post_probe.py` sets the post's words beside its creator's usual. Drafts in
 that voice or with those hooks are checked by `draft_check.py`. Everything about words, the editor's pass and drafts:
 `references/writing.md`.
 
@@ -196,7 +200,15 @@ Every file and column: `references/data-shape.md`. Version 1 and 2 account folde
 | A creator has under 9 settled posts read | Its posts are on the weaker basis (views per follower) and count toward no format: read more of its posts |
 | A post is under 7 days old (3 on X, Threads) | Its ratio so far is a floor, never ranked |
 | `status: private`, `empty`, `no_dates`, `too_few_posts` (an account) | Build the report anyway; it says so, and "What did not work" says "not enough data". A source without dates: read again with one that has them |
-| A download fails (403) or subtitles fail (429) | Mark that video `read: false` with the error; never describe it |
+| A download fails (403, "No video") or subtitles fail (429) | `video_probe.py` marks that pick `read: false` with the error and goes on to the next; never describe it |
+| A video or quote row on X, Threads or LinkedIn has no `own_media` | It is not watched ("does not say whether the video is this post's own"). Write `own_media` from the post's own media (`connections.md`, "Own media and quoted media"); a quote's video is never this post's |
+| `covers_sheet.py` prints "drew N of M" with N under M | Look at the sheets it names and say which tiles are missing; never describe a post from a tile you did not see |
+| Covers answer 403 or 429 | `covers_sheet.py <run> --fetch` asks like a browser; what still refuses stays "not read" with its status (`covers/not_read.json`) |
+| The rows hold replies | Leave them out, or mark them `reply_to` (`data-shape.md`, "Replies"): the scripts drop them from every number and the report counts them |
+| A seed account is not found or posted nothing in the window | Name it in your answer and in the report ("not found", "no posts in the window"), never guess another handle, go on with the rest; it counts toward nothing |
+| `formats_check.py` fails or shows posts in two formats | Fix the examples, the matches and the overlaps, then `radar.py` |
+| A watched video has no subtitles | Words per minute is "not measured", never 0; a local speech-to-text tool can add the words (`deep-read.md`) |
+| The user asks a niche run for a voice sheet | There is none (`hooks.md` holds the niche's hooks); offer words only or an account run on one creator |
 | No video at all can be had | `video_probe.py <run> --picks --not-read "<why>"` (an account), or mark each `notes.json` read false; covers and captions only |
 | The tool shows no price | `cost_usd: null` in `sources` (unknown, not 0), and say so in `not_read` |
 | No follower history | Followers are ESTIMATED: "likely brought followers", never a count. Offer Watch |

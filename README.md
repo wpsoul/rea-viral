@@ -45,12 +45,31 @@ Each run writes a folder `rea-viral/<the run>/` beside your own files:
 - **A format of a niche needs 3 creators or more.** What one creator does is that creator's habit, shown and marked.
 - **Scripts do every number.** Every claim is labelled MEASURED (a script computed it), SEEN (a frame, comment or row
   shows it, linked) or INFERRED (reasoned, with the basis written). "Not enough data" is said when it is true.
-- **It watches the videos**: cuts, the first three seconds frame by frame, words per minute, the words on screen.
+- **It watches the videos**: cuts, the first three seconds frame by frame, words per minute, the words on screen; only
+  a post's own video, never the video of a post it quotes.
 - **Nothing of another creator is copied.** Covers and frame sheets are small pictures linked to the original post,
   and a remake uses your footage, face and words only.
 - **No data provider is built in.** The agent uses the data tools it already has, free readers first, reads a paid
   tool's price before calling it, and stops at your spend ceiling. `skill/scripts/readers/ytdlp_reader.py` is one free
   example reader (YouTube).
+
+## What it does not read
+
+Each report lists, under "Not read", what its own run could not read, from what happened in that run:
+
+- **Follower history**: no free source gives daily follower counts, so which posts brought followers is estimated
+  from signals ("likely brought followers"), never a count, unless you connect one or let Watch collect counts.
+- **Thread continuations**: when a reader gives only a thread's first part, the report says "thread: first part only"
+  and never judges its length or its ask from that part.
+- **Speech in videos without subtitles**: words per minute is "not measured", never 0; a local speech-to-text tool
+  can add the words (optional, free, on your machine).
+- **Carousel slides**: read by their cover unless the slides are saved.
+- **Prolific creators**: read as a sample spread over their recent posts, and named as sampled.
+- **Videos that are not the post's own**: a quote's video belongs to the post it quotes; a row that does not say whose
+  video it is is not watched, and the report says so.
+- **Replies**: left out of every number and counted; the account's own replies are folded into their post.
+- **Covers or accounts that cannot be had**: a cover that refuses (403, 429) stays "not read" with its status; a seed
+  account that is not found or posted nothing in the window is named, never guessed.
 
 ## Install
 
@@ -127,7 +146,7 @@ skill/references/       account-run, post-run, niche, writing (hooks and words o
                         numbers, deep read, comments, radar (one account's Format map, the formats of a niche),
                         hand-over (the reports, what did not work, the planner files), remake, watch
 skill/scripts/          validate, analyze, post_probe, trends, video_probe, covers_sheet, comment_tactics, text_probe,
-                        draft_check, radar, build_report (+ report_post, report_niche, page_kit, brief, hand_over),
+                        draft_check, formats_check, radar, build_report (+ report_post, report_niche, page_kit, brief, hand_over),
                         ledger, watch, render_page.mjs, remake_check, check_app, readers/ytdlp_reader
 skill/data/             writing-words.json: the word lists (English today; one file to extend and translate)
 skill/templates/        basic-format.html: a Basic page to start from
@@ -152,6 +171,34 @@ With the GreenLight Pulse connector's source at hand, `PULSE_MODEL=<its model.mj
 record against the connector's own model; without it that part says it is skipped.
 
 ## Status
+
+0.4.1 (2026-11-23): fixes from a real run on an X niche. Fixed in 0.4.1:
+
+- **Every cover is on the sheet.** With several hundred covers in mixed files (JPEG and PNG, some see-through) only
+  the last ones showed; now the covers go on numbered sheets of 50, each sheet is checked against its tiles, and the
+  run prints "drew N of M on K sheets".
+- **Only a post's own video is watched.** Text posts, pictures and carousels are no longer sent to the video
+  downloader, a quote post is never described from the video it quotes (new column `own_media`), and a video the
+  downloader cannot find is marked "not read" while the run goes on.
+- **Covers are fetched like a browser**, so picture servers that refuse scripts (403) give them; what still refuses is
+  kept as "not read" with its status.
+- **The format map's names stay inside the chart**, clear of each other and of the bubbles, on a phone too; each
+  bubble has a number, and a name with no room is listed by its number.
+- **Corner names describe position only.** The corner "Fading" is now "Overused" (used a lot, lifting little);
+  rising, steady and fading are only the direction, everywhere. Older run folders are read in the new words.
+- **Replies are not posts**: left out of the numbers and counted; the account's own replies join their post.
+- **"Let's connect" is not a name**: contractions no longer count as an opening with a name.
+- **No speech rate without subtitles** is said as "not measured", never read as 0.
+- **Seed accounts are checked first**: one that is not found or posted nothing in the window is named and counted
+  nowhere.
+- **A new check of your format grouping** (`formats_check.py`): what each format takes, the posts two formats both
+  take, the posts in none with the openers they repeat, and examples that do not fit.
+- **Each report says what its run did not read**, from what happened (above), and a niche run says why it gives no
+  voice sheet and how to get one.
+
+Tested with 131 tests on made-up data with planted answers (19 new ones for these cases, among them a sheet of 305
+covers in three kinds of file, a stand-in picture server that refuses scripts, and a crowded chart of five long
+names), plus every report page opened in a browser at desktop and phone width.
 
 0.4.0 (2026-11-19): one account is the main way in, and every run ends in a report: the Account report, the Post
 report or the Niche report. Every report has a part of its own for what did not work, beside what worked, measured by

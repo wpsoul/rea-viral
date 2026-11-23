@@ -10,7 +10,7 @@ gallery shows saved covers and frame sheets as small pictures inside the page, e
 import os
 import re
 
-from common import (SKILL_VERSION, die, iso, niche_input_files, now_utc, read_csv, read_json, write_text)
+from common import (SKILL_VERSION, die, iso, niche_input_files, now_utc, read_csv, read_json, upgrade_radar, write_text)
 from analyze import input_fingerprint
 import brief
 import hand_over
@@ -177,7 +177,7 @@ def page_data(folder, light=False):
     tr = _load(folder, "trends.json")
     if tr is None:
         die("no trends.json: run trends.py (or radar.py) first", 1)
-    radar = _load(folder, "radar.json")
+    radar = upgrade_radar(_load(folder, "radar.json"))
     wr = _load(folder, "writing.json")
     problems = [p for p in (_stale(folder, tr, "trends.json", "trends.py"), _stale(folder, radar, "radar.json", "radar.py"),
                             _stale(folder, wr, "writing.json", "text_probe.py")) if p]
@@ -244,6 +244,7 @@ def page_data(folder, light=False):
         "watchlist": trends_mod.watchlist(tr, radar),
         "findings": findings,
         "not_working": nw,
+        "limits": page_kit.dedupe_limits(page_kit.run_limits("niche", folder), findings),
         "cost": _cost(folder),
         "pictures": pics.summary(),
     }
@@ -281,7 +282,7 @@ def niche_md(d):
     if fi.get("headline"):
         L.append("- " + claim_line(fi["headline"]))
     placed = [f for f in fm if f.get("niche_format")]
-    order = {"scale_it": 0, "underused": 1, "fading": 2, "drop": 3}
+    order = {"scale_it": 0, "underused": 1, "overused": 2, "drop": 3}
     placed.sort(key=lambda f: (order.get(f["quadrant"], 9), -(f.get("lift") or 0)))
     for f in placed[:3]:
         L.append("- [MEASURED] %s: %s, %d creators, lift %s over each creator's own usual%s%s (radar.json#formats.%s)." % (
@@ -312,11 +313,16 @@ def niche_md(d):
     top = [by[i] for i in (t.get("ranked") or [])[:5] if i in by]
     L.append("| Which posts beat their own creator's usual? | %s at 2x or more; top: %s | trends.csv |" % (
         c.get("hits"), "; ".join("%s @%s %s" % (p["id"], p["account"], _x(p["ratio"])) for p in top) or "none"))
-    for q, words in (("scale_it", "Formats to make now (Scale it)"), ("underused", "Early openings (Underused)"),
-                     ("fading", "Fading"), ("drop", "Drop")):
-        names = [f["name"] + (" (few posts)" if f.get("few_posts") else "") for f in placed if f["quadrant"] == q]
+    for q, words in (("scale_it", "Formats to make now (Scale it: many creators, lifting)"),
+                     ("underused", "Early openings (Underused: few creators, lifting)"),
+                     ("overused", "Used by many, lifting little (Overused)"), ("drop", "Drop (few creators, lifting little)")):
+        names = [f["name"] + (" (few posts)" if f.get("few_posts") else "") + (" (fading)" if f.get("direction_label") == "fading" else "")
+                 for f in placed if f["quadrant"] == q and not (q in ("scale_it", "underused") and f.get("direction_label") == "fading")]
         if names:
             L.append("| %s | %s | radar.json, formats/*.md |" % (words, "; ".join(names)))
+    fad = [f["name"] for f in placed if f.get("direction_label") == "fading"]
+    if fad:
+        L.append("| Fading over the window (later half under the earlier) | %s | radar.json#formats.<id>.direction |" % "; ".join(fad))
     habits = [f for f in fm if not f.get("niche_format")]
     if habits:
         L.append("| Not formats of the niche (yet) | %s | radar.json |" % "; ".join(
@@ -343,7 +349,10 @@ def niche_md(d):
         ". ".join(x for x in dnw if x).replace("|", "/")))
     wl = d.get("watchlist") or []
     L.append("| Who to watch? | %s | watchlist.csv |" % ("; ".join("@%s (%s)" % (r["handle"], r["why"]) for r in wl[:4]) or "nobody stood out"))
-    L.append("| What was not read? | %s | findings.json#not_read |" % ("; ".join(x["what"] for x in fi.get("not_read") or []) or "nothing listed"))
+    L.append("| What was not read? | %s | findings.json#not_read and this run's own lines below |" % (
+        "; ".join([x["what"] for x in fi.get("not_read") or []] + [x["what"] for x in d.get("limits") or []]) or "nothing listed"))
+    L.append("| A voice sheet? | None in a niche run: hooks.md holds the niche's hooks across creators. For one creator's voice "
+             "sheet, run an account run (or words only) on that creator | hooks.md |")
     L.append("| What did it cost? | $%.4f | cost.csv |" % d["cost"]["total_usd"])
     L += ["", "## Layer 2: detail", ""]
     if fm:
@@ -416,6 +425,9 @@ def niche_md(d):
             L.append("%d. **%s** (effort %s). %s" % (i, p["title"], p.get("effort"), claim_line(p)))
             L.append("   Prompt: %s" % (p.get("prompt") or "").replace("\n", " "))
         L.append("")
+    if d.get("limits") or fi.get("not_read"):
+        L += ["### Not read", ""] + ["- %s: %s" % (x["what"], x["why"]) for x in fi.get("not_read") or []] + \
+             ["- [MEASURED] %s: %s" % (x["what"], x["why"]) for x in d.get("limits") or []] + [""]
     L += ["### Files", "",
           "niche.json (the question, the window, the sources) · accounts/<network>-<handle>/ (each creator's posts) · "
           "found.csv (how posts were found) · trends.json, trends.csv · radar.json, formats/<id>.md (recipes) · "
@@ -444,7 +456,7 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
     el('div', {cls: 'row'}, themeButton())));
   var c = T.counts || {}, tot = (D.cost || {}).total_usd || 0;
   app.appendChild(el('div', {cls: 'stats'},
-    stat(c.creators == null ? '—' : c.creators, 'creators read · ' + (c.creators_scored || 0) + ' with their own usual'),
+    stat(c.creators == null ? '—' : (c.creators_active != null ? c.creators_active : c.creators), 'creators with posts in the window · ' + (c.creators_scored || 0) + ' with their own usual' + (c.creators_active != null && c.creators > c.creators_active ? ' · ' + (c.creators - c.creators_active) + ' read had none' : '')),
     stat(c.posts_read == null ? '—' : c.posts_read, 'posts read · ' + (c.in_window || 0) + ' in the window'),
     stat(c.scored == null ? '—' : c.scored, 'scored against their own creator'),
     stat(c.hits == null ? '—' : c.hits, 'at 2× their own creator\'s usual or more'),
@@ -472,6 +484,7 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
   var s = section('radar', 'Formats of the niche', 'Across: how many of the niche\'s creators use the format. Up: its lift over each creator\'s own usual. Size: creators behind it. Arrow: the later half of the window against the earlier half.');
   var g = el('div', {cls: 'grid2'}); s.appendChild(g);
   var placed = FM.filter(function(f){ return f.niche_format && f.lift != null; });
+  var numOf = {}; placed.forEach(function(f, i){ numOf[f.id] = i + 1; });
   if (R.status !== 'ok' || !placed.length){
     g.appendChild(el('div', {cls: 'panel'}, el('div', {cls: 'empty', text: R.status_note || (FM.length ? 'No format reached 3 creators: nothing is a format of the niche yet.' : 'No formats measured yet.')})));
     if (!FM.length) return;
@@ -485,12 +498,14 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
     function Y(v){ return Tt + (H - Tt - B) * (yhi - Math.log2(Math.max(v, Math.pow(2, ylo)))) / (yhi - ylo); }
     var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, 'class': 'chart', role: 'img', 'aria-label': 'Formats of the niche', 'data-chart': 'radar'});
     var xs = (R.rules || {}).often_creators_share || 0.4, ys = (R.rules || {}).strong_lift || 1;
-    svg.appendChild(sv('rect', {x: L, y: Tt, width: W - L - Rr, height: H - Tt - B, fill: 'var(--panel2)', rx: 8}));
+    svg.appendChild(sv('rect', {x: L, y: Tt, width: W - L - Rr, height: H - Tt - B, fill: 'var(--panel2)', rx: 8, 'class': 'plot'}));
+    var corners = [];
     svg.appendChild(sv('line', {x1: X(xs), x2: X(xs), y1: Tt, y2: H - B, 'class': 'split'}));
     svg.appendChild(sv('line', {x1: L, x2: W - Rr, y1: Y(ys), y2: Y(ys), 'class': 'split'}));
     [['Scale it', W - Rr - 8, Tt + 18, 'end', 'var(--scale)'], ['Underused', L + 8, Tt + 18, 'start', 'var(--under)'],
-     ['Fading', W - Rr - 8, H - B - 10, 'end', 'var(--fading)'], ['Drop', L + 8, H - B - 10, 'start', 'var(--drop)']].forEach(function(q){
-      svg.appendChild(sv('text', {x: q[1], y: q[2], 'text-anchor': q[3], text: q[0], fill: q[4], 'font-weight': 800, 'font-size': 13})); });
+     ['Overused', W - Rr - 8, H - B - 10, 'end', 'var(--fading)'], ['Drop', L + 8, H - B - 10, 'start', 'var(--drop)']].forEach(function(q){
+      svg.appendChild(sv('text', {x: q[1], y: q[2], 'text-anchor': q[3], text: q[0], fill: q[4], 'font-weight': 800, 'font-size': 13}));
+      corners.push(cornerBox(q[1], q[2], q[0], q[3])); });
     for (var e = ylo; e <= yhi; e++) svg.appendChild(sv('text', {x: L - 6, y: Y(Math.pow(2, e)) + 4, 'text-anchor': 'end', text: (e >= 0 ? Math.pow(2, e) : '1/' + Math.pow(2, -e)) + '×'}));
     [0, 0.2, 0.4, 0.6, 0.8, 1].forEach(function(v){ svg.appendChild(sv('text', {x: X(v), y: H - B + 16, 'text-anchor': 'middle', text: Math.round(v * 100) + '%'})); });
     svg.appendChild(sv('text', {x: (L + W - Rr) / 2, y: H - 8, 'text-anchor': 'middle', text: 'share of the niche\'s creators using it'}));
@@ -500,29 +515,21 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
     placed.slice().sort(function(a, b){ return b.creators - a.creators; }).forEach(function(f){
       var r = 9 + 22 * Math.sqrt(f.creators / maxC), cx = X(f.creators_share), cy = Y(f.lift), gg = sv('g', {'data-format': f.id});
       gg.appendChild(sv('circle', {cx: cx, cy: cy, r: r, fill: QC[f.quadrant], 'fill-opacity': 0.28, stroke: QC[f.quadrant], 'stroke-width': 2}));
-      if (f.direction != null){ var len = Math.max(-1, Math.min(1, Math.log2(f.direction))) * 26;
+      var len = 0;
+      if (f.direction != null){ len = Math.max(-1, Math.min(1, Math.log2(f.direction))) * 26;
         if (Math.abs(len) > 3){ var y2 = cy - len; gg.appendChild(sv('line', {x1: cx, y1: cy, x2: cx, y2: y2, stroke: 'var(--text)', 'stroke-width': 2}));
           gg.appendChild(sv('path', {d: 'M' + (cx - 5) + ' ' + (y2 + (len > 0 ? 6 : -6)) + 'L' + cx + ' ' + y2 + 'L' + (cx + 5) + ' ' + (y2 + (len > 0 ? 6 : -6)), fill: 'none', stroke: 'var(--text)', 'stroke-width': 2})); } }
       gg.appendChild(sv('title', {text: f.name + ' · ' + QN[f.quadrant] + ' · ' + f.creators + ' creators · lift ' + xr(f.lift) + (f.direction_label ? ' · ' + f.direction_label : '')}));
-      labels.push({cx: cx, cy: cy, r: r, name: f.name.length > 30 ? f.name.slice(0, 29) + '…' : f.name, g: gg});
+      bubbleNumber(gg, cx, cy, numOf[f.id], r, len);
+      labels.push({cx: cx, cy: cy, r: r, name: f.name.length > 30 ? f.name.slice(0, 29) + '…' : f.name, g: gg, n: numOf[f.id], full: f.name});
       svg.appendChild(gg); drawn.radar++;
     });
-    // Labels: beside their bubble; moved down while they would cover another label or another bubble.
-    var taken = [];
-    labels.sort(function(a, b){ return a.cy - b.cy; }).forEach(function(l){
-      var w = l.name.length * 6.6, left = l.cx > (L + W - Rr) / 2, x = left ? l.cx - l.r - 6 - w : l.cx + l.r + 6, y = l.cy + 4;
-      function covers(){
-        if (taken.some(function(t){ return x < t.x + t.w && t.x < x + w && Math.abs(t.y - y) < 15; })) return true;
-        return labels.some(function(o){ return o !== l && x < o.cx + o.r && o.cx - o.r < x + w && y > o.cy - o.r - 2 && y - 11 < o.cy + o.r; });
-      }
-      for (var k = 0; k < 16 && covers(); k++) y += 15;
-      taken.push({x: x, y: y, w: w});
-      l.g.appendChild(sv('text', {x: x, y: y, text: l.name, fill: 'var(--text)', 'font-weight': 700, 'font-size': 12}));
-    });
-    g.appendChild(el('div', {cls: 'panel'}, svg));
+    var off = placeLabels(labels, {x0: L, y0: Tt, x1: W - Rr, y1: H - B}, corners);
+    drawn.labels_off = off.length;
+    g.appendChild(el('div', {cls: 'panel'}, svg, off.length ? el('div', {cls: 'small muted', style: 'margin-top:6px', text: 'Named by number (no room beside the bubble): ' + off.sort(function(a, b){ return a.n - b.n; }).map(function(l){ return l.n + ' ' + l.full; }).join(' · ')}) : null));
   }
-  var tbl = el('table', null, el('tr', null, el('th', {text: 'Format'}), el('th', {text: 'Corner'}), el('th', {cls: 'num', text: 'Creators'}), el('th', {cls: 'num', text: 'Lift'}), el('th', {text: 'Direction'}), el('th', {text: 'First seen'})));
-  FM.forEach(function(f){ tbl.appendChild(el('tr', null, el('td', null, el('a', {href: '#fmt-' + f.id, text: f.name})), el('td', null, el('span', {cls: 'q ' + f.quadrant, text: f.niche_format ? QN[f.quadrant] : f.scope_status})),
+  var tbl = el('table', null, el('tr', null, el('th', {cls: 'num', text: '#'}), el('th', {text: 'Format'}), el('th', {text: 'Corner'}), el('th', {cls: 'num', text: 'Creators'}), el('th', {cls: 'num', text: 'Lift'}), el('th', {text: 'Direction'}), el('th', {text: 'First seen'})));
+  FM.forEach(function(f){ tbl.appendChild(el('tr', null, el('td', {cls: 'num muted', text: numOf[f.id] || ''}), el('td', null, el('a', {href: '#fmt-' + f.id, text: f.name})), el('td', null, el('span', {cls: 'q ' + f.quadrant, text: f.niche_format ? QN[f.quadrant] : f.scope_status})),
     el('td', {cls: 'num', text: f.creators + ' · ' + pct(f.creators_share)}), el('td', {cls: 'num', text: xr(f.lift)}),
     el('td', {cls: 'small', text: f.direction == null ? 'not enough posts' : xr(f.direction) + ' ' + (f.direction_label || '')}),
     el('td', {cls: 'small', text: date(f.first_seen) + (f['new'] ? ' (new)' : '')}))); });
@@ -535,7 +542,7 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
   if (!FM.length) return;
   var s = section('gallery', 'The formats, with the posts that prove them', 'Each creator\'s best post of the format, best first. Covers and frame sheets link to the original posts; no video is copied here.');
   var gal = el('div', {cls: 'gallery'}); s.appendChild(gal);
-  var order = {scale_it: 0, underused: 1, fading: 2, drop: 3, too_few: 4};
+  var order = {scale_it: 0, underused: 1, overused: 2, fading: 2, drop: 3, too_few: 4};
   FM.slice().sort(function(a, b){ return (order[a.quadrant] - order[b.quadrant]) || ((b.lift || 0) - (a.lift || 0)); }).forEach(function(f){
     var rc = ((D.recipes || {})[f.id] || {}), rec = rc.recipe || {};
     var card = el('div', {cls: 'fcard' + (f.niche_format ? '' : ' not'), id: 'fmt-' + f.id, 'data-format': f.id},
@@ -632,7 +639,7 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
   var W = D.writing, V = D.hooks;
   if (!W) return;
   var cn = W.counts || {}, lg = W.language || {};
-  var s = section('hooks', 'Hooks: what the winning posts open with', 'Each post\'s words against its own creator\'s usual: ' + (cn.scored_with_text || 0) + ' scored posts with words. A feature counts for the niche only when its posts come from 3 creators or more. ' + (lg.note || ''));
+  var s = section('hooks', 'Hooks: what the winning posts open with', 'Each post\'s words against its own creator\'s usual: ' + (cn.scored_with_text || 0) + ' scored posts with words. A feature counts for the niche only when its posts come from 3 creators or more. A niche run writes the niche\'s hooks (hooks.md), not a voice sheet: for one creator\'s voice sheet, run an account run or words only on that creator. ' + (lg.note || ''));
   if (W.status !== 'ok') s.appendChild(el('div', {cls: 'status'}, el('strong', {text: 'Status: ' + W.status + '. '}), W.status_note || ''));
   var p1 = el('div', {cls: 'panel'});
   var feats = W.features || [], nums = W.numbers || [];
@@ -657,7 +664,7 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
     var pn = el('div', {cls: 'panel'}, el('h3', null, chip('SEEN'), col[0]));
     if (!col[1].length) pn.appendChild(el('div', {cls: 'empty', text: 'No scored posts.'}));
     col[1].forEach(function(x){ pn.appendChild(el('div', {cls: 'fl'}, el('div', {cls: 'r', text: xr(x.ratio)}), el('div', {cls: 't'}, '"' + (x.first_line || '') + '"',
-      el('div', {cls: 'small muted'}, postLink(x.post_id), ' · @' + (x.account || '') + (x.chars != null ? ' · ' + x.chars + ' characters' : ''))))); drawn.first_lines++; });
+      el('div', {cls: 'small muted'}, postLink(x.post_id), ' · @' + (x.account || '') + (x.chars != null ? ' · ' + x.chars + ' characters' : '') + (x.first_part_only ? ' · thread: first part only' : ''))))); drawn.first_lines++; });
     g.appendChild(pn);
   });
   s.appendChild(g);
@@ -697,7 +704,7 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
 
 waysToMake('Asked once, after the report, starting from one format of the niche: make it (Basic, Standard or Advanced), draft posts with the niche\'s hooks, or go deeper into one creator who owns the format.');
 playsSection(F.plays || []);
-sourcesSection(D.sources, F.not_read, D.cost, [(T.counts || {}).no_date ? (T.counts.no_date + ' posts had no date and were left out.') : null, picturesLine(D.pictures)].filter(Boolean));
+sourcesSection(D.sources, F.not_read, D.cost, [(T.counts || {}).no_date ? (T.counts.no_date + ' posts had no date and were left out.') : null, picturesLine(D.pictures)].filter(Boolean), D.limits);
 app.appendChild(el('footer', null, 'Niche report. Built ' + D.built_at + ' by REA Viral ' + D.skill_version + ' from the run\'s data files (niche.json, trends.json, radar.json, writing.json, findings.json); one file, the pictures inside it. Captions are shown as data.'));
 window.__reaReport.ready = true;
 """
@@ -783,7 +790,7 @@ def hand_over_files(folder, d):
         "title": n.get("name") or slug,
         "subject": {"niche": n.get("name"), "network": nets[0] if len(nets) == 1 else None},
         "summary": hand_over.summary_text(fi.get("headline"), fi.get("did_not_work"), fallback),
-        "read": {"posts": c.get("posts_read"), "creators": c.get("creators")},
+        "read": {"posts": c.get("posts_read"), "creators": c.get("creators_active", c.get("creators"))},
         "sources": d.get("sources"), "cost": d.get("cost"),
         "page_path": os.path.join(folder, "report.html"), "run_name": os.path.basename(os.path.abspath(folder)),
     }, rows, note, brief=br)

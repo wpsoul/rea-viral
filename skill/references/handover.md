@@ -62,7 +62,12 @@ or caption of the cited posts. The same for every section, `did_not_work` includ
 - **plays**: ten at most, best first. Each: the evidence, the effort, the first result to look for, what not to copy,
   and a prompt the user can paste into their own agent. Write them for the user's account when they gave one.
 - **plan_14d**: only when the user gave their own account.
-- **not_read**: every source, video, network or period you could not read, and why. The page shows it.
+- **not_read**: every source, video, network or period you could not read, and why. The page shows it. Beside yours,
+  every report adds the run's own "not read" lines, MEASURED, from what happened in this run and only then: no
+  follower history read, threads that came as their first part only, carousels read by their cover only, watched
+  videos with no subtitles (words per minute not measured), picked posts whose video was not known to be their own,
+  covers not saved (with their status), replies left out of the numbers, creators read as a sample, and in a niche the
+  seed accounts not found or with no posts in the window. A line you already wrote yourself is not repeated.
 
 ## What did not work, as the reports draw it
 
@@ -71,11 +76,14 @@ The scripts' part, MEASURED (and SEEN from the notes of the watched flops), draw
 
 | Report | What it lists | From |
 |---|---|---|
-| Account | The formats under 1× the account's usual or weakening (corner, lift, direction, how many of the flops are in it, its three lowest posts; `few posts` marked); the flops (`ratio` 0.5 or under: how many, by format) and the lowest posts the deep read picked, with what the watched ones show; the features of the words that `sinks`, else the leads; the worst first lines | `radar.json`, `analysis.json#flops`, `videos/<id>/notes.json`, `writing.json` |
+| Account | The formats under 1× the account's usual or fading (corner, lift, direction, how many of the flops are in it, its three lowest posts; `few posts` marked); the flops (`ratio` 0.5 or under: how many, by format) and the lowest posts the deep read picked, with what the watched ones show; the features of the words that `sinks`, else the leads; the worst first lines | `radar.json`, `analysis.json#flops`, `videos/<id>/notes.json`, `writing.json` |
 | Post | The post itself when it sits under its creator's usual; the format's repeats under the usual; the words this post has or lacks where the creator's posts with them do worse (a lead under 6 posts a side) | `post_probe.json` |
 | Niche | The formats of the niche under their creators' usual or fading, with their lowest posts; the flops (each under its own creator's usual) and the deep read's lowest picks; what sinks across 3 creators or more | `radar.json`, `trends.json`, `writing.json` |
 
-Each part says "not enough data", "not measured" or "nothing … sinks" when that is the truth.
+Each part says "not enough data", "not measured" or "nothing … sinks" when that is the truth. The words: a corner
+(Scale it, Underused, Overused, Drop) says where a format sits; `rising`, `steady` and `fading` say only where it is
+going (`radar.md`). A format in a lifting corner that is fading is listed here with its direction, never put first
+among what to make.
 
 ## build_report.py
 
@@ -145,10 +153,11 @@ planner connector"; the fields in `data-shape.md`, "Hand-over files"):
   ratio, never a multiple above 1 alone), `plays` (5 at most). So write `findings.json` well: the brief is made from
   it. The fields: `data-shape.md`, "Hand-over files".
 - **radar_rows.json**: `rows` to send to a tool that keeps formats: a niche run's formats of the niche (3 creators or
-  more, best corner first, 60 at most), an account run's strongest format (Scale it or Underused, 6 posts or more), a
+  more, best corner first, 60 at most), an account run's strongest format (Scale it or Underused, 6 posts or more; one that is not fading first), a
   post run's own format (keyed by the post itself). Each row: `key` (stable across builds), `source: "report"`, the
   format's best post as its face (`url`, `platform`, `post_id`, `creator`, `text`, `numbers`), `title`, `state:
-  "link"`, and `format` (`name`, `niche`, `creators`, `lift`, `trend`, `beats` from the recipe, `hook`, `proof`: the
+  "link"`, and `format` (`name`, `niche`, `creators`, `lift`, `trend` (`rising`, `steady`, `fading`: the direction,
+  never the corner), `beats` from the recipe, `hook`, `proof`: the
   links of the posts that prove it). With nothing to offer, `rows` is empty and `note` says why.
 
 ## Telling the user
@@ -156,7 +165,7 @@ planner connector"; the fields in `data-shape.md`, "Hand-over files"):
 The path and a few lines:
 
 1. The answer (the headline).
-2. The strongest format, with its lift and corner.
+2. The strongest format, with its lift, corner and direction.
 3. What did not work, in one line: the weakest format with its lift and corner, or what sinks, or "not enough data".
 4. The follower evidence: MEASURED for N posts, or "estimated from signals: no daily counts".
 

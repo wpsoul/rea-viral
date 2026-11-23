@@ -18,7 +18,15 @@ Writes videos/<post_id>/:
   first/            12 frames of the first 3 seconds (every 0.25 s) and first.jpg, a contact sheet of them
   shots/            one frame just after each cut (at most 24) and shots.jpg, a contact sheet
   notes.json        the fixed list for the agent to fill after looking (hook, first frame, text on screen, sound,
-                    the turn, the ask, beats); written once, never overwritten
+                    the turn, the ask, beats); written once, never overwritten. A video that could not be had (the
+                    downloader found none: "No video", a 403, a removed post) is marked read: false with why at once,
+                    and the run goes on to the next pick; a later read of that video replaces only that mark
+
+Only a post that carries its OWN video is cut (common.own_video, references/data-shape.md "own_media"): a text, thread
+or article post goes to the words (text_probe.py) and gets no video folder; a picture post to its cover; a quote's or a
+repost's video belongs to the other post and is never fetched for this one. A video or quote row that does not say whose
+video it is (on X, Threads, LinkedIn without own_media) is marked read: false, "not read: the row does not say ...",
+so the report says the video was not read instead of describing another post's video.
 
 The script cuts and measures. It does not look: on-screen text, the hook and the turn are the agent's to write.
 """
@@ -33,7 +41,7 @@ import time
 
 sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill folder
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import die, load_posts, median, read_json, rnd, write_json  # noqa: E402
+from common import die, load_posts, median, own_video, read_json, rnd, write_json  # noqa: E402
 
 FIRST_SECONDS = 3.0
 FIRST_STEP = 0.25
@@ -325,15 +333,29 @@ def probe_one(folder, pid, post, threshold, do_fetch):
     return res
 
 
+AUTO = "video_probe.py"   # notes.json "not_read_by": a "not read" this script wrote, replaced when the video is read later
+
+
 def write_notes(vdir, pid, probe):
+    """The template to fill after looking. A video that could not be had (the downloader found none, "No video",
+    a 403) is marked read false with why at once, so the run goes on; your own notes are never overwritten."""
     path = os.path.join(vdir, "notes.json")
     if os.path.exists(path):
+        try:
+            old = read_json(path)
+        except ValueError:
+            old = {}
+        if not (old.get("read") is False and old.get("not_read_by") == AUTO and probe.get("read")):
+            return
+    if not probe.get("read"):
+        write_json(path, {"post_id": pid, "read": False, "not_read_reason": probe.get("not_read_reason"),
+                          "not_read_by": AUTO, "seen": {}, "beats": []})
         return
     m = probe.get("measured") or {}
     notes = {
         "post_id": pid,
         "read": None,
-        "not_read_reason": probe.get("not_read_reason"),
+        "not_read_reason": None,
         "measured": {k: m.get(k) for k in ("length_s", "cuts_per_10s", "first_cut_s", "average_shot_s",
                                            "words_per_minute", "first_words_3s", "non_silent_share")},
         "seen": {
@@ -368,6 +390,10 @@ def main(argv):
     do_fetch = "--fetch" in argv
     not_read = argv[argv.index("--not-read") + 1] if "--not-read" in argv else None
     posts = dict((p["post_id"], p) for p in load_posts(folder))
+    try:
+        network = read_json(os.path.join(folder, "account.json")).get("network")
+    except (OSError, ValueError):
+        network = None
     ids = []
     if "--picks" in argv:
         ap = os.path.join(folder, "analysis.json")
@@ -391,11 +417,26 @@ def main(argv):
     if not ids:
         die("name the post ids, or --picks")
     bad = 0
+    tried = 0
     for pid in ids:
         if pid not in posts:
             print("%s: not in posts.csv, skipped" % pid)
             bad += 1
             continue
+        own = own_video(posts[pid], network)
+        kind = posts[pid].get("type") or "other"
+        if own is False:
+            # Not a video of its own: its words or its pictures are read elsewhere; nothing is fetched or cut.
+            print("%s: %s %s post with no video of its own, not cut (%s)" % (
+                pid, "an" if kind[:1] in "aeiou" else "a", kind, "its words: text_probe.py" if kind in ("text", "thread", "article", "quote") else "its cover: covers_sheet.py"))
+            continue
+        if own is None:
+            why = ("not read: the row does not say whether the video is this post's own (own_media); a quoted or "
+                   "reposted post's video is not this post's, so none was fetched")
+            mark_not_read(folder, pid, posts[pid], why)
+            print("%s: %s" % (pid, why))
+            continue
+        tried += 1
         if not_read:
             vdir = os.path.join(folder, "videos", pid)
             os.makedirs(vdir, exist_ok=True)
@@ -424,9 +465,27 @@ def main(argv):
             bad += 1
     if not_read:
         return 0
-    if bad == len(ids):
-        print("none of the videos could be read (exit 1). Mark them with --not-read \"<why>\" and go on with covers and captions.")
-    return 0 if bad < len(ids) else 1
+    if not tried:
+        print("no post among these carries a video of its own: nothing to cut (their words: text_probe.py)")
+        return 0
+    if bad >= tried:
+        print("none of the videos could be read: each is marked not read with why (videos/<id>/notes.json). Go on "
+              "with covers and captions (exit 1 only says so).")
+    elif bad:
+        print("%d of %d videos could not be read: marked not read with why; the run goes on" % (bad, tried))
+    return 0 if bad < tried else 1
+
+
+def mark_not_read(folder, pid, post, why):
+    """A picked post whose video is not known to be its own: read false, with why (the report shows it)."""
+    vdir = os.path.join(folder, "videos", pid)
+    os.makedirs(vdir, exist_ok=True)
+    write_json(os.path.join(vdir, "probe.json"), {"schema": "rea-viral/probe@1", "post_id": pid, "url": (post or {}).get("url"),
+                                                  "read": False, "not_read_reason": why})
+    npath = os.path.join(vdir, "notes.json")
+    n = read_json(npath) if os.path.exists(npath) else None
+    if n is None or n.get("read") is None or n.get("not_read_by") == AUTO:
+        write_json(npath, {"post_id": pid, "read": False, "not_read_reason": why, "not_read_by": AUTO, "seen": {}, "beats": []})
 
 
 def niche_main(argv):

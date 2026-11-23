@@ -21,7 +21,7 @@ import sys
 sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill folder
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (  # noqa: E402
-    ACCOUNT_SCHEMAS, COMMENT_COLUMNS, COUNT_COLUMNS, EVIDENCE, NETWORKS, POST_COLUMNS, POST_TYPES,
+    ACCOUNT_SCHEMAS, COMMENT_COLUMNS, COUNT_COLUMNS, EVIDENCE, NETWORKS, OWN_MEDIA, POST_COLUMNS, POST_TYPES,
     REQUIRED_COMMENT_COLUMNS, REQUIRED_POST_COLUMNS, TEXT_NETWORKS, UNKNOWN_WORDS, V2_POST_COLUMNS, ShapeError,
     parse_author_replies, parse_bool, parse_count, parse_float, parse_parts, parse_time, read_csv, read_json,
 )
@@ -169,6 +169,7 @@ def check_posts(folder, acc, rep):
         read_at = None
     seen = {}
     no_date = 0
+    no_own = 0
     for i, r in enumerate(rows):
         n = i + 2
         where = "posts.csv:row %d" % n
@@ -276,6 +277,11 @@ def check_posts(folder, acc, rep):
             q = (r.get("quoted_url") or "").strip()
             if q and not re.match(r"^https?://", q):
                 rep.err(where + ":quoted_url", "%r is not an http(s) link to the quoted post" % q)
+        om = (r.get("own_media") or "").strip().lower() if "own_media" in header else ""
+        if om and om not in OWN_MEDIA:
+            rep.err(where + ":own_media", "%r is not one of %s (the post's OWN media; empty when unknown)" % (om, ", ".join(OWN_MEDIA)))
+        elif not om and t in ("video", "quote") and acc and acc.get("network") in TEXT_NETWORKS:
+            no_own += 1
         if "lang" in header:
             lg = (r.get("lang") or "").strip()
             if lg and not re.fullmatch(r"[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})*", lg):
@@ -289,6 +295,22 @@ def check_posts(folder, acc, rep):
         if no_date * 2 > len(rows):
             msg += ". Most rows have no date: read the posts with a source whose rows carry dates"
         rep.warn("posts.csv:published_at", msg)
+    if acc and rows:
+        from common import load_posts as _lp, reply_kind
+        kinds = [reply_kind(p, acc.get("handle"), acc.get("network")) for p in _lp(folder, keep_replies=True)]
+        n_other, n_self = kinds.count("other"), kinds.count("self")
+        if n_other:
+            rep.warn("posts.csv:reply_to", "%d rows are replies to other accounts (reply_to, or a text that opens with @handle "
+                                           "on X or Threads): they are left out of the numbers. Leave them out of posts.csv "
+                                           "(data-shape.md, Replies)" % n_other)
+        if n_self:
+            rep.warn("posts.csv:reply_to", "%d rows are the account's own replies: each is folded into the post its "
+                                           "reply_to_id names (a thread part, or a later reply); one with no reply_to_id is "
+                                           "left out" % n_self)
+    if no_own:
+        rep.warn("posts.csv:own_media", "%d video or quote rows do not say whose video it is: write own_media (video when the "
+                                        "post itself carries its own video; none when the video belongs to the quoted post). "
+                                        "Until then they are not watched (data-shape.md, own_media)" % no_own)
     if acc and acc.get("private") and rows:
         rep.warn("account.json:private", "the account is marked private but posts.csv has rows")
     return seen
@@ -394,6 +416,20 @@ def check_formats(folder, posts, rep):
                 rep.warn(where + "." + k, "empty; a format is a container: hook, structure, look and length")
         if f.get("effort") not in EFFORTS:
             rep.err(where + ".effort", "one of low, medium, high (got %r)" % (f.get("effort"),))
+        m = f.get("match")
+        if m is not None:
+            if not isinstance(m, dict):
+                rep.err(where + ".match", 'an object {"opens": [...], "patterns": [...], "types": [...], "min_s", "max_s"}')
+            else:
+                for k in ("opens", "patterns"):
+                    for rx in m.get(k) or []:
+                        try:
+                            re.compile(rx)
+                        except (re.error, TypeError) as e:
+                            rep.err(where + ".match." + k, "%r is not a regular expression (%s)" % (rx, e))
+        for x in f.get("examples") or []:
+            if posts and x not in posts:
+                rep.err(where + ".examples", "%r is not a post_id" % (x,))
         plist = f.get("posts")
         if not isinstance(plist, list) or not plist:
             rep.err(where + ".posts", "the post ids that use this format")
@@ -694,6 +730,15 @@ def check_niche(folder, rep):
     ceiling = n.get("spend_ceiling_usd")
     if ceiling is not None and (not isinstance(ceiling, (int, float)) or isinstance(ceiling, bool) or ceiling < 0):
         rep.err(w + ":spend_ceiling_usd", "a number of dollars, 0 or more")
+    seeds = n.get("seed_accounts") or []
+    for i, sd in enumerate(seeds if isinstance(seeds, list) else []):
+        st = (sd or {}).get("status") if isinstance(sd, dict) else None
+        if st is not None and st not in ("found", "not_found", "inactive"):
+            rep.err(w + ":seed_accounts[%d].status" % i, "one of found, not_found, inactive (got %r)" % (st,))
+    unchecked = [sd for sd in seeds if isinstance(sd, dict) and not sd.get("status")] if isinstance(seeds, list) else []
+    if unchecked:
+        rep.warn(w + ":seed_accounts", "%d seeds are not checked yet: check each one first (found, not_found or inactive, "
+                                        "niche.md step 2), and never swap a handle that is not found for a near spelling" % len(unchecked))
     if not isinstance(n.get("sources"), list) or not n.get("sources"):
         rep.warn(w + ":sources", 'list what was read with what, e.g. [{"what": "search", "via": "yt-dlp", "cost_usd": 0}]')
     return n

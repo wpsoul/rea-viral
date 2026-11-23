@@ -29,7 +29,7 @@ PROVIDER_MAX = 60
 ROWS_MAX = 60
 NETWORK_NAMES = {"instagram": "Instagram", "tiktok": "TikTok", "youtube": "YouTube", "x": "X", "threads": "Threads",
                  "linkedin": "LinkedIn"}
-CORNER_ORDER = {"scale_it": 0, "underused": 1, "fading": 2, "drop": 3}
+CORNER_ORDER = {"scale_it": 0, "underused": 1, "overused": 2, "fading": 2, "drop": 3}
 
 
 def cut(text, n):

@@ -37,9 +37,12 @@ networks").
 
 Read the window plus up to 20 earlier posts (they only feed the first baselines). When your reader gives "the latest N
 posts" instead of a date range, set `window.from` to the date of the 21st oldest post you have and `window.to` to the
-newest; say the real span in the report. `read_at` is when the posts were read. Save covers at once to
-`covers/<post_id>.jpg` (TikTok and Instagram links expire within hours) and put the path in `cover_file`. On YouTube
-with `yt-dlp`, one command does all of it:
+newest; say the real span in the report. `read_at` is when the posts were read. Save covers at once (TikTok and
+Instagram links expire within hours): `covers_sheet.py <run> --fetch` saves every missing cover from its `cover_url`
+the way a browser asks for it (a script's own request gets 403 from some picture servers), writes `cover_file`, and
+keeps a cover that still answers 403 or 429 as "not read" with that status (`covers/not_read.json`), never a guess.
+Write each post's own media in `own_media` and leave replies out (`data-shape.md`, "Own media" and "Replies"). On
+YouTube with `yt-dlp`, one command does all of it:
 
 ```
 python3 SKILL_DIR/scripts/readers/ytdlp_reader.py posts <run> "https://www.youtube.com/@<handle>/shorts" --max 200
@@ -63,12 +66,16 @@ first: `private`, `empty`, `no_dates` or `too_few_posts` change what you may say
 ## Step 4: Watch the videos
 
 ```
-python3 SKILL_DIR/scripts/covers_sheet.py <run> --sort ratio       # every cover on one numbered sheet
+python3 SKILL_DIR/scripts/covers_sheet.py <run> --sort ratio       # every cover on numbered sheets of 50
 python3 SKILL_DIR/scripts/video_probe.py <run> --picks --fetch     # download, cut, measure the deep-read posts
 ```
 
-Look at `videos/<id>/first.jpg` and `shots.jpg`, read `probe.json`, fill `videos/<id>/notes.json` (`deep-read.md`).
-Set `read: true` only after looking. When no video can be had: `video_probe.py <run> --picks --not-read "<why>"`.
+`covers_sheet.py` prints "drew N of M on K sheets": look at every sheet it names, and if N is under M say so. Only a
+post's own video is cut: a text, picture or carousel post goes to its words and its cover, and a quote's video belongs
+to the other post. A pick whose video cannot be had (the downloader finds none, a 403) is marked not read with why and
+the run goes on. Look at `videos/<id>/first.jpg` and `shots.jpg`, read `probe.json`, fill `videos/<id>/notes.json`
+(`deep-read.md`). Set `read: true` only after looking. When no video can be had at all: `video_probe.py <run> --picks
+--not-read "<why>"`.
 
 ## Step 5: The comments
 
@@ -83,10 +90,12 @@ sheet's prose (`writing.md`).
 
 ## Step 7: Its formats (the Format map)
 
-Group the window's posts into formats from what you watched and the covers sheet, write `formats.json`, then
-`radar.py <run>`: each format's posts, share, lift, hit rate, direction and follower pull, its corner (Scale it,
-Underused, Fading, Drop), `radar.json` (`scope: "account"`) and a recipe skeleton `formats/<id>.md` to fill from the
-deep read (`radar.md`). With no watched video, leave `beats` empty: a recipe without beats is not offered for a remake.
+Group the window's posts into formats from what you watched and the covers sheet, write `formats.json` (with
+`examples`, and a `match` where the words show the format), run `formats_check.py <run>` and fix the overlaps, the
+examples that do not fit and the formats it shows you missed (`radar.md`, "Check the grouping"), then `radar.py
+<run>`: each format's posts, share, lift, hit rate, direction (rising, steady, fading) and follower pull, its corner
+(Scale it, Underused, Overused, Drop: where it sits, never where it is going), `radar.json` (`scope: "account"`) and a
+recipe skeleton `formats/<id>.md` to fill from the deep read (`radar.md`). With no watched video, leave `beats` empty: a recipe without beats is not offered for a remake.
 
 ## Step 8: What worked, what did not, and the plays
 
@@ -95,7 +104,7 @@ comment tactics, timeline notes, at most ten plays, a 14-day plan when the user 
 `not_read`.
 
 **What did not work** is a part of its own, under the same rules as what worked. The report already lays out what
-the scripts measured (the formats under 1× or weakening from `radar.json`, the flops from `analysis.json#flops` and
+the scripts measured (the formats under 1× or fading from `radar.json`, the flops from `analysis.json#flops` and
 what the watched ones show, the features of the words that `sinks` in `writing.json`); `did_not_work` is your
 reading of it:
 

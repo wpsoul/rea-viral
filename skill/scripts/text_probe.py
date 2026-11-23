@@ -113,7 +113,7 @@ def _phrase_re(phrase):
 def compile_language(L):
     c = {"name": L.get("name")}
     for k in ("detect", "you", "i", "we", "negation_openers", "time_units", "result_nouns", "result_modifiers",
-              "imperative_verbs", "not_names"):
+              "imperative_verbs", "not_names", "contractions"):
         c[k] = set(_norm_word(w) for w in L.get(k) or [])
     c["how_openers"] = [_norm_word(p) for p in L.get("how_openers") or []]
     c["time_phrases_re"] = re.compile("|".join(_phrase_re(p) for p in L.get("time_phrases") or []) or r"(?!x)x")
@@ -262,9 +262,14 @@ def opening_kinds(first, lang_code, words):
         t0 = re.sub(r"[^\w'’&.-]", "", toks[0])
         t1 = re.sub(r"[^\w'’&.-]", "", toks[1]) if len(toks) > 1 else ""
 
+        contr = set(L.get("contractions") or [])
+
         def cap(t):
-            return len(t) > 1 and t[0].isupper() and not t.isupper() and re.sub(r"'s$", "", _norm_word(t)) not in L["not_names"] \
-                and _norm_word(t) not in L["detect"] and _norm_word(t) not in L["imperative_verbs"]
+            # A capitalised word that is not a sentence opener, a contraction ("Let's", "It's", "I'm": 0.4.1, they
+            # were read as a name's possessive), a common word or a command.
+            n = _norm_word(t)
+            return len(t) > 1 and t[0].isupper() and not t.isupper() and n not in contr \
+                and re.sub(r"'s$", "", n) not in L["not_names"] and n not in L["detect"] and n not in L["imperative_verbs"]
         # A line in Title Case (most words capitalised, as YouTube titles are: "Adorable Circular Creatures") says
         # nothing about names; only a possessive or an @handle does there (real niche run, 2026-11-16).
         alpha = [t for t in toks if re.match(r"[^\W\d_]", t)]
@@ -304,6 +309,27 @@ def opening_kinds(first, lang_code, words):
     out["opens_result_number"] = True if res else (False if covered else None)
     out["opens_imperative"] = word_based(covered and w0 in L["imperative_verbs"])
     return out
+
+
+OPENING_KEEP = ("first_line", "language", "language_covered", "lang", "empty")
+
+
+def first_part_only(p):
+    """A thread whose reader gave only its first part (no parts, or one): 0.4.1 says so on the post."""
+    return (p.get("type") or "") == "thread" and len(p.get("parts") or []) < 2
+
+
+def mark_first_part_only(p, f):
+    """On a thread read as its first part only, keep what that part says (its opening) and make every whole-post
+    feature (length, lines, lists, voice counts, the ask) unknown: one part cannot say them."""
+    if not first_part_only(p):
+        return f
+    for k in list(f.keys()):
+        if k.startswith("opens_") or k.startswith("first_line") or k in OPENING_KEEP:
+            continue
+        f[k] = None
+    f["first_part_only"] = True
+    return f
 
 
 def text_features(parts, lang_tag, words, author_replies=None, short_chars=SETTINGS["short_line_chars"]):
@@ -806,7 +832,7 @@ def run(folder):
     for r in rows:
         p = raw.get(r["post_id"]) or {}
         parts = p.get("parts") or [p.get("caption") or ""]
-        feats[r["post_id"]] = text_features(parts, p.get("lang"), words, p.get("author_replies"))
+        feats[r["post_id"]] = mark_first_part_only(p, text_features(parts, p.get("lang"), words, p.get("author_replies")))
         q = (p.get("quoted_url") or "").lower()
         feats[r["post_id"]]["quotes_own_post"] = (("/%s/" % (an["account"]["handle"] or "").lower()) in q) if q else (
             False if r["type"] != "quote" else None)
@@ -873,7 +899,8 @@ def run(folder):
         f = feats[r["post_id"]]
         return {"post_id": r["post_id"], "url": r["url"], "ratio": rnd(r["ratio"], 3), "views": r["views"],
                 "first_line": f.get("first_line"), "chars": f.get("first_line_chars"), "type": r["type"],
-                "openings": [k for k, v in f.items() if k.startswith("opens_") and v is True]}
+                "openings": [k for k, v in f.items() if k.startswith("opens_") and v is True],
+                "first_part_only": bool(f.get("first_part_only"))}
     by = sorted(scored, key=lambda r: -r["ratio"])
     out["first_lines"] = {"best": [fl(r) for r in by[:8]], "worst": [fl(r) for r in sorted(scored, key=lambda r: r["ratio"])[:8]],
                           "evidence": "SEEN"}
@@ -955,7 +982,7 @@ def run_niche(folder):
     for r in rows:
         p = raw.get(r["post_id"]) or {}
         parts = p.get("parts") or [p.get("caption") or ""]
-        feats[r["post_id"]] = text_features(parts, p.get("lang"), words, p.get("author_replies"))
+        feats[r["post_id"]] = mark_first_part_only(p, text_features(parts, p.get("lang"), words, p.get("author_replies")))
         q = (p.get("quoted_url") or "").lower()
         feats[r["post_id"]]["quotes_own_post"] = (("/%s/" % r["account"]) in q) if q else (
             False if r["type"] != "quote" else None)
@@ -1020,7 +1047,8 @@ def run_niche(folder):
         return {"post_id": r["post_id"], "account": r["account"], "creator": r["creator"], "url": r["url"],
                 "ratio": rnd(r["ratio"], 3), "views": r["views"], "first_line": f.get("first_line"),
                 "chars": f.get("first_line_chars"), "type": r["type"],
-                "openings": [k for k, v in f.items() if k.startswith("opens_") and v is True]}
+                "openings": [k for k, v in f.items() if k.startswith("opens_") and v is True],
+                "first_part_only": bool(f.get("first_part_only"))}
 
     def spread(ps, n=8, per=2):
         """The first n, at most `per` of any one creator, so one creator's lines cannot fill the list."""
@@ -1060,7 +1088,7 @@ def run_niche(folder):
 
 
 def write_hooks(folder, out):
-    """hooks.md: the niche's twin of a voice sheet. Same rea-voice block (draft_check.py reads it), its own prose."""
+    """hooks.md: the niche's hooks in place of a voice sheet. Same rea-voice block (draft_check.py reads it), its own prose."""
     path = os.path.join(folder, "hooks.md")
     net = out["subject"]["network"]
     measured = voice_measured(out)
@@ -1089,9 +1117,11 @@ def write_hooks(folder, out):
         "# Hooks of the niche: %s" % (out["subject"]["niche"] or ""),
         "",
         "What the niche's winning posts open with, measured against each creator's own usual (a post is compared only",
-        "with its own creator's other posts). The niche's twin of a voice sheet: the JSON block is what `draft_check.py`",
-        "reads for a draft written with these hooks; `measured` and the table between the markers are rewritten by",
-        "`text_probe.py` on every run. A feature counts for the niche only when its posts come from 3 creators or more.",
+        "with its own creator's other posts). It takes the place of a voice sheet: a niche run writes no voice.md (a voice",
+        "is one account's; for one creator's, run words only or an account run on that creator). The JSON block is what",
+        "`draft_check.py` reads for a draft written with these hooks; `measured` and the table between the markers are",
+        "rewritten by `text_probe.py` on every run. A feature counts for the niche only when its posts come from 3",
+        "creators or more.",
         "Every line below carries its label: MEASURED (writing.json#features.<id>), SEEN (post ids), INFERRED (basis).",
         "",
         "```json rea-voice",

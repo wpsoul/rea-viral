@@ -42,7 +42,7 @@ agent connects tools. The skill only uses what is connected.
 little (X shows nothing without a sign-in). On X, a free embed record per post id adds what list rows often lack:
 which links are links out, the quoted post, an article's title. Checked 2026-11-16 on one X account: six pages of 20
 rows cost $0.0027, and the rows mixed in reposts, replies to others and the author's own replies, so map them with the
-rules in `data-shape.md` ("Text networks").
+rules in `data-shape.md` ("Text networks", "Replies") and below ("Own media and quoted media").
 
 ## Finding posts for a niche
 
@@ -94,12 +94,47 @@ Then the offer opens with one line of what was really saved, for example
 again; never change the report's findings to fit. A save that cannot be made (no network, no sign-in) is said in one
 line, and the files stay.
 
+## Own media and quoted media
+
+A post's video is watched only when it is the post's OWN (`own_media: video`, `data-shape.md`). A quote post shows
+the quoted post's video or pictures in the feed, and many readers hand that media back inside the row: never count
+it as this post's. On a real X run (0.4.0) a quote post was described from the video it quoted. How to tell, per
+reader:
+
+- **X, a data connector's list of posts:** the row's own media list (`media`, `extendedEntities.media`,
+  `attachments.media_keys`) is the post's own; the quoted post sits apart (`quoted_tweet`, `quotedStatus`,
+  `referenced_tweets` of type `quoted`), with its own media. `own_media` comes from the row's own list only:
+  a video or an animated GIF = `video`, 2+ photos = `images`, 1 photo = `image`, nothing = `none`.
+- **X's free embed record** (one post by id): `mediaDetails` is the post's own media; `quoted_tweet.mediaDetails`
+  is the quoted post's.
+- **Threads, LinkedIn:** the same rule: the post's own attachments, never the reshared or quoted post's.
+- **A reader that does not say which is which:** leave `own_media` empty. The post is then not watched, and the
+  report says "video not read" for it rather than describing another post's video.
+
+## Replies
+
+Leave replies out of `posts.csv`: a reply to another account is not a post, and the account's own replies belong to
+the post they sit under (a thread's parts, or `author_replies` with their minutes, `data-shape.md`, "Text networks").
+On X a connector's row says so (`isReply`, `in_reply_to_status_id`, `inReplyToId`, `referenced_tweets` of type
+`replied_to`), and the text of a reply opens with the handle it answers. When you cannot fold them, write the reply
+rows with `reply_to` (the handle answered) and, for the account's own, `reply_to_id`: the scripts leave them out of
+every number, fold the own ones into their post, and the report counts them ("12 replies left out of the numbers").
+
+## Covers
+
+Save covers with `covers_sheet.py <run> --fetch` (`common.save_picture`), not a script of your own: some picture
+servers answer 403 to a script's own User-Agent or none, and the script asks like a browser (a browser's User-Agent
+and Accept, redirects followed, a timeout). A cover that still answers 403 or 429 is kept as "not read" with that
+status in `covers/not_read.json`, and the run goes on.
+
 ## Mapping a reader's rows to posts.csv
 
 - Find the post's time: `create_time`, `taken_at`, `timestamp` (Unix: convert to ISO UTC), `upload_date` (a date).
   A row without any time stays empty; a source with no times at all is skipped for the corpus.
 - Views: `play_count`, `view_count`, `video_view_count`. Instagram images may have no views: leave the cell empty.
-- Reels, Shorts and TikToks are `video`; several pictures are `carousel`.
+- Reels, Shorts and TikToks are `video`; several pictures are `carousel`. `own_media` from the post's own
+  attachments ("Own media and quoted media").
+- Replies: left out, or marked with `reply_to` ("Replies").
 - A listing that shows "38K views" is rounded: get each post's own read for exact counts when you can.
 - Save the raw answers in `raw/<reader>/` (trim long format lists), so the run can be checked later.
 

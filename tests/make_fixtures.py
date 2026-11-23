@@ -8,7 +8,7 @@ Deterministic (a fixed random seed). The known answers are written beside each a
 Accounts:
   main            a made-up TikTok account, 142 posts (20 before the window, 2 under 7 days old). Its views baseline
                   doubles over the year. Formats: three-mistakes really lifts 3x and is used often (Scale it);
-                  founder-diary starts at 1.7x and falls to 0.6x (Fading); long-story sits at 0.55x and is rare (Drop);
+                  founder-diary starts at 1.7x and falls to 0.6x (Overused, fading); long-story sits at 0.55x and is rare (Drop);
                   pov-skit is rare at 2.5x (Underused). Daily follower counts: +60 a day, +200 after each
                   three-mistakes post, and a jump of 6,000 in the 72 h after post p087. One 3-day gap in the counts.
                   Comments on 15 posts with a known creator comment, pinned, "comment GUIDE", reply and follow pattern.
@@ -171,7 +171,7 @@ def make_main(out):
             r["saves"] = int(v * 0.003 * 3)
         rows.append(r)
     known["new_format"] = {"id": "pov-skit", "first": iso(times[ids.index(pov[0])])}
-    known["formats"] = {"three-mistakes": "scale_it", "founder-diary": "fading", "long-story": "drop", "pov-skit": "underused"}
+    known["formats"] = {"three-mistakes": "scale_it", "founder-diary": "overused", "long-story": "drop", "pov-skit": "underused"}
     known["lift_three_mistakes_about"] = 3.0
     known["jump_post"] = "p087"
     known["jump_size"] = 6000
@@ -377,6 +377,39 @@ def make_tenfold(out):
     write_csv(os.path.join(folder, "posts.csv"), POST_HEADER, rows)
     write_json(os.path.join(folder, "account.json"), account("tenfold", followers=200000))
     write_json(os.path.join(folder, "KNOWN.json"), {"outliers": ["t150"], "growth": 10, "pace_change_near": "2026-10-05"})
+
+
+def make_crowded(out):
+    """Five formats with long names, all crowded near the bottom of the format map (lift 0.3-0.4, about the same
+    share), for the label placement check (0.4.1: labels at the bottom edge overlapped and left the plot)."""
+    rng = random.Random(11)
+    folder = os.path.join(out, "crowded")
+    os.makedirs(folder)
+    names = [("behind-the-scenes", "Behind the scenes of a launch day"), ("customer-story", "Customer story in thirty seconds"),
+             ("weekly-recap", "Weekly recap with three numbers"), ("tool-teardown", "Tool teardown with a screen recording"),
+             ("ask-me-anything", "Ask me anything answered on camera")]
+    t0 = dt.datetime(2025, 11, 20, 15, tzinfo=dt.timezone.utc)
+    rows, fmt_posts = [], dict((k, []) for k, _ in names)
+    n = 150
+    for i in range(n):
+        t = t0 + dt.timedelta(days=2.3 * i)
+        if t > READ_AT - dt.timedelta(days=8):
+            break
+        k = None
+        if i >= 30 and i % 6 == 0:                       # one post in six belongs to a format, in turn
+            k = names[(i // 6) % 5][0]
+        lift = 0.3 + 0.02 * [x for x, _ in names].index(k) if k else 1.0
+        v = int(20000 * lift * math.exp(rng.gauss(0, 0.05)))
+        pid = "c%03d" % i
+        if k:
+            fmt_posts[k].append(pid)
+        rows.append(post_row(pid, t, v, handle="crowded"))
+    write_csv(os.path.join(folder, "posts.csv"), POST_HEADER, rows)
+    write_json(os.path.join(folder, "account.json"), account("crowded"))
+    write_json(os.path.join(folder, "formats.json"), {"schema": "rea-viral/formats@1", "formats": [
+        {"id": k, "name": nm, "hook": "a plain open", "structure": "one take", "look": "talking head", "length": "30 s",
+         "effort": "low", "basis": "made up for the label check", "posts": fmt_posts[k]} for k, nm in names]})
+    write_json(os.path.join(folder, "KNOWN.json"), {"formats": [k for k, _ in names], "all_low": True})
 
 
 def make_missing_dates(out):
@@ -706,6 +739,7 @@ def main(argv):
     os.makedirs(out, exist_ok=True)
     make_main(out)
     make_tenfold(out)
+    make_crowded(out)
     make_missing_dates(out)
     make_zero_views(out)
     make_small(out)

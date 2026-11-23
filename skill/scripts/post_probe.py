@@ -117,8 +117,8 @@ def words_beside_usual(posts, me):
     words = tp.load_words()
     feats = {}
     for p in posts:
-        feats[p["post_id"]] = tp.text_features(p.get("parts") or [p.get("caption") or ""], p.get("lang"), words,
-                                               p.get("author_replies"))
+        feats[p["post_id"]] = tp.mark_first_part_only(p, tp.text_features(p.get("parts") or [p.get("caption") or ""],
+                                                                          p.get("lang"), words, p.get("author_replies")))
     mine = feats[me["post_id"]]
     if mine.get("empty"):
         return {"status": "no_text", "note": "The post has no words to read (no caption or title)."}
@@ -158,11 +158,14 @@ def words_beside_usual(posts, me):
             rec["differs"] = "outside the creator's usual range (8 in 10 of its posts)"
         nums.append(rec)
     return {"status": "ok", "language": mine.get("language"), "language_covered": mine.get("language_covered"),
+            "first_part_only": bool(mine.get("first_part_only")),
             "first_line": mine.get("first_line"),
             "openings": [k for k, x in mine.items() if k.startswith("opens_") and x is True],
             "ask": {"kinds": mine.get("ask_kinds"), "where": mine.get("ask_where"), "phrases": mine.get("ask_phrases")},
             "flags": flags, "numbers": nums,
-            "note": "Beside the creator's other %d posts with words. With one creator's posts most differences are "
+            "note": ("Thread: first part only (the reader gave no other part), so its length and its ask are not "
+                     "judged. " if mine.get("first_part_only") else "") +
+                    "Beside the creator's other %d posts with words. With one creator's posts most differences are "
                     "leads, not findings (6 posts on each side are needed)." % len(others)}
 
 

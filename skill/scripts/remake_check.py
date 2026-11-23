@@ -60,6 +60,10 @@ def main(argv):
         near = min(cuts, key=lambda c: abs(c - at)) if cuts else None
         add("cut at %.2f s (%s)" % (at, b.get("what") or "beat"), near is not None and abs(near - at) <= tol["cut_s"],
             near, "%.2f s +-%.2f" % (at, tol["cut_s"]))
+    notes = []
+    if "--words" in argv and rec.get("words_per_minute") is None:
+        # A recipe whose videos had no subtitles has no speech rate: nothing to check it against, never a 0.
+        notes.append("words per minute not checked: the recipe has none (its videos had no subtitles)")
     if "--words" in argv and rec.get("words_per_minute"):
         words = read_json(argv[argv.index("--words") + 1]).get("words") or []
         if words:
@@ -69,7 +73,8 @@ def main(argv):
             add("words per minute", abs(got - want) <= want * tol["words_per_minute_pct"] / 100.0, round(got, 1),
                 "%.0f +-%d%%" % (want, tol["words_per_minute_pct"]))
     ok = all(c["pass"] for c in checks) and bool(checks)
-    out = {"ok": ok, "video": video, "recipe": recipe_path, "measured": {"length_s": length, "cuts": cuts}, "checks": checks}
+    out = {"ok": ok, "video": video, "recipe": recipe_path, "measured": {"length_s": length, "cuts": cuts}, "checks": checks,
+           "notes": notes}
     if "--json" in argv:
         print(json.dumps(out, indent=2))
     else:
@@ -78,6 +83,8 @@ def main(argv):
         if not checks:
             print("FAIL nothing to check: the recipe has no length_s, cuts_per_10s or beats with \"cut\": true")
         print("measured cuts: %s" % ", ".join("%.2f" % c for c in cuts))
+        for n in notes:
+            print("note " + n)
         print("OK" if ok else "NOT OK")
     return 0 if ok else 1
 

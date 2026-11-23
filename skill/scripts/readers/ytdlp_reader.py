@@ -5,6 +5,7 @@
     python3 ytdlp_reader.py find <niche folder> <hashtag page | ytsearchN:words | channel url> [--max 40] [--shorts-only]
     python3 ytdlp_reader.py comments <run folder> (<post_id> ... | --picks) [--per-post 60] [--replies 5]
     python3 ytdlp_reader.py followers <network> <handle>        (for watch.py: prints one JSON object)
+    python3 ytdlp_reader.py seeds <niche folder>                  (checks each seed account before anything is read)
 
 Works best on YouTube (a channel's Shorts tab: https://www.youtube.com/@handle/shorts). TikTok profile pages often
 refuse yt-dlp without a sign-in, and Instagram almost always does: then use another reader and write the same rows.
@@ -19,6 +20,11 @@ What it writes:
   comments   comments.csv (appends; top comments and replies, with who is the creator, pinned, hearted) and updates
              account.json comments_read. YouTube gives comment times as "2 days ago": they are written with
              created_at_exact false, and nothing is measured in minutes from them.
+  seeds      for a niche run, before anything else is read: each YouTube seed of niche.json is looked up (its Shorts
+             list, then its newest Short's date) and marked in niche.json: found, not_found (the channel does not
+             answer: a misspelt or gone handle) or inactive (no Short in the window). Nothing is guessed: a handle that
+             is not found is never swapped for a near spelling. Seeds on other networks are checked with their own
+             reader the same way (references/niche.md, step 2).
 What it does not read: shares and saves (not public on YouTube), follower history (no free source).
 Known traps (seen in a real run, 2026-11-14): the flat channel listing has no dates and rounded views, so every post
 gets its own full read; with --write-comments yt-dlp sets comment_count to the number it fetched, so posts.csv takes
@@ -34,12 +40,12 @@ import shutil
 import subprocess
 import sys
 import time
-import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill folder
 sys.path.insert(0, os.path.dirname(HERE))
-from common import COMMENT_COLUMNS, POST_COLUMNS, iso, norm_handle, now_utc, read_csv, read_json, write_csv, write_json  # noqa: E402
+from common import (COMMENT_COLUMNS, POST_COLUMNS, iso, norm_handle, note_cover_not_read, now_utc, read_csv,  # noqa: E402
+                    read_json, save_picture, write_csv, write_json)
 
 TRIM = {"formats", "requested_formats", "thumbnails", "automatic_captions", "subtitles", "heatmap", "http_headers",
         "_format_sort_fields", "requested_subtitles", "storyboards", "fragments"}
@@ -92,18 +98,10 @@ def trim(info):
     return dict((k, v) for k, v in info.items() if k not in TRIM)
 
 
-def fetch_cover(url, dest):
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (rea-viral cover fetch)"})
-        with urllib.request.urlopen(req, timeout=20) as r:
-            data = r.read()
-        if len(data) < 500:
-            return False
-        with open(dest, "wb") as f:
-            f.write(data)
-        return True
-    except Exception:
-        return False
+def fetch_cover(url, dest_stem):
+    """Save a cover like a browser (common.save_picture). Returns (relative path or None, why not)."""
+    got, why = save_picture(url, dest_stem)
+    return got, why
 
 
 def cmd_posts(folder, url, argv):
@@ -123,6 +121,7 @@ def cmd_posts(folder, url, argv):
     with open(os.path.join(folder, "raw", "ytdlp", "_profile.json"), "w", encoding="utf-8") as f:
         json.dump(trim(dict((k, v) for k, v in flat.items() if k != "entries")), f, ensure_ascii=False, indent=1)
     entries = [e for e in flat.get("entries") or [] if e.get("id")]
+    listed = len(entries)
     if spread and len(entries) > mx:
         step = len(entries) / float(mx)
         entries = [entries[int(i * step)] for i in range(mx)]
@@ -159,11 +158,13 @@ def cmd_posts(folder, url, argv):
             # (English titles came tagged "ja" in a real run, 2026-11-16), so the word lists decide instead.
         }
         if covers and row["cover_url"]:
-            os.makedirs(os.path.join(folder, "covers"), exist_ok=True)
-            ext = ".webp" if ".webp" in row["cover_url"] else ".jpg"
-            dest = os.path.join(folder, "covers", info["id"] + ext)
-            if os.path.exists(dest) or fetch_cover(row["cover_url"], dest):
-                row["cover_file"] = "covers/" + info["id"] + ext
+            stem = os.path.join(folder, "covers", info["id"])
+            have = [stem + e for e in (".jpg", ".png", ".webp", ".gif") if os.path.exists(stem + e)]
+            got, why = (have[0], None) if have else fetch_cover(row["cover_url"], stem)
+            if got:
+                row["cover_file"] = "covers/" + os.path.basename(got)
+            else:
+                note_cover_not_read(folder, info["id"], why)      # the sheet and the report say "not read: HTTP 403"
         rows.append(row)
         sys.stdout.write("\r%d/%d read" % (i + 1, len(entries)))
         sys.stdout.flush()
@@ -189,6 +190,11 @@ def cmd_posts(folder, url, argv):
                          "notes": "one full read per post; flat listing used only for the ids"}],
             "spend_ceiling_usd": 3,
         }
+        write_json(acc_path, acc)
+    if spread and listed > len(rows):
+        # Say how the creator was sampled: the report shows it among what the run did not read in full.
+        acc = read_json(acc_path)
+        acc["sampled"] = {"read": len(rows), "of": listed, "how": "spread across its latest %d posts" % listed}
         write_json(acc_path, acc)
     print("posts.csv: %d rows%s" % (len(rows), ("; %d failed: %s" % (len(failed), "; ".join("%s %s" % f for f in failed[:5])))
                                     if failed else ""))
@@ -359,6 +365,48 @@ def cmd_followers(network, handle):
     return 0
 
 
+def cmd_seeds(folder):
+    """Check each YouTube seed of niche.json: found, not_found or inactive, written back into niche.json."""
+    from common import parse_time
+    path = os.path.join(folder, "niche.json")
+    if not os.path.exists(path):
+        sys.stderr.write("no niche.json in %s\n" % folder)
+        return 2
+    niche = read_json(path)
+    lo = parse_time((niche.get("window") or {}).get("from")) if (niche.get("window") or {}).get("from") else None
+    nets = niche.get("networks") or []
+    seeds = niche.get("seed_accounts") or []
+    for s in seeds:
+        net = s.get("network") or (nets[0] if len(nets) == 1 else None)
+        h = norm_handle(s.get("handle"))
+        if net != "youtube" or not h:
+            print("  @%-24s %-10s not checked here (needs a reader for %s)" % (h, "-", net or "its network"))
+            continue
+        o, err = run(["-J", "--flat-playlist", "--playlist-items", "1-3", "https://www.youtube.com/@%s/shorts" % h], timeout=120)
+        entries = (json.loads(o).get("entries") or []) if o else []
+        if err or o is None:
+            s.update({"status": "not_found", "note": "the channel did not answer: %s" % (err or "no answer")[:160]})
+        elif not entries:
+            s.update({"status": "inactive", "note": "no Shorts on the channel"})
+        else:
+            first = entries[0]
+            o2, err2 = run(["-J", "--skip-download", first.get("url") or "https://www.youtube.com/shorts/%s" % first.get("id")], timeout=120)
+            when = ts_iso(json.loads(o2)) if o2 else ""
+            if when and lo and parse_time(when) < lo:
+                s.update({"status": "inactive", "note": "the newest Short is from %s, before the window" % when[:10]})
+            else:
+                s.update({"status": "found", "note": ("the newest Short is from %s" % when[:10]) if when else "found"})
+        s["checked_at"] = iso(now_utc())
+        print("  @%-24s %-10s %s" % (h, s["status"], s.get("note") or ""))
+    niche["seed_accounts"] = seeds
+    write_json(path, niche)
+    bad = [s for s in seeds if s.get("status") in ("not_found", "inactive")]
+    if bad:
+        print("say so in the setup answer, by name, and go on with the rest: %s" % ", ".join(
+            "@%s (%s)" % (norm_handle(s.get("handle")), s["status"].replace("_", " ")) for s in bad))
+    return 0
+
+
 def main(argv):
     if len(argv) < 3 or argv[1] in ("-h", "--help"):
         print(__doc__.strip())
@@ -371,6 +419,8 @@ def main(argv):
         return cmd_find(argv[2], argv[3], argv[4:])
     if argv[1] == "followers":
         return cmd_followers(argv[2], argv[3])
+    if argv[1] == "seeds":
+        return cmd_seeds(argv[2])
     print(__doc__.strip())
     return 2
 

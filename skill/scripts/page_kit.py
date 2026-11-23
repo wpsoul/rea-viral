@@ -72,7 +72,7 @@ td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
 .num{text-align:right;white-space:nowrap}
 .q{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px;color:var(--accent-text);white-space:nowrap}
-.q.scale_it{background:var(--scale)}.q.underused{background:var(--under)}.q.fading{background:var(--fading)}.q.drop{background:var(--drop)}
+.q.scale_it{background:var(--scale)}.q.underused{background:var(--under)}.q.overused,.q.fading{background:var(--fading)}.q.drop{background:var(--drop)}
 .q.too_few,.q.post{background:var(--faint)}
 svg text{font-family:inherit;fill:var(--muted);font-size:11px}
 svg .axis{stroke:var(--line)}
@@ -123,6 +123,41 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px;font-weigh
 <script type="application/json" id="rea-data">__DATA__</script>
 """
 
+LABELS_JS = r"""
+/* A chart's labels (0.4.1): each bubble carries its number (the same as in the table beside the chart), and its name
+   goes beside it where it fits: inside the plot, clear of the other names, the other bubbles and the corner names.
+   Tried in turn: the side facing the middle, the other side, then a line up or down at a time, then above and below.
+   A name that fits nowhere is left off (the number says which format it is) and returned, so the page lists it. */
+function bubbleNumber(g, cx, cy, n, r, arrow){
+  // the bubble's number, on the side away from its direction arrow (the arrow starts at the centre), so neither hides the other
+  var dy = (arrow && Math.abs(arrow) > 3) ? (arrow > 0 ? 1 : -1) * Math.max(7, (r || 9) * 0.45) : 0;
+  g.appendChild(sv('text', {x: cx, y: cy + dy + 4, 'text-anchor': 'middle', text: String(n), 'class': 'bnum', fill: 'var(--text)', 'font-weight': 800, 'font-size': 11})); }
+function placeLabels(labels, plot, avoid){
+  var LH = 15, CW = 6.9, taken = (avoid || []).slice(), off = [];
+  function box(x, y, w, a){ var x0 = a === 'end' ? x - w : (a === 'middle' ? x - w / 2 : x); return {x0: x0, y0: y - 11, x1: x0 + w, y1: y + 4}; }
+  function fits(b, self){
+    if (b.x0 < plot.x0 + 3 || b.x1 > plot.x1 - 3 || b.y0 < plot.y0 + 3 || b.y1 > plot.y1 - 3) return false;
+    if (taken.some(function(t){ return b.x0 < t.x1 + 3 && t.x0 < b.x1 + 3 && b.y0 < t.y1 + 1 && t.y0 < b.y1 + 1; })) return false;
+    return !labels.some(function(o){ if (o === self) return false;
+      var nx = Math.max(b.x0, Math.min(o.cx, b.x1)), ny = Math.max(b.y0, Math.min(o.cy, b.y1));
+      return (nx - o.cx) * (nx - o.cx) + (ny - o.cy) * (ny - o.cy) < (o.r + 1) * (o.r + 1); });
+  }
+  labels.forEach(function(l){
+    var w = l.name.length * CW, c = [], k;
+    var sides = l.cx > (plot.x0 + plot.x1) / 2 ? [[-1, 'end'], [1, 'start']] : [[1, 'start'], [-1, 'end']];
+    [0, -1, 1, -2, 2, -3, 3].forEach(function(s){ sides.forEach(function(sd){ c.push([l.cx + sd[0] * (l.r + 6), l.cy + 4 + s * LH, sd[1]]); }); });
+    c.push([l.cx, l.cy - l.r - 6, 'middle']); c.push([l.cx, l.cy + l.r + 14, 'middle']);
+    for (k = 0; k < c.length; k++){
+      var b = box(c[k][0], c[k][1], w, c[k][2]);
+      if (fits(b, l)){ taken.push(b); l.g.appendChild(sv('text', {x: c[k][0], y: c[k][1], 'text-anchor': c[k][2], text: l.name, 'class': 'lbl', fill: 'var(--text)', 'font-weight': 700, 'font-size': 12})); break; }
+    }
+    if (k === c.length) off.push(l);
+  });
+  return off;
+}
+function cornerBox(x, y, text, a){ var w = text.length * 8; var x0 = a === 'end' ? x - w : x; return {x0: x0, y0: y - 12, x1: x0 + w, y1: y + 4}; }
+"""
+
 JS_HELPERS = r"""
 var D = JSON.parse(document.getElementById('rea-data').textContent);
 var SVGNS = 'http://www.w3.org/2000/svg';
@@ -151,6 +186,7 @@ function sv(tag, attrs){
   for (var k in attrs || {}) { if (attrs[k] != null) { if (k === 'text') n.textContent = attrs[k]; else n.setAttribute(k, attrs[k]); } }
   return n;
 }
+/*__LABELS_JS__*/
 function safeHref(u){ u = String(u || ''); return /^https?:\/\//i.test(u) ? u : (/^[\w./@-]+$/.test(u) && u.indexOf('..') < 0 ? u : null); }
 function safeSrc(u){ u = String(u || ''); if (/^https:\/\//i.test(u) || /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u)) return u; return (/^[\w./@-]+$/.test(u) && u.indexOf('..') < 0) ? u : null; }
 function num(n){ if (n == null) return '—'; var a = Math.abs(n);
@@ -161,8 +197,8 @@ function xr(x){ if (x == null) return '—'; if (x >= 0.995 && x < 1.005 && x !=
 function date(s){ return s ? String(s).slice(0, 10) : '—'; }
 var EVTIP = {MEASURED: 'Computed by the skill\'s scripts from the data files', SEEN: 'A frame, a comment or a row shows it (linked)', INFERRED: 'Reasoned, with the basis written out'};
 function chip(ev){ return el('span', {cls: 'ev ' + (ev || 'NONE'), text: ev || 'UNKNOWN', title: EVTIP[ev] || 'not known'}); }
-var QN = {scale_it: 'Scale it', underused: 'Underused', fading: 'Fading', drop: 'Drop', too_few: 'Not placed', post: 'One post'};
-var QC = {scale_it: 'var(--scale)', underused: 'var(--under)', fading: 'var(--fading)', drop: 'var(--drop)', too_few: 'var(--faint)'};
+var QN = {scale_it: 'Scale it', underused: 'Underused', overused: 'Overused', fading: 'Overused', drop: 'Drop', too_few: 'Not placed', post: 'One post'};
+var QC = {scale_it: 'var(--scale)', underused: 'var(--under)', overused: 'var(--fading)', fading: 'var(--fading)', drop: 'var(--drop)', too_few: 'var(--faint)'};
 var app = document.getElementById('app');
 var POSTS = {};
 function postLink(id){ var p = POSTS[id]; return p ? el('a', {href: p.url, text: id}) : el('span', {text: id}); }
@@ -217,15 +253,16 @@ function playsSection(plays){
     function fallback(){ var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch (e) {} document.body.removeChild(t); }
   }
 }
-function sourcesSection(sources, notRead, cost, extra){
+function sourcesSection(sources, notRead, cost, extra, limits){
   var s = section('sources', 'What was read, with what, and what it cost');
   var p = el('div', {cls: 'grid2'}); s.appendChild(p);
   var left = el('div', {cls: 'panel'});
   left.appendChild(el('h3', {text: 'Sources'}));
   (sources || []).forEach(function(x){ left.appendChild(el('div', {cls: 'small', style: 'margin:4px 0'}, el('strong', {text: (x.what || '') + ': '}), (x.via || '') + (x.cost_usd != null ? ' · $' + x.cost_usd : '') + (x.notes ? ' · ' + x.notes : ''))); });
   left.appendChild(el('h3', {text: 'Not read', style: 'margin-top:12px'}));
-  if (!(notRead || []).length) left.appendChild(el('div', {cls: 'empty', text: 'Nothing listed.'}));
+  if (!(notRead || []).length && !(limits || []).length) left.appendChild(el('div', {cls: 'empty', text: 'Nothing listed.'}));
   (notRead || []).forEach(function(n){ left.appendChild(el('div', {cls: 'small', style: 'margin:4px 0'}, el('strong', {text: n.what + ': '}), n.why)); });
+  (limits || []).forEach(function(n){ left.appendChild(el('div', {cls: 'small', style: 'margin:4px 0', 'data-limit': n.what}, chip('MEASURED'), el('strong', {text: n.what + ': '}), n.why)); });
   (extra || []).forEach(function(t){ left.appendChild(el('div', {cls: 'small muted', style: 'margin-top:6px', text: t})); });
   p.appendChild(left);
   var right = el('div', {cls: 'panel'});
@@ -250,7 +287,7 @@ def page(title, md_name, data, body_js):
     """One self-contained page: the head, the data, one script (helpers + the page's own drawing)."""
     html = HEAD.replace("__TITLE__", title.replace("&", "&amp;").replace("<", "&lt;")).replace("__MD__", md_name)
     html = html.replace("__DATA__", embed(data))
-    return html + "<script>\n(function(){\n\"use strict\";\n" + JS_HELPERS + body_js + "\n})();\n</script>\n</body>\n</html>\n"
+    return html + "<script>\n(function(){\n\"use strict\";\n" + JS_HELPERS.replace("/*__LABELS_JS__*/", LABELS_JS) + body_js + "\n})();\n</script>\n</body>\n</html>\n"
 
 
 def existing(folder, rel_path):
@@ -483,3 +520,123 @@ def size_line(path, pictures):
         ", smaller copies made with ffmpeg" if p.get("shrunk_with") and p.get("inside") else "",
         (", %d left out to stay small" % p["left_out"]) if p.get("left_out") else "",
         "" if n <= PAGE_TARGET else "; OVER the 3 MB target: fewer pictures would fit (see references/handover.md)")
+
+
+# ---------------------------------------------------------------------------------------------- what the run did not read
+# Every report says what this run did not read, from what happened in it (0.4.1), never as boilerplate: each line is
+# there only when its case occurred, with its count. The agent's own not_read list stays beside these lines.
+
+def _in_window_ids(folder, kind):
+    from common import read_json
+    if kind == "niche":
+        p = os.path.join(folder, "trends.json")
+        doc = read_json(p) if os.path.exists(p) else {}
+        return set(x["post_id"] for x in doc.get("posts") or [] if x.get("in_window"))
+    p = os.path.join(folder, "analysis.json")
+    if os.path.exists(p):
+        doc = read_json(p)
+        return set(x["post_id"] for x in doc.get("posts") or [] if x.get("in_window"))
+    return None
+
+
+def run_limits(kind, folder, focus=None):
+    """[{what, why, evidence}] for kind account / post / niche. focus: the post run's own post id."""
+    from common import load_posts, niche_creator_dirs, read_json, replies_left_out
+    out = []
+
+    def add(what, why):
+        out.append({"what": what, "why": why, "evidence": "MEASURED"})
+    dirs = [os.path.join(folder, d) for d in niche_creator_dirs(folder)] if kind == "niche" else [folder]
+    inw = _in_window_ids(folder, kind)
+    threads, carousels, slides, speech_none, videos_read, not_own, sampled = [], [], 0, 0, 0, 0, []
+    covers, replies = {}, 0
+    for d in dirs:
+        posts = load_posts(d)
+        for q in posts:
+            if kind == "post" and q["post_id"] != focus:
+                continue
+            if kind != "post" and inw is not None and q["post_id"] not in inw:
+                continue
+            if q.get("type") == "thread" and len(q.get("parts") or []) < 2:
+                threads.append(q["post_id"])
+            if q.get("type") == "carousel":
+                carousels.append(q["post_id"])
+                sd = os.path.join(d, "videos", q["post_id"], "slides")
+                if os.path.isdir(sd) and os.listdir(sd):
+                    slides += 1
+        vdir = os.path.join(d, "videos")
+        for pid in (sorted(os.listdir(vdir)) if os.path.isdir(vdir) else []):
+            if kind == "post" and pid != focus:
+                continue
+            pp, np_ = os.path.join(vdir, pid, "probe.json"), os.path.join(vdir, pid, "notes.json")
+            try:
+                pr = read_json(pp) if os.path.exists(pp) else {}
+                nt = read_json(np_) if os.path.exists(np_) else {}
+            except ValueError:
+                continue
+            if pr.get("read"):
+                videos_read += 1
+                if (pr.get("measured") or {}).get("words_per_minute") is None:
+                    speech_none += 1
+            if nt.get("read") is False and "does not say whether the video is this post's own" in (nt.get("not_read_reason") or ""):
+                not_own += 1
+        cp = os.path.join(d, "covers", "not_read.json")
+        if os.path.exists(cp):
+            try:
+                for why in read_json(cp).values():
+                    covers[why] = covers.get(why, 0) + 1
+            except (ValueError, AttributeError):
+                pass
+        rl = replies_left_out(d)
+        replies += rl["other"] + rl["self"]
+        try:
+            acc = read_json(os.path.join(d, "account.json"))
+        except (OSError, ValueError):
+            acc = {}
+        sm = acc.get("sampled") or {}
+        if sm.get("read") and sm.get("of") and sm["of"] > sm["read"]:
+            sampled.append("@%s: %d of its latest %d posts, %s" % (acc.get("handle"), sm["read"], sm["of"],
+                                                                   "spread across the window" if "spread" in (sm.get("how") or "") else sm.get("how") or "a sample"))
+        if kind == "account" and not acc.get("follower_history"):
+            an = os.path.join(folder, "analysis.json")
+            readings = ((read_json(an).get("followers") or {}).get("readings") or 0) if os.path.exists(an) else 0
+            if readings < 2:
+                add("Follower history", "no follower counts over time were read: which posts brought followers is estimated "
+                                        "from signals, never counted")
+    if kind == "niche":
+        add("Follower history", "not read across a niche: which posts brought followers is left to an account run")
+    if threads:
+        add("Threads", "%d thread%s came as %s first part only (%s): %s length and %s ask are not judged" % (
+            len(threads), "" if len(threads) == 1 else "s", "its" if len(threads) == 1 else "their",
+            ", ".join(threads[:6]) + (" …" if len(threads) > 6 else ""), "its" if len(threads) == 1 else "their",
+            "its" if len(threads) == 1 else "their"))
+    if carousels and slides < len(carousels):
+        add("Carousel slides", "%d of %d carousel post%s read by %s cover only (the slides were not saved)" % (
+            len(carousels) - slides, len(carousels), "" if len(carousels) == 1 else "s",
+            "its" if len(carousels) - slides == 1 else "their"))
+    if speech_none:
+        add("Speech in videos", "%d of %d watched video%s had no subtitles: words per minute not measured (a local "
+                                "speech-to-text tool can add them, references/deep-read.md)" % (
+                                    speech_none, videos_read, "" if videos_read == 1 else "s"))
+    if not_own:
+        add("Videos not watched", "%d picked post%s: the row does not say the video is the post's own (own_media), so "
+                                  "none was fetched" % (not_own, "" if not_own == 1 else "s"))
+    if covers:
+        add("Covers", "%d not saved: %s" % (sum(covers.values()), ", ".join("%s %d" % kv for kv in sorted(covers.items()))))
+    if replies:
+        add("Replies", "%d repl%s left out of the numbers (replies are not posts)" % (replies, "y" if replies == 1 else "ies"))
+    if sampled:
+        add("Sampled", "; ".join(sampled))
+    if kind == "niche":
+        tp = os.path.join(folder, "trends.json")
+        seeds = (read_json(tp).get("seeds") or {}) if os.path.exists(tp) else {}
+        for st, words in (("not_found", "not found"), ("inactive", "no posts in the window")):
+            if seeds.get(st):
+                add("Seed accounts", "%s: %s" % (words, ", ".join("@%s" % x["handle"] for x in seeds[st])))
+    return out
+
+
+def dedupe_limits(limits, findings):
+    """The run's lines, less the ones the agent already wrote under the same name in findings.json not_read."""
+    told = set(str(n.get("what") or "").strip().lower() for n in (findings or {}).get("not_read") or [] if isinstance(n, dict))
+    return [x for x in limits or [] if x["what"].strip().lower() not in told]

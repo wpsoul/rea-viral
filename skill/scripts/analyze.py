@@ -28,8 +28,8 @@ sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill fold
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (  # noqa: E402
     FOLLOW_RE, SKILL_VERSION, account_read_at, account_window, clamp, day, die, follower_readings, iso,
-    load_account, load_comments, load_formats, load_posts, median, now_utc, parse_time, rnd, save_like, share_like,
-    write_csv, write_json,
+    load_account, load_comments, load_formats, load_posts, median, now_utc, parse_time, replies_left_out, rnd, save_like,
+    share_like, write_csv, write_json,
 )
 import validate  # noqa: E402
 
@@ -499,6 +499,15 @@ def run(folder, metric=None, opts=None):
     }
     for st in ("no_date", "too_new", "no_metric", "no_baseline", "warmup"):
         out["counts"][st] = sum(1 for p in posts if p["status"] == st)
+    # Replies are not posts: left out of every number (references/data-shape.md, "Replies"), and counted.
+    rl = replies_left_out(folder)
+    out["counts"]["replies_left_out"] = rl["other"] + rl["self"]
+    out["counts"]["own_replies_folded"] = rl["folded"]
+    if rl["other"]:
+        out["warnings"].append("%d replies to other accounts were left out of the numbers" % rl["other"])
+    if rl["self"]:
+        out["warnings"].append("%d of the account's own replies name no post they belong to (reply_to_id): left out; "
+                               "fold them into their post's parts or author_replies" % rl["self"])
     if "status" not in out:
         dated = [p for p in posts if p["published_at"] is not None]
         if not dated:

@@ -5,7 +5,8 @@
 //
 // Checks: no console error and no page error (a failed Google Fonts request is reported, not fatal: the page must
 // work offline), no dialog (captions and comments are data), only the page's own two scripts, the charts drew
-// (--radar N = that many bubbles; --timeline = at least one dot), the How it writes section (--writing N = that many
+// (--radar N = that many bubbles; on every format chart, at both widths, each name label inside the plot, none over
+// another, a number in every bubble; --timeline = at least one dot), the How it writes section (--writing N = that many
 // lifting or sinking features, and at least one first line on each side), every play has a Copy button, no monospace font
 // anywhere, no sideways scroll at phone width (390 px). Writes desktop.png (full page) and phone.png.
 // Niche page: --gallery N format cards, each picture in it loaded; --hooks N lifting features across creators and first
@@ -104,6 +105,19 @@ try {
         galleryImgs: Array.from(document.querySelectorAll('#gallery img')).map((i) => ({ src: i.getAttribute('src'), ok: i.complete && i.naturalWidth > 0 })),
         hooksSection: !!document.querySelector('section#hooks'),
         notWorking: !!document.querySelector('section#not-working'),
+        // the chart's labels (0.4.1): each inside the plot, none over another, a number in every bubble
+        chart: Array.from(document.querySelectorAll('svg[data-chart="radar"]')).map((svg) => {
+          const plot = svg.querySelector('rect.plot');
+          const p = plot ? plot.getBBox() : null;
+          const labels = Array.from(svg.querySelectorAll('text.lbl')).map((t) => { const b = t.getBBox(); return { x0: b.x, y0: b.y, x1: b.x + b.width, y1: b.y + b.height, text: t.textContent }; });
+          const out = p ? labels.filter((b) => b.x0 < p.x - 0.5 || b.y0 < p.y - 0.5 || b.x1 > p.x + p.width + 0.5 || b.y1 > p.y + p.height + 0.5).map((b) => b.text) : ['no plot'];
+          const over = [];
+          for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+            const a = labels[i]; const b = labels[j];
+            if (a.x0 < b.x1 - 0.5 && b.x0 < a.x1 - 0.5 && a.y0 < b.y1 - 0.5 && b.y0 < a.y1 - 0.5) over.push(a.text + ' / ' + b.text);
+          }
+          return { bubbles: svg.querySelectorAll('g[data-format]').length, numbers: svg.querySelectorAll('g[data-format] text.bnum').length, labels: labels.length, out, over };
+        }),
         clipped: Array.from(document.querySelectorAll('#gallery .fcard, .panel, .stat')).filter((n) => n.getBoundingClientRect().right > window.innerWidth + 1).length,
       };
     });
@@ -150,6 +164,12 @@ try {
       if (info.kind !== 'post' || info.drawn.post !== 1) fail(tag + 'not a post page, or the post was not drawn');
       else if (!(info.drawn.words > 0)) fail(tag + 'the post page drew none of its words');
       else pass(tag + `post page: the post, ${info.drawn.words} lines of its words, ${info.drawn.repeats} repeats`);
+    }
+    for (const c of info.chart) {
+      if (c.out.length) fail(tag + `chart labels outside the plot: ${c.out.join(' | ')}`);
+      else if (c.over.length) fail(tag + `chart labels over each other: ${c.over.join(' | ')}`);
+      else if (c.numbers !== c.bubbles) fail(tag + `${c.bubbles} bubbles but ${c.numbers} numbers`);
+      else pass(tag + `chart: ${c.bubbles} bubbles numbered, ${c.labels} names placed inside the plot, none overlapping`);
     }
     if (!info.notWorking) fail(tag + 'no "What did not work" section');
     else if (wantNotWorking != null && !(info.drawn.not_working >= wantNotWorking)) fail(tag + `What did not work drew ${info.drawn.not_working} items, expected at least ${wantNotWorking}`);

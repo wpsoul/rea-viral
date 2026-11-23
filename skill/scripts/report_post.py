@@ -60,6 +60,7 @@ def page_data(folder, light=False):
         "sheet": sheet, "cover": cover,
         "recipe": recipe, "recipe_file": pp.get("recipe"),
         "not_working": not_working(pp),
+        "limits": page_kit.dedupe_limits(page_kit.run_limits("post", folder, focus=pid), _load(folder, "findings.json") or {}),
         "sources": acc.get("sources") or [], "cost": cost,
         "pictures": pics.summary(),
     }
@@ -174,8 +175,9 @@ def post_md(d):
     for cl in fi.get("did_not_work") or []:
         L.append("- " + build_report.claim_line(cl))
     L.append("")
-    if fi.get("not_read"):
-        L += ["## Not read", ""] + ["- %s: %s" % (n["what"], n["why"]) for n in fi["not_read"]] + [""]
+    if fi.get("not_read") or d.get("limits"):
+        L += ["## Not read", ""] + ["- %s: %s" % (n["what"], n["why"]) for n in fi.get("not_read") or []] + \
+             ["- [MEASURED] %s: %s" % (n["what"], n["why"]) for n in d.get("limits") or []] + [""]
     L += ["## Files", "", "post.json (the link) · account.json, posts.csv (the creator's recent posts) · post_probe.json · "
           "videos/<id>/ (the deep read) · formats.json, formats/<id>.md (the recipe) · findings.json · report.html (the "
           "Post report, one file) · report_record.json and radar_rows.json (for a planner connector)", ""]
@@ -231,6 +233,10 @@ if (PP.status && PP.status !== 'ok') app.appendChild(el('div', {cls: 'status'}, 
   var n = D.notes || {}, se = n.seen || {};
   if (n.read === true){
     var kv = el('div', {cls: 'kv', style: 'margin-top:10px'});
+    var mv = D.measured_video;
+    if (mv){ kv.appendChild(el('span', {cls: 'k', text: 'Measured'})); kv.appendChild(el('span', null, chip('MEASURED'),
+      (mv.length_s != null ? mv.length_s.toFixed(1) + ' s' : '—') + (mv.cuts_per_10s != null ? ' · ' + mv.cuts_per_10s + ' cuts per 10 s' : '') +
+      (mv.words_per_minute != null ? ' · ' + mv.words_per_minute + ' words/min' : ' · words/min not measured: no subtitles'))); }
     [['Hook', se.hook], ['First frame', se.first_frame], ['On screen', se.text_on_screen], ['Sound', se.sound], ['The turn', se.turn], ['The ask', se.ask]].forEach(function(r){
       var v = r[1] && typeof r[1] === 'object' ? (r[1].text || '') + (r[1].at != null ? ' (' + r[1].at + ' s)' : '') : (r[1] || '');
       kv.appendChild(el('span', {cls: 'k', text: r[0]})); kv.appendChild(el('span', null, chip('SEEN'), v || '—')); });
@@ -294,7 +300,7 @@ if (PP.status && PP.status !== 'ok') app.appendChild(el('div', {cls: 'status'}, 
 })();
 
 waysToMake('Asked once, after this page: make this format (Basic, Standard or Advanced), draft posts with its hook, or take the creator\'s whole account or its niche.');
-sourcesSection(D.sources, F.not_read, D.cost, [picturesLine(D.pictures)].filter(Boolean));
+sourcesSection(D.sources, F.not_read, D.cost, [picturesLine(D.pictures)].filter(Boolean), D.limits);
 app.appendChild(el('footer', null, 'Post report. Built ' + D.built_at + ' by REA Viral ' + D.skill_version + ' from post_probe.json, findings.json and the run\'s files; one file, its picture inside it.'));
 window.__reaReport.ready = true;
 """

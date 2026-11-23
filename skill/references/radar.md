@@ -25,6 +25,19 @@ account repeats; leave one-offs out (they show as "belong to no format"). A numb
 format of its own and also goes under `series` in `formats.json`. Write in each format's `basis` what showed you the
 container (which frames, which covers).
 
+**Check the grouping before you measure it** (0.4.1). Give each format its `examples` (the post ids that show it best)
+and, when its first line or its words say it, a `match` (`data-shape.md`, formats.json), then:
+
+```
+python3 SKILL_DIR/scripts/formats_check.py <run>            # --write takes each match's posts; --json for the file
+```
+
+It prints, per format, its posts, what its `match` takes and three sample posts with their first lines; the posts two
+formats both take; the posts in no format with the openers they repeat (a format you missed, or one-offs); and it
+fails when an example does not fit its own format. Fix what it shows (move a post, sharpen a match, name the missed
+format), run it again, then `radar.py`. It is a tool for your judgement, not a classifier: the grouping stays yours,
+and a format whose container is in the frames, not the words, needs no `match`.
+
 ## The Format map: what radar.py measures on one account (MEASURED, per format)
 
 | Key | Meaning |
@@ -32,32 +45,45 @@ container (which frames, which covers).
 | `posts_total`, `share` | Its posts in the window, and their share of the window's posts |
 | `lift` | The median of its posts' ratios (each against its own baseline) |
 | `hit_rate` | The share of its posts at 2× or more |
-| `direction` | Median ratio of its last third ÷ its first third (by date; 6+ scored posts), `rising` ≥ 1.33, `weakening` < 0.75 |
+| `direction` | Median ratio of its last third ÷ its first third (by date; 6+ scored posts), `rising` ≥ 1.33, `fading` < 0.75, else `steady` |
 | `follower_pull` | MEASURED: followers above the usual pace in the 72 h after its posts, when half or more of them are measured; else ESTIMATED: the mean estimated score (INFERRED); else unknown |
 | `effort` | Your call in `formats.json`: low, medium, high |
 | `length_s_median`, `probe` | Its posts' median length; median cuts per 10 s, words per minute and first cut of its watched videos |
 | `examples` | Its three best posts, with links and covers |
 
-## The four corners
+## The four corners, and the direction
 
 The chart: across = how often (split at 15% of the window's posts); up = lift (split at 1×, the account's own usual);
-bubble size = follower pull; arrow = direction.
+bubble size = follower pull; arrow = direction. **A corner says only where the format sits** (how often, how much it
+lifts); **the direction says where it is going** (`rising`, `steady`, `fading`). The two never mix: a format in
+Scale it can be fading, a format in Overused can be rising.
 
-| Corner | Rule | Reads as |
+| Corner | Where it sits | Reads as |
 |---|---|---|
-| **Scale it** | often and lift ≥ 1, not weakening | Make more of it |
+| **Scale it** | often and lift ≥ 1 | Make more of it (unless it is fading: then say so with it) |
 | **Underused** | rare and lift ≥ 1 | It works when used: test it more |
-| **Fading** | often and lift < 1, or often, ≥ 1 and weakening (direction < 0.75) | It carried the account; watch it, refresh it |
+| **Overused** | often and lift < 1 | Used a lot, lifting little: refresh it or use it less |
 | **Drop** | rare and lift < 1 | Stop, unless it serves another goal |
+
+Words that changed in 0.4.1: the corner "Fading" is now **Overused** (`quadrant: "overused"`), and it no longer takes
+a lifting format whose later posts did worse (that one stays in its corner with the direction `fading`); the
+direction "weakening" is now **fading**. `rising`, `steady` and `fading` are only ever the direction, on the chart,
+the legends, the chips, `ACCOUNT.md`, `NICHE.md`, `brief.json` and `radar_rows.json`. An older `radar.json` with the
+old words is read in the new ones (the corner from its share and lift); it is never rewritten.
 
 A format with fewer than 3 scored posts is listed as "too few posts" and not placed; one with 3 to 5 is placed but
 marked `few_posts: true` ("few posts" in the hand-over): show it, never call its corner a finding on its own. Under 20
 dated posts in the window, `radar.py` lists the posts and calls no format (`status: too_few_posts`).
 
-The arrow matters: an Underused format that is weakening, or a Scale it format near the 0.75 line, is said with its
-direction. The grouping is yours (`grouping` in radar.json says so); the numbers of each group are MEASURED.
+The arrow matters: an Underused or Scale it format that is fading is said with its direction, and never put first as
+a thing to make more of. The grouping is yours (`grouping` in radar.json says so); the numbers of each group are
+MEASURED.
 
-The formats under 1× (Fading, Drop) and the weakening ones are also listed in the Account report's "What did not
+On the chart each bubble carries a number and its name is placed beside it where it fits inside the plot, clear of
+the other names and bubbles (on a phone too); a name with no room is listed under the chart by its number, and the
+table beside the chart has the same numbers.
+
+The formats under 1× (Overused, Drop) and the fading ones are also listed in the Account report's "What did not
 work", each with its three lowest posts and how many of the account's flops it holds.
 
 ## radar.json (one shape for both scopes; nothing was renamed, so every older run folder still reads)
@@ -70,7 +96,7 @@ work", each with its three lowest posts and how many of the account's flops it h
   "window": {"from": "2025-11-14", "to": "2026-11-13"},
   "generated_at": "…",
   "status": "ok",
-  "rules": {"often_share": 0.15, "strong_lift": 1.0, "weakening_direction": 0.75, "rising_direction": 1.33,
+  "rules": {"often_share": 0.15, "strong_lift": 1.0, "fading_direction": 0.75, "rising_direction": 1.33,
             "hit_ratio": 2.0, "min_posts_window": 20, "min_posts_format": 3, "min_posts_direction": 6},
   "axes": {"x": {"key": "share", "split": 0.15}, "y": {"key": "lift", "split": 1.0, "scale": "log2"},
            "size": {"key": "follower_pull.value"}, "arrow": {"key": "direction"}},
@@ -79,9 +105,9 @@ work", each with its three lowest posts and how many of the account's flops it h
     "container": {"hook": "…", "structure": "…", "look": "…", "length": "35-45 s"},
     "recipe": "formats/founder-diary.md",
     "posts_total": 30, "posts_scored": 30, "share": 0.246, "lift": 0.94, "hit_rate": 0.0,
-    "direction": 0.45, "direction_label": "weakening",
+    "direction": 0.45, "direction_label": "fading",
     "follower_pull": {"level": "estimated", "evidence": "INFERRED", "value": 0.12, "unit": "…", "label": "…"},
-    "effort": "medium", "quadrant": "fading", "quadrant_name": "Fading", "evidence": "MEASURED",
+    "effort": "medium", "quadrant": "overused", "quadrant_name": "Overused", "evidence": "MEASURED",
     "examples": [{"post_id": "…", "url": "…", "ratio": 1.71, "views": 48200, "published_at": "…", "cover_file": "…"}],
     "post_ids": ["…"]
   }],
@@ -92,8 +118,9 @@ work", each with its three lowest posts and how many of the account's flops it h
 
 `scope: "account"` is one account's Format map. `scope: "shared"` is the formats of a niche: the same fields,
 with a `subject` that names the niche (`niche`, `slug`, `words`, `tags`, `networks`) and the fields below per format.
-The schema name (`rea-viral/radar@1`), the keys and the corner names did not change, so version-1 and version-2 run
-folders validate, analyse and build exactly as before.
+The schema name (`rea-viral/radar@1`) and the keys did not change, so version-1 and version-2 run folders validate,
+analyse and build as before; only the corner `fading` became `overused` and the direction `weakening` became `fading`
+(0.4.1), and an older file is read in those words.
 
 ## The formats of a niche (scope "shared")
 
@@ -115,15 +142,19 @@ niche"), then measures each format of `formats.json` from the window's posts **s
 | `weaker_basis_posts`, `too_new_posts` | Its posts that could not be scored against their own creator, counted apart |
 | `effort`, `probe`, `length_s_median` | As for an account; the probe numbers come from the watched videos in the creators' folders |
 
-**The corners** use the same four names; across is how many of the niche's creators use it, split at 40%; up is the
-lift, split at 1× (each creator's own usual):
+**The corners** use the same four names, by position only; across is how many of the niche's creators use it, split
+at 40%; up is the lift, split at 1× (each creator's own usual). The direction (`rising`, `steady`, `fading`) is the
+arrow, never the corner:
 
-| Corner | Rule | Reads as, for a niche |
+| Corner | Where it sits | Reads as, for a niche |
 |---|---|---|
-| **Scale it** | 40%+ of the creators, lift ≥ 1, not fading | Widely used and working: make it now |
+| **Scale it** | 40%+ of the creators, lift ≥ 1 | Widely used and working: make it now (unless it is fading: say so) |
 | **Underused** | under 40% of the creators, lift ≥ 1 | Works where it is used, few use it yet: an opening |
-| **Fading** | 40%+ and lift < 1, or 40%+, lift ≥ 1 and direction < 0.75 | Everyone has it, it no longer lifts: refresh it or skip it |
+| **Overused** | 40%+ and lift < 1 | Everyone has it, it no longer lifts: refresh it or skip it |
 | **Drop** | under 40%, lift < 1 | Skip it |
+
+Only creators with posts in the window count, across and toward the 3 creators: a seed account that was not found or
+had no post in the window is named in the report and counts nowhere (`niche.md`, step 2).
 
 A format with fewer than 3 creators is not placed: `quadrant: "too_few"`, `quadrant_name: "Not a niche format:
 creator habit"` (or `few creators`), listed under the chart and in the gallery, never called a format of the niche.
