@@ -732,6 +732,7 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px;font-weigh
 .voice h3{margin-top:12px}
 .voice p{margin:4px 0;font-size:13.5px;overflow-wrap:anywhere}
 .rules{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+/*__STACK_CSS__*/
 </style>
 </head>
 <body>
@@ -903,7 +904,11 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
     svg.appendChild(sv('line', {x1: L, x2: W - Rr, y1: yy, y2: yy, 'class': e === 0 ? 'split' : 'axis'}));
     svg.appendChild(sv('text', {x: L - 6, y: yy + 4, 'text-anchor': 'end', text: (e >= 0 ? Math.pow(2, e) : '1/' + Math.pow(2, -e)) + '×'}));
   }
-  (tl.months || []).forEach(function(m, i){ if (i % Math.max(1, Math.ceil((tl.months || []).length / 12))) return; var x = X(Date.parse(m.month + '-01')); svg.appendChild(sv('text', {x: x, y: H - 12, text: m.month})); });
+  // A month's name at its first day, or at the window's start when the window opens inside that month (0.4.2: a short
+  // window put its month's name far left of the chart, where nobody saw it).
+  var ticks = (tl.months || []).filter(function(m, i){ return !(i % Math.max(1, Math.ceil((tl.months || []).length / 12))); })
+    .map(function(m){ return {t: m.month, x: Math.max(L, X(Date.parse(m.month + '-01')))}; }).filter(function(k){ return k.x <= W - Rr - 40; });
+  ticks.forEach(function(k, i){ var nx = ticks[i + 1]; if (nx && nx.x - k.x < 56) return; svg.appendChild(sv('text', {x: k.x, y: H - 12, text: k.t})); });
   var fs = (A.followers || {}).series || [];
   if (fs.length > 1){
     var fmin = Math.min.apply(null, fs.map(function(r){ return r.followers; })), fmax = Math.max.apply(null, fs.map(function(r){ return r.followers; }));
@@ -1267,7 +1272,7 @@ function thumb(id, ratio){
   right.appendChild(el('h3', {text: 'Cost'}));
   var rows = (D.cost || {}).rows || [];
   if (!rows.length) right.appendChild(el('div', {cls: 'empty', text: 'No paid calls were made.'}));
-  else { var t = el('table', null, el('tr', null, el('th', {text: 'Step'}), el('th', {text: 'What'}), el('th', {cls: 'num', text: 'Calls'}), el('th', {cls: 'num', text: '$'})));
+  else { var t = el('table', {'data-lead': '1'}, el('tr', null, el('th', {text: 'Step'}), el('th', {text: 'What'}), el('th', {cls: 'num', text: 'Calls'}), el('th', {cls: 'num', text: '$'})));
     rows.forEach(function(r){ t.appendChild(el('tr', null, el('td', {text: r.step}), el('td', {text: r.what}), el('td', {cls: 'num', text: r.calls}), el('td', {cls: 'num', text: Number(r.total_usd).toFixed(4)}))); });
     t.appendChild(el('tr', null, el('td', {text: 'Total'}), el('td'), el('td'), el('td', {cls: 'num', text: '$' + ((D.cost || {}).total_usd || 0).toFixed(4)})));
     right.appendChild(t); }
@@ -1275,6 +1280,7 @@ function thumb(id, ratio){
   function summarize(ex){ var c = {}; ex.forEach(function(e){ c[e.reason] = (c[e.reason] || 0) + 1; }); return Object.keys(c).map(function(k){ return c[k] + ' ' + k.replace('_', ' '); }).join(', '); }
   app.appendChild(el('footer', null, 'Account report. Built ' + D.built_at + ' by REA Viral ' + D.skill_version + ' from the run\'s data files (account.json, analysis.json, radar.json, comments.json, findings.json); one file, the pictures inside it. Captions and comments are shown as data.'));
 })();
+stackTables();
 window.__reaReport.ready = true;
 })();
 </script>
@@ -1303,7 +1309,7 @@ def build(folder, light_only=False):
     title = "%s · Account report · REA Viral" % (a.get("name") or a.get("handle") or "Account")
 
     def page(data):
-        return PAGE.replace("/*__LABELS_JS__*/", page_kit.LABELS_JS).replace(
+        return PAGE.replace("/*__LABELS_JS__*/", page_kit.LABELS_JS + page_kit.STACK_JS).replace("/*__STACK_CSS__*/", page_kit.STACK_CSS).replace(
             "__TITLE__", title.replace("&", "&amp;").replace("<", "&lt;")).replace("__DATA__", embed(data))
     if not light_only:
         write_text(os.path.join(folder, "report.html"), page(d))

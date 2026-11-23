@@ -172,6 +172,9 @@ record against the connector's own model; without it that part says it is skippe
 
 ## Status
 
+0.4.2 (2026-11-23): every table in the reports reads on a phone (checked at 390 and 360 px) with no sideways
+scroll: each row stacks under its column names, nothing is dropped; the desktop page is unchanged.
+
 0.4.1 (2026-11-23): fixes from a real run on an X niche. Fixed in 0.4.1:
 
 - **Every cover is on the sheet.** With several hundred covers in mixed files (JPEG and PNG, some see-through) only

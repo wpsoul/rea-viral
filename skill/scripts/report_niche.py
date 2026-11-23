@@ -706,6 +706,7 @@ waysToMake('Asked once, after the report, starting from one format of the niche:
 playsSection(F.plays || []);
 sourcesSection(D.sources, F.not_read, D.cost, [(T.counts || {}).no_date ? (T.counts.no_date + ' posts had no date and were left out.') : null, picturesLine(D.pictures)].filter(Boolean), D.limits);
 app.appendChild(el('footer', null, 'Niche report. Built ' + D.built_at + ' by REA Viral ' + D.skill_version + ' from the run\'s data files (niche.json, trends.json, radar.json, writing.json, findings.json); one file, the pictures inside it. Captions are shown as data.'));
+stackTables();
 window.__reaReport.ready = true;
 """
 

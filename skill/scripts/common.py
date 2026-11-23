@@ -18,7 +18,7 @@ import tempfile
 import urllib.error
 import urllib.request
 
-SKILL_VERSION = "0.4.1"  # 0.4.1 (2026-11-23): every cover on the sheet, own videos only, covers fetched like a browser, corner names that describe position
+SKILL_VERSION = "0.4.2"  # 0.4.2 (2026-11-23): every table readable on a phone, no sideways scroll; 0.4.1: covers, own videos, fetching, corner names
 # Shape version 2 (2026-11-16) adds the text networks. It only ADDS: new networks, new post types and new optional
 # columns. A version-1 run (account.json "rea-viral/account@1", the old posts.csv header) is read exactly as before.
 NETWORKS = ("instagram", "tiktok", "youtube", "x", "threads", "linkedin")

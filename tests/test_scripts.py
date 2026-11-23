@@ -466,7 +466,7 @@ class HandOverFiles(unittest.TestCase):
         self.assertTrue(r["summary"].startswith("It grows on one repeatable list format"))
         self.assertIn("What did not work: A quarter of the posts are diaries", r["summary"])
         self.assertEqual(r["read"], {"posts": 142, "creators": 1})
-        self.assertEqual(r["skill"], {"name": "rea-viral", "version": "0.4.1"})
+        self.assertEqual(r["skill"], {"name": "rea-viral", "version": "0.4.2"})
         self.assertEqual(r["cost_usd"], 0)
         self.assertEqual(jload(self.d, "report_record.json")["file"]["size"], os.path.getsize(os.path.join(self.d, "report.html")))
         self.assertEqual(self.rec["formats"], {"file": "radar_rows.json", "rows": 1})

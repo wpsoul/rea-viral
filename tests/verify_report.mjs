@@ -8,7 +8,9 @@
 // (--radar N = that many bubbles; on every format chart, at both widths, each name label inside the plot, none over
 // another, a number in every bubble; --timeline = at least one dot), the How it writes section (--writing N = that many
 // lifting or sinking features, and at least one first line on each side), every play has a Copy button, no monospace font
-// anywhere, no sideways scroll at phone width (390 px). Writes desktop.png (full page) and phone.png.
+// anywhere, no sideways scroll at phone width (390 px). At 390 and 360 px (0.4.2): nothing inside the report wider than
+// the window, no box that holds a table (or may scroll) scrolling sideways, every table cell with content shown, no text
+// under 12 px in a table. Writes desktop.png (full page) and phone.png.
 // Niche page: --gallery N format cards, each picture in it loaded; --hooks N lifting features across creators and first
 // lines; --watchlist N rows; --trends N ranked rows at least. Post page: --post (the post, its words, its repeats).
 // Every page: no <video>, <iframe>, <embed> or <object> (no other creator's video is embedded or re-hosted); a "What
@@ -190,6 +192,55 @@ try {
       if (t !== 'light') fail(tag + 'the Light button did not switch the theme'); else pass(tag + 'Light button works');
       await page.screenshot({ path: path.join(outDir, 'desktop-light.png'), fullPage: false, timeout: 20000 });
     }
+    await ctx.close();
+  }
+  // PHONES (0.4.2): at 390 and 360 px nothing inside the report is wider than the window, no box that holds a table (nor
+  // any box that may scroll) scrolls sideways, every table cell with something in it is shown, and no text in a table
+  // is under 12 px.
+  for (const w of [390, 360]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: 844 }, colorScheme: 'dark' });
+    const page = await ctx.newPage();
+    await page.goto(pathToFileURL(path.resolve(report)).href, { waitUntil: 'load', timeout: 20000 });
+    await page.waitForFunction(() => window.__reaReport && window.__reaReport.ready === true, null, { timeout: 10000 });
+    await page.evaluate(() => document.fonts ? document.fonts.ready.then(() => true) : true);
+    const r = await page.evaluate(() => {
+      const W = window.innerWidth, wide = [], scroll = [], hidden = [], small = [];
+      const name = (n) => { const sec = n.closest('section'); return (sec ? '[' + sec.id + '] ' : '') + n.tagName.toLowerCase() + (n.className && typeof n.className === 'string' ? '.' + n.className.trim().split(/\s+/).join('.') : ''); };
+      document.querySelectorAll('#app *').forEach((n) => {
+        const b = n.getBoundingClientRect();
+        if (b.width > 0 && (b.right > W + 1 || b.left < -1)) wide.push(name(n) + ' ' + Math.round(b.left) + '..' + Math.round(b.right));
+        const o = getComputedStyle(n).overflowX;
+        if ((o === 'auto' || o === 'scroll') && n.clientWidth && n.scrollWidth > n.clientWidth + 1) scroll.push(name(n) + ' ' + n.scrollWidth + '>' + n.clientWidth);
+      });
+      document.querySelectorAll('#app table').forEach((t) => {
+        for (let c = t.parentElement; c && c.id !== 'app'; c = c.parentElement) {
+          if (c.clientWidth && c.scrollWidth > c.clientWidth + 1) { scroll.push(name(c) + ' (holds a table) ' + c.scrollWidth + '>' + c.clientWidth); break; }
+        }
+        t.querySelectorAll('td').forEach((td) => {
+          if (td.textContent.trim() && !td.getClientRects().length && !td.closest('details:not([open])')) hidden.push(name(td) + ' "' + td.textContent.trim().slice(0, 30) + '"');
+        });
+        t.querySelectorAll('td, td *').forEach((n) => {
+          if (!n.getClientRects().length) return;
+          const own = Array.prototype.some.call(n.childNodes, (x) => x.nodeType === 3 && x.textContent.trim());
+          const fs = parseFloat(getComputedStyle(n).fontSize);
+          if (own && fs < 12) small.push(name(n) + ' ' + fs + 'px "' + n.textContent.trim().slice(0, 20) + '"');
+          const lab = n.matches('td[data-label]') ? parseFloat(getComputedStyle(n, '::before').fontSize) : 99;
+          if (lab < 12) small.push(name(n) + '::before ' + lab + 'px');
+        });
+      });
+      const u = (a) => Array.from(new Set(a));
+      return { wide: u(wide), scroll: u(scroll), hidden: u(hidden), small: u(small), tables: document.querySelectorAll('#app table').length,
+               stacked: document.querySelectorAll('#app table.stk').length };
+    });
+    const tag = `[${w} px] `;
+    if (r.wide.length) fail(tag + `${r.wide.length} elements wider than the window: ` + r.wide.slice(0, 5).join(' | '));
+    else pass(tag + 'nothing wider than the window');
+    if (r.scroll.length) fail(tag + 'boxes that scroll sideways: ' + r.scroll.slice(0, 5).join(' | '));
+    else pass(tag + `no box scrolls sideways (${r.tables} tables, ${r.stacked} of them as stacked rows)`);
+    if (r.hidden.length) fail(tag + `${r.hidden.length} table cells with content not shown: ` + r.hidden.slice(0, 5).join(' | '));
+    else pass(tag + 'every table cell with content is shown');
+    if (r.small.length) fail(tag + 'text under 12 px in a table: ' + r.small.slice(0, 5).join(' | '));
+    else pass(tag + 'no text under 12 px in a table');
     await ctx.close();
   }
   // ONE FILE: the page alone in an empty folder, the way a planner keeps it and a person opens a download.

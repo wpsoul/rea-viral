@@ -116,11 +116,66 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px;font-weigh
 .levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 .level{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .level h3{margin:0 0 4px}
+/*__STACK_CSS__*/
 </style>
 </head>
 <body>
 <div class="wrap" id="app"><noscript>This page draws itself with JavaScript. __MD__ beside it holds the same findings as text.</noscript></div>
 <script type="application/json" id="rea-data">__DATA__</script>
+"""
+
+STACK_CSS = r"""
+/* Tables on a phone (0.4.2): at 480 px or less a table of three columns or more becomes a list of rows. The row's
+   title (its first column, or the one data-lead names) comes first, with its number when the table has a # column;
+   every other cell follows under its own column's name, three to a line in even columns (a cell whose chip needs more
+   room takes it); a long cell takes the whole line.
+   Nothing is dropped, nothing scrolls sideways, no text in any table is under 12 px (its chips too). stackTables()
+   marks the tables. */
+@media (max-width:480px){
+table.stk,table.stk tbody{display:block;width:100%}
+table.stk tr.hd{display:none}
+table.stk tr{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px 14px;padding:10px 0;border-bottom:1px solid var(--line)}
+table.stk tr:last-child{border-bottom:none}
+table.stk td{display:block;flex:0 0 calc((100% - 28px) / 3);padding:0;border:none;text-align:left;white-space:normal;overflow-wrap:anywhere;width:auto!important}
+table.stk td[data-label]::before{content:attr(data-label);display:block;color:var(--muted);font-size:12px;font-weight:700;line-height:1.35}
+table.stk td.lead{flex:1 1 100%;font-weight:700;order:-1}
+table.stk tr.has-rn td.lead{flex-basis:calc(100% - 48px)}
+table.stk td.rn{flex:0 0 auto;font-weight:800;order:-2}
+table.stk td:empty{display:none}
+table.stk td.wide{flex-basis:100%}
+table .q,table .ev{font-size:12px}
+table.stk .small{font-size:12.5px}
+}
+"""
+
+STACK_JS = r"""
+/* Marks every table of three columns or more for the phone layout (STACK_CSS): its header row, its # cells, each row's
+   title cell (data-lead on the table names its column; a row whose title cell is empty takes its first filled cell),
+   and every other cell's column name (data-label). A cell of more than 40 characters takes a whole line. */
+function stackTables(){
+  Array.prototype.forEach.call(document.querySelectorAll('table'), function(t){
+    var rows = Array.prototype.slice.call(t.rows), head = null;
+    rows.forEach(function(r){ if (!head && r.querySelector('th')) head = r; });
+    if (!head || head.cells.length < 3) return;
+    var labels = Array.prototype.map.call(head.cells, function(c){ return c.textContent.trim(); });
+    var rn = labels.indexOf('#');
+    var lead = t.getAttribute('data-lead') != null ? Number(t.getAttribute('data-lead')) : (rn === 0 ? 1 : 0);
+    t.classList.add('stk');
+    head.classList.add('hd');
+    rows.forEach(function(r){
+      if (r === head) return;
+      var cells = Array.prototype.slice.call(r.cells), L = lead;
+      var filled = function(i){ return cells[i] && i !== rn && cells[i].textContent.trim() !== ''; };
+      if (!filled(L)) for (var i = 0; i < cells.length; i++) if (filled(i)) { L = i; break; }
+      cells.forEach(function(c, i){
+        if (i === rn) { c.classList.add('rn'); if (c.textContent.trim()) r.classList.add('has-rn'); return; }
+        if (i === L) { c.classList.add('lead'); return; }
+        if (labels[i]) c.setAttribute('data-label', labels[i]);
+        if (c.textContent.length > 40) c.classList.add('wide');
+      });
+    });
+  });
+}
 """
 
 LABELS_JS = r"""
@@ -269,7 +324,7 @@ function sourcesSection(sources, notRead, cost, extra, limits){
   right.appendChild(el('h3', {text: 'Cost'}));
   var rows = (cost || {}).rows || [];
   if (!rows.length) right.appendChild(el('div', {cls: 'empty', text: 'No paid calls were made.'}));
-  else { var t = el('table', null, el('tr', null, el('th', {text: 'Step'}), el('th', {text: 'What'}), el('th', {cls: 'num', text: 'Calls'}), el('th', {cls: 'num', text: '$'})));
+  else { var t = el('table', {'data-lead': '1'}, el('tr', null, el('th', {text: 'Step'}), el('th', {text: 'What'}), el('th', {cls: 'num', text: 'Calls'}), el('th', {cls: 'num', text: '$'})));
     rows.forEach(function(r){ t.appendChild(el('tr', null, el('td', {text: r.step}), el('td', {text: r.what}), el('td', {cls: 'num', text: r.calls}), el('td', {cls: 'num', text: Number(r.total_usd).toFixed(4)}))); });
     t.appendChild(el('tr', null, el('td', {text: 'Total'}), el('td'), el('td'), el('td', {cls: 'num', text: '$' + ((cost || {}).total_usd || 0).toFixed(4)})));
     right.appendChild(t); }
@@ -286,8 +341,8 @@ def embed(d):
 def page(title, md_name, data, body_js):
     """One self-contained page: the head, the data, one script (helpers + the page's own drawing)."""
     html = HEAD.replace("__TITLE__", title.replace("&", "&amp;").replace("<", "&lt;")).replace("__MD__", md_name)
-    html = html.replace("__DATA__", embed(data))
-    return html + "<script>\n(function(){\n\"use strict\";\n" + JS_HELPERS.replace("/*__LABELS_JS__*/", LABELS_JS) + body_js + "\n})();\n</script>\n</body>\n</html>\n"
+    html = html.replace("__DATA__", embed(data)).replace("/*__STACK_CSS__*/", STACK_CSS)
+    return html + "<script>\n(function(){\n\"use strict\";\n" + JS_HELPERS.replace("/*__LABELS_JS__*/", LABELS_JS + STACK_JS) + body_js + "\n})();\n</script>\n</body>\n</html>\n"
 
 
 def existing(folder, rel_path):

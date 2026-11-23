@@ -302,6 +302,7 @@ if (PP.status && PP.status !== 'ok') app.appendChild(el('div', {cls: 'status'}, 
 waysToMake('Asked once, after this page: make this format (Basic, Standard or Advanced), draft posts with its hook, or take the creator\'s whole account or its niche.');
 sourcesSection(D.sources, F.not_read, D.cost, [picturesLine(D.pictures)].filter(Boolean), D.limits);
 app.appendChild(el('footer', null, 'Post report. Built ' + D.built_at + ' by REA Viral ' + D.skill_version + ' from post_probe.json, findings.json and the run\'s files; one file, its picture inside it.'));
+stackTables();
 window.__reaReport.ready = true;
 """
 

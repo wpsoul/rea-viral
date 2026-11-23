@@ -96,7 +96,8 @@ Writes, for an account:
   copies (covers 240 px wide, frame sheets 720 px), each under its cap (45 KB, 160 KB), all under one budget, so the
   page stays under 3 MB; without `ffmpeg` only the saved files already under the cap. A picture that does not fit is
   a grey tile, still linked to its post, and the build names it; it stays in the run folder. No video, ever. The
-  build prints the page's size. Sections: what worked (why it grows), what did not work, the timeline (each post
+  build prints the page's size. On a phone (480 px or less) every table's rows stack under their column names, so
+  nothing scrolls sideways and nothing is dropped. Sections: what worked (why it grows), what did not work, the timeline (each post
   against its baseline, follower counts, measured changes), its Format map with each format's proof posts and recipe,
   which posts brought followers (with the level), how it writes (what lifts and sinks with counts, the best and worst
   first lines side by side, the asks, the voice sheet), the watched videos, the comment tactics, the plays with a Copy
