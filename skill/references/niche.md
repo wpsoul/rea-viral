@@ -2,7 +2,7 @@
 
 The user gives a niche in words, keywords or tags, a list of accounts, or asks "what works now in X". The run answers,
 in the **Niche report**: **which video formats and hooks are working NOW across the niche**, over many creators (the
-niche's formats, drawn as the chart "Formats of the niche"), which of them fade, the trends behind them, a recipe per
+niche's formats, shown as "Formats of the niche"), which of them fade, the trends behind them, a recipe per
 format, the hooks of the winning posts, and who to watch. Our own format research uses this way too: a niche's
 formats are what a planner's saved formats are made from (`radar_rows.json`, below).
 
@@ -206,7 +206,7 @@ an account's, `account-run.md`, step 8), `hooks`, `creators` (who to watch and w
 python3 SKILL_DIR/scripts/build_report.py <niche>
 ```
 
-It writes the Niche report (`report.html`, one file: the chart of the formats of the niche, the gallery of the
+It writes the Niche report (`report.html`, one file: the formats of the niche (the Study view), the gallery of the
 formats with small pictures of the posts that prove each, each linked to its original and never a video, what did not
 work, the trends, the hooks, who to watch), `NICHE.md` for agents, and the planner files (`report_record.json`; `brief.json`, the report's short view; and
 `radar_rows.json`: one row per format of the niche, 3 creators or more, with its recipe and the links of the posts

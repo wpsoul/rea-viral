@@ -26,10 +26,10 @@ HEAD = r"""<!doctype html>
 <style>
 :root{--bg:#0c0e11;--panel:#14171c;--panel2:#1a1e24;--line:#262b33;--text:#e9ecef;--muted:#98a2ad;--faint:#6c7580;
 --accent:#33efab;--accent-text:#0f1115;--measured:#33efab;--seen:#7db9ff;--inferred:#f3c56b;--bad:#ff7a7a;
---scale:#33efab;--under:#7db9ff;--fading:#f3c56b;--drop:#ff8f8f;--radius:12px}
+--scale:#33efab;--under:#7db9ff;--fading:#f3c56b;--drop:#ff8f8f;--radius:12px;--chip-text:#0f1115}
 :root[data-theme="light"]{--bg:#f6f7f9;--panel:#ffffff;--panel2:#f0f2f5;--line:#dfe3e8;--text:#14171c;--muted:#56606b;
 --faint:#7d8792;--measured:#0f9e6e;--seen:#2f6fd0;--inferred:#a7700b;--bad:#c93c3c;--scale:#0f9e6e;--under:#2f6fd0;
---fading:#a7700b;--drop:#c93c3c}
+--fading:#a7700b;--drop:#c93c3c;--chip-text:#ffffff}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text)}
 body{font-family:Manrope,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;
@@ -71,7 +71,7 @@ th{text-align:left;color:var(--muted);font-weight:700;font-size:12px;padding:6px
 td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
 .num{text-align:right;white-space:nowrap}
-.q{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px;color:var(--accent-text);white-space:nowrap}
+.q{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px;color:var(--chip-text);white-space:nowrap}
 .q.scale_it{background:var(--scale)}.q.underused{background:var(--under)}.q.overused,.q.fading{background:var(--fading)}.q.drop{background:var(--drop)}
 .q.too_few,.q.post{background:var(--faint)}
 svg text{font-family:inherit;fill:var(--muted);font-size:11px}
@@ -212,6 +212,194 @@ function placeLabels(labels, plot, avoid){
 }
 function cornerBox(x, y, text, a){ var w = text.length * 8; var x0 = a === 'end' ? x - w : x; return {x0: x0, y0: y - 12, x1: x0 + w, y1: y + 4}; }
 """
+
+STUDY_CSS = r"""
+/* Formats: the Study view (0.5.0, the owner's pick over the bubble map). st- = its parts. */
+.st{display:grid;grid-template-columns:250px minmax(0,1fr);gap:14px;align-items:start}
+.st-list{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:4px 0;position:sticky;top:10px}
+.st-list button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;width:100%;text-align:left;border:0;background:none;padding:9px 14px;cursor:pointer;border-left:2px solid transparent;font:inherit;color:inherit}
+.st-list button:hover{background:var(--panel2)}
+.st-list button[aria-pressed="true"]{background:var(--panel2);border-left-color:var(--accent)}
+.st-list button.cmp{border-left-color:var(--seen)}
+.st-list b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-list .m{font-size:12px;color:var(--muted);grid-column:1/-1}
+.st-list .q{white-space:normal;max-width:100%}
+.st-seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:2px;gap:2px}
+.st-seg button{border:0;background:transparent;border-radius:7px;padding:4px 11px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+.st-seg button[aria-pressed="true"]{background:var(--panel);color:var(--text);box-shadow:0 0 0 1px var(--line)}
+.st-cols{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.st-cols.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.st-col{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;min-width:0}
+.st-col.second{box-shadow:inset 3px 0 0 var(--seen)}
+.st-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.st-h h3{font-size:17px;margin:0;font-weight:800}
+.st-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.st-nums div{background:var(--panel2);border-radius:9px;padding:8px 10px;min-width:0}
+.st-nums b{display:block;font-size:18px;font-weight:800;line-height:1.25}
+.st-nums span{font-size:12px;color:var(--muted)}
+.st-ticks{position:relative;height:15px}
+.st-ticks span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--faint);font-weight:600}
+.st-ticks span.one{color:var(--text)}
+.st-strip{position:relative;height:40px}
+.st-strip svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.st-lbl{font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--faint);margin:16px 0 6px}
+.st-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.st-tile{text-decoration:none;font-size:12px;color:var(--muted);min-width:0}
+.st-tile .img{width:100%;aspect-ratio:9/16;border-radius:8px;background:var(--panel2);position:relative;overflow:hidden;display:block}
+.st-tile .img img{width:100%;height:100%;object-fit:cover;display:block}
+.st-tile .img .t{position:absolute;inset:26px 7px 7px;font-size:12px;line-height:1.35;color:var(--text);overflow:hidden;overflow-wrap:anywhere}
+.st-tile .r{position:absolute;left:6px;top:6px;font-size:12px;font-weight:800;border-radius:5px;padding:0 5px;background:rgba(0,0,0,.65);color:#fff}
+.st-tile.w .r{background:var(--drop);color:var(--chip-text)}
+.st-tile .who{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;align-items:center;margin-top:6px}
+.st-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.st-legend i.tk{width:3px;height:12px;border-radius:2px;background:var(--text);vertical-align:-2px}
+.st-legend i.ln{width:14px;height:0;border-top:2px dashed var(--faint);border-radius:0;vertical-align:3px}
+.st-more{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:3px 10px;font:inherit;font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer}
+.st-cr{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.st-cr td{padding:4px 6px;border-top:1px solid var(--line)}
+.st-cr td.n{text-align:right;white-space:nowrap}
+.q.none{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:860px){
+  .st{grid-template-columns:minmax(0,1fr)}
+  .st-list{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;padding:4px}
+  .st-list button{grid-template-columns:minmax(0,1fr);border-left:0;border-radius:8px;box-shadow:inset 0 -2px 0 transparent;padding:8px 10px}
+  .st-list b{white-space:normal;overflow-wrap:anywhere}
+  .st-list button .q{justify-self:start}
+  .st-list button[aria-pressed="true"]{box-shadow:inset 0 -2px 0 var(--accent)}
+  .st-list button.cmp{box-shadow:inset 0 -2px 0 var(--seen)}
+  .st-cols.two{grid-template-columns:minmax(0,1fr)}
+  .st-nums{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+"""
+
+STUDY_JS = r"""
+/* Formats: the Study view (0.5.0). One list of EVERY format (too few posts, too few creators and the posts in no
+   format included, each marked), and for the picked one: its numbers, every post as a dot against the usual (1x),
+   its container and every post best first. "Compare two" shows two side by side. The corner is radar.json's; the
+   numbers are the rows'. o = {formats, posts, niche, recipe: function(id) -> bool, top: element for the header}. */
+function studyFormats(host, o){
+  var niche = !!o.niche, member = {};
+  o.formats.forEach(function(f){ (f.post_ids || []).forEach(function(id){ if (!member[id]) member[id] = f.id; }); });
+  function fid(p){ return p.format || member[p.id] || null; }
+  function med(a){ a = a.filter(function(x){ return x != null; }).sort(function(x, y){ return x - y; }); if (!a.length) return null; var m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+  function hsh(s){ var h = 2166136261; for (var i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 1000) / 1000; }
+  var posts = o.posts.filter(function(p){ return p.status !== 'baseline_only' && p.in_window !== false; });
+  var allCr = {}; posts.forEach(function(p){ if (niche && p.ratio != null && p.account) allCr[p.account] = 1; });
+  var nCr = Object.keys(allCr).length;
+  var ORD = {scale_it: 0, underused: 1, overused: 2, fading: 2, drop: 3, too_few: 4, none: 5};
+  var list = o.formats.concat([{id: '__none', name: 'No format', container: {}}]).map(function(f){
+    var ps = posts.filter(function(p){ return f.id === '__none' ? !fid(p) : fid(p) === f.id; })
+      .sort(function(a, b){ return String(a.at || '').localeCompare(String(b.at || '')); });
+    var sc = ps.filter(function(p){ return p.ratio != null; });
+    var cr = {}; sc.forEach(function(p){ if (p.account) (cr[p.account] = cr[p.account] || []).push(p.ratio); });
+    var q = f.id === '__none' ? 'none' : (f.quadrant || 'too_few');
+    var lift = f.id !== '__none' && f.lift != null ? f.lift : med(sc.map(function(p){ return p.ratio; }));
+    var sc0 = String(f.scope_status || 'few creators');
+    var name = q === 'none' ? 'No format' : (niche && f.niche_format === false ? sc0.charAt(0).toUpperCase() + sc0.slice(1)
+      : (q === 'too_few' ? 'Too few posts' : (f.quadrant_name || QN[q])));
+    var e = null, l = null;
+    if (sc.length >= 6){ var h = sc.length >> 1; e = med(sc.slice(0, h).map(function(p){ return p.ratio; })); l = med(sc.slice(sc.length - h).map(function(p){ return p.ratio; })); }
+    return {f: f, id: f.id, name: f.name, q: q, qn: name, posts: ps, sc: sc, lift: lift, early: e, late: l,
+      hits: sc.filter(function(p){ return p.ratio >= 2; }).length, creators: Object.keys(cr).length,
+      best: sc.slice().sort(function(a, b){ return b.ratio - a.ratio; }),
+      byCr: Object.keys(cr).map(function(k){ return {account: k, posts: cr[k].length, lift: med(cr[k]), hits: cr[k].filter(function(r){ return r >= 2; }).length}; }).sort(function(a, b){ return b.lift - a.lift; })};
+  }).filter(function(F){ return F.id !== '__none' || F.posts.length; });
+  list.sort(function(a, b){ return (ORD[a.q] - ORD[b.q]) || ((b.lift || 0) - (a.lift || 0)); });
+  if (!list.length) return 0;
+  var rs = posts.filter(function(p){ return p.ratio != null && p.ratio > 0; }).map(function(p){ return Math.log2(p.ratio); });
+  var lo = Math.max(-4, Math.floor(Math.min.apply(null, rs.concat([-1])))), hi = Math.min(6, Math.ceil(Math.max.apply(null, rs.concat([2]))));
+  function X(r){ var v = Math.log2(Math.max(r, Math.pow(2, lo))); return 100 * (Math.min(v, hi) - lo) / (hi - lo); }
+  function tl(e){ return e === 0 ? '1×' : e > 0 ? Math.pow(2, e) + '×' : (e === -1 ? '½×' : e === -2 ? '¼×' : '1/' + Math.pow(2, -e) + '×'); }
+  var st = {pick: list[0].id, cmp: null, two: false};
+  function meta(F){
+    var m = [F.posts.length + ' post' + (F.posts.length === 1 ? '' : 's')];
+    m.push(niche ? F.creators + ' of ' + nCr + ' creators' : pct(F.f.share != null ? F.f.share : (posts.length ? F.posts.length / posts.length : null)));
+    if (F.posts.length - F.sc.length) m.push((F.posts.length - F.sc.length) + ' not scored');
+    return m.join(' · ');
+  }
+  function ticks(){ var t = el('div', {cls: 'st-ticks'}); for (var e = lo; e <= hi; e++){ if (hi - lo > 7 && e % 2 && Math.abs(e) !== 1) continue;
+    t.appendChild(el('span', {cls: e === 0 ? 'one' : '', style: 'left:' + (100 * (e - lo) / (hi - lo)) + '%', text: tl(e)})); } return t; }
+  function strip(F){
+    var s = sv('svg', {preserveAspectRatio: 'none', role: 'img', 'aria-label': F.name + ': every scored post against the usual', 'data-chart': 'study'});
+    s.appendChild(sv('rect', {x: 0, y: 19.5, width: '100%', height: 1, fill: 'var(--line)'}));
+    s.appendChild(sv('line', {x1: X(1) + '%', x2: X(1) + '%', y1: 0, y2: 40, stroke: 'var(--faint)', 'stroke-dasharray': '3 3'}));
+    F.sc.forEach(function(p){
+      var c = sv('circle', {cx: X(p.ratio) + '%', cy: 5 + 30 * hsh(String(p.id)), r: 4, fill: p.ratio >= 1 ? 'var(--scale)' : 'var(--drop)',
+        'fill-opacity': p.ratio >= 2 ? 0.95 : 0.55, stroke: 'var(--panel)', 'stroke-width': 1, 'data-post': p.id});
+      c.appendChild(sv('title', {text: xr(p.ratio) + ' · ' + num(p.views) + ' views · ' + date(p.at) + (p.account ? ' · @' + p.account : '')}));
+      s.appendChild(c);
+    });
+    if (F.lift != null) s.appendChild(sv('rect', {x: X(F.lift) + '%', y: 1, width: 3, height: 38, rx: 1.5, fill: 'var(--text)', transform: 'translate(-1.5 0)'}));
+    return el('div', {cls: 'st-strip'}, s);
+  }
+  function tile(p){
+    var img = el('span', {cls: 'img'}, p.cover ? el('img', {src: p.cover, alt: ''}) : el('span', {cls: 't', text: p.caption || p.text || ''}),
+      el('span', {cls: 'r', text: p.ratio != null ? xr(p.ratio) : 'new'}));
+    return el('a', {cls: 'st-tile' + (p.ratio != null && p.ratio < 1 ? ' w' : ''), href: p.url, title: (p.caption || '').slice(0, 140)},
+      img, el('span', {cls: 'who', text: num(p.views) + ' · ' + date(p.at).slice(5)}), niche && p.account ? el('span', {cls: 'who', text: '@' + p.account}) : null);
+  }
+  function kv(F){
+    var c = F.f.container || {}, pr = F.f.probe || {}, k = el('div', {cls: 'kv'});
+    [['Hook', c.hook], ['Structure', c.structure], ['Look', c.look], ['Length', c.length],
+     ['Cuts / 10 s', pr.cuts_per_10s], ['Words / min', pr.words_per_minute != null ? Math.round(pr.words_per_minute) : null], ['Effort', F.f.effort]]
+      .forEach(function(r){ if (r[1] == null || r[1] === '') return; add(k, [el('span', {cls: 'k', text: r[0]}), el('span', {text: String(r[1])})]); });
+    return k.childNodes.length ? k : null;
+  }
+  function gallery(all){
+    var g = el('div', {cls: 'st-gal'}), N = 12;
+    all.slice(0, N).forEach(function(p){ g.appendChild(tile(p)); });
+    if (all.length <= N) return g;
+    var more = el('button', {cls: 'st-more', style: 'margin-top:10px', text: 'All ' + all.length, onclick: function(){
+      all.slice(N).forEach(function(p){ g.appendChild(tile(p)); }); more.remove(); }});
+    return [g, more];
+  }
+  function col(F, second){
+    var all = F.best.concat(F.posts.filter(function(p){ return p.ratio == null; }));
+    var crt = null;
+    if (niche && F.byCr.length){ crt = el('table', {cls: 'st-cr'}); F.byCr.forEach(function(c){ crt.appendChild(el('tr', null, el('td', {text: '@' + c.account}), el('td', {cls: 'n', text: c.posts + ' posts'}), el('td', {cls: 'n', text: xr(c.lift)}), el('td', {cls: 'n muted', text: c.hits + ' at 2×+'}))); }); }
+    var box = kv(F);
+    return el('div', {cls: 'st-col' + (second ? ' second' : ''), 'data-format': F.id},
+      el('div', {cls: 'st-h'}, el('h3', {text: F.name}), el('span', {cls: 'q ' + F.q, text: F.qn}),
+        o.recipe && o.recipe(F.id) ? el('button', {cls: 'st-more', text: 'Recipe', onclick: function(){ var t = document.getElementById('fmt-' + F.id); if (t) t.scrollIntoView({behavior: 'smooth', block: 'start'}); }}) : null),
+      el('div', {cls: 'st-nums'},
+        el('div', null, el('b', {text: String(F.posts.length)}), el('span', {text: niche ? F.creators + ' of ' + nCr + ' creators' : pct(F.f.share != null ? F.f.share : F.posts.length / posts.length) + ' of posts'})),
+        el('div', null, el('b', {text: xr(F.lift)}), el('span', {text: niche ? "vs each creator's usual" : 'median vs usual'})),
+        el('div', null, el('b', {text: F.sc.length ? F.hits + ' of ' + F.sc.length : '—'}), el('span', {text: 'at 2× or more'})),
+        el('div', null, el('b', {text: F.early != null ? xr(F.early) + ' → ' + xr(F.late) : '—'}), el('span', {text: F.early != null ? 'early → late' : 'early → late: too few'}))),
+      F.sc.length ? [ticks(), strip(F)] : null,
+      box || crt ? [el('div', {cls: 'st-lbl', text: 'The container'}), box, crt] : null,
+      all.length ? [el('div', {cls: 'st-lbl', text: 'Every post, best first'}), gallery(all)] : null);
+  }
+  function draw(){
+    host.textContent = '';
+    var seg = el('div', {cls: 'st-seg'},
+      el('button', {'aria-pressed': st.two ? 'false' : 'true', text: 'One', onclick: function(){ st.two = false; st.cmp = null; draw(); }}),
+      el('button', {'aria-pressed': st.two ? 'true' : 'false', text: 'Compare two', onclick: function(){ st.two = true; if (!st.cmp){ var x = list.filter(function(F){ return F.id !== st.pick; })[0]; st.cmp = x && x.id; } draw(); }}));
+    if (o.top){ o.top.textContent = ''; if (list.length > 1) o.top.appendChild(seg); }
+    var L = el('div', {cls: 'st-list'});
+    list.forEach(function(F){
+      var on = F.id === st.pick;
+      L.appendChild(el('button', {'aria-pressed': on ? 'true' : 'false', cls: F.id === st.cmp ? 'cmp' : null, 'data-format': F.id,
+        onclick: function(){ if (st.two){ if (!on) st.cmp = F.id; } else st.pick = F.id; draw(); }},
+        el('b', {text: F.name}), el('span', {cls: 'q ' + F.q, text: F.qn}), el('span', {cls: 'm', text: meta(F) + (F.lift != null ? ' · ' + xr(F.lift) : '')})));
+    });
+    var C = el('div', {cls: 'st-cols' + (st.two && st.cmp ? ' two' : '')});
+    list.forEach(function(F){ if (F.id === st.pick) C.appendChild(col(F)); });
+    if (st.two && st.cmp) list.forEach(function(F){ if (F.id === st.cmp) C.appendChild(col(F, true)); });
+    host.appendChild(el('div', {cls: 'st'}, L, el('div', null, C,
+      el('div', {cls: 'st-legend'}, el('span', null, el('i', {style: 'background:var(--scale)'}), 'above usual'), el('span', null, el('i', {style: 'background:var(--drop)'}), 'below usual'),
+        el('span', null, el('i', {cls: 'tk'}), 'its median'), el('span', null, el('i', {cls: 'ln'}), niche ? "each creator's usual" : "the account's usual")))));
+  }
+  draw();
+  return list.length;
+}
+"""
+
+# Both pages inject LABELS_JS and STACK_CSS (build_report.py's own page and page()), so the Study view rides along.
+LABELS_JS = LABELS_JS + STUDY_JS
+STACK_CSS = STACK_CSS + STUDY_CSS
+
 
 JS_HELPERS = r"""
 var D = JSON.parse(document.getElementById('rea-data').textContent);
@@ -411,7 +599,9 @@ class Pictures(object):
             if os.path.exists(tmp):
                 os.remove(tmp)
 
-    def get(self, rel, kind="cover"):
+    def get(self, rel, kind="cover", optional=False):
+        """optional=True: a nice-to-have picture (the Study view's every-post tiles); over the budget it is simply
+        not drawn (the tile shows the caption) and not counted as left out."""
         if not rel:
             return None
         if self.light:
@@ -440,6 +630,9 @@ class Pictures(object):
             if raw is not None:
                 cand = "data:%s;base64,%s" % (mime, base64.b64encode(raw).decode("ascii"))
                 if self.used + len(cand) > self.budget:
+                    if optional:
+                        self.cache[key] = None
+                        return None
                     why = "over the page's picture budget (%d KB)" % (self.budget // 1000)
                 else:
                     uri = cand

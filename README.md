@@ -29,8 +29,11 @@ Each run writes a folder `rea-viral/<the run>/` beside your own files:
   it shows (covers, the first seconds of watched videos) are small copies inside it, each linked to the original
   post; no video is embedded. It stays under 3 MB.
 - **`report-light.html`**: the same report with no pictures, for a chat app that passes a page as text.
-- **`ACCOUNT.md`, `POST.md` or `NICHE.md`**: the same findings for agents, in layers (the answer, where each answer is,
-  the detail).
+- **`ACCOUNT.md`, `POST.md`, `NICHE.md` or `GROWTH.md`**: the same findings for agents, in layers (the answer, where
+  each answer is, the detail). Growth mode ("REA Viral: why is @handle growing") adds `GROWTH.md` and a "Why it grows"
+  block with mechanisms, what doesn't move, what to copy, and a ready-to-paste reply draft.
+- **`post-card.png` and `post-card.html`** (optional, `post_card.py`): a 1080 × 1350 shareable card from an account
+  teardown or niche run (10 layouts × 7 styles).
 - **The data files** the numbers come from (`analysis.json`, `radar.json`, `trends.json`, `writing.json`, …), a recipe
   per format (`formats/<id>.md`), and the voice sheet or the niche's hooks.
 - **The planner files**: `report_record.json` (the report's record), `brief.json` (its short view: the answer, a few
@@ -82,9 +85,23 @@ mkdir -p ~/.claude/skills && cp -R skill ~/.claude/skills/rea-viral
 mkdir -p ~/.agents/skills && cp -R skill ~/.agents/skills/rea-viral
 ```
 
-In a chat app that takes skills as uploads, zip the `skill` folder and upload the zip. Then ask, for example: "Why
-does @<account> grow on TikTok, and what doesn't work for it?", "Why did <link> blow up?", or "What works now in AI
-video editing on YouTube Shorts?"
+In a chat app that takes skills as uploads, zip the `skill` folder and upload the zip. Then ask, for example:
+"REA Viral: why is @<account> growing", "Why does @<account> grow on TikTok, and what doesn't work for it?",
+"Why did <link> blow up?", or "What works now in AI video editing on YouTube Shorts?"
+
+## Post cards (1080 × 1350)
+
+Turn any growth-mode account teardown or niche run into a shareable 4:5 PNG card for X, Threads and Instagram — 10
+layouts (5 account teardowns `t1`–`t5`, 5 niche reports `r1`–`r5`) in 7 styles (`cobalt` default, `redword`, `night`,
+`holo`, `paper`, `warm`, `glass`), with real numbers filled from the run's files, verbatim quote checks, and automatic
+text fitting.
+
+- **Interactive preview (all 10 layouts × 7 styles):**
+  [Open live preview](https://raw.githack.com/wpsoul/rea-viral/main/skill/templates/post/card.html) ·
+  local file: [skill/templates/post/card.html](skill/templates/post/card.html) (double-click to preview offline; fonts
+  and icons are bundled inside).
+- **Generate from a run:** `python3 skill/scripts/post_card.py <run folder> --layout t3 --skin cobalt` (details in
+  [skill/references/post.md](skill/references/post.md)).
 
 ## What it needs
 
@@ -94,7 +111,7 @@ video editing on YouTube Shorts?"
 | A way to read posts: a social data connector in your agent, or `yt-dlp` for YouTube | The posts | The skill says what is missing and what it costs in depth; it never asks for a key |
 | `ffmpeg` | Cutting and measuring videos, the covers sheet, the small pictures in the report | Covers and captions only; videos are marked "not read"; the report keeps only pictures that are already small |
 | `yt-dlp` | Free YouTube reading (hashtag pages, search, channels), video and subtitle downloads | Use your data connector's links |
-| Node 18+, Playwright, Chrome or Edge | The Basic way to make a format | Use another way |
+| Node 18+, Playwright, Chrome or Edge | The Basic way to make a format, and post card PNGs | Use another way; `post_card.py --html-only` still builds the standalone card HTML |
 | The HyperFrames agent skills | The HyperFrames way to make a format | Use GreenLight Motion or Basic |
 | A planner connector (optional) | Keeping the reports, the formats and the trends in your planner | The files are the hand-over |
 
@@ -144,12 +161,16 @@ else.
 skill/SKILL.md          the map: pick the way in, the rules, the shared steps (start here)
 skill/references/       account-run, post-run, niche, writing (hooks and words only), data shape, connections,
                         numbers, deep read, comments, radar (one account's Format map, the formats of a niche),
-                        hand-over (the reports, what did not work, the planner files), remake, watch
+                        hand-over (the reports, what did not work, the planner files), growth (why an account grows),
+                        post (1080 × 1350 post cards: 10 layouts × 7 styles), remake, watch
 skill/scripts/          validate, analyze, post_probe, trends, video_probe, covers_sheet, comment_tactics, text_probe,
-                        draft_check, formats_check, radar, build_report (+ report_post, report_niche, page_kit, brief, hand_over),
-                        ledger, watch, render_page.mjs, remake_check, check_app, readers/ytdlp_reader
-skill/data/             writing-words.json: the word lists (English today; one file to extend and translate)
-skill/templates/        basic-format.html: a Basic page to start from
+                        draft_check, formats_check, radar, growth, post_card, render_card.mjs, build_report
+                        (+ report_post, report_niche, page_kit, brief, hand_over), ledger, watch, render_page.mjs,
+                        remake_check, check_app, readers/ytdlp_reader
+skill/data/             writing-words.json and growth-words.json: the word lists (English today; files to extend and
+                        translate)
+skill/templates/        basic-format.html (Basic page to start from), post/card.html (+ bundled OFL fonts and glass
+                        icons: 10 post card layouts × 7 styles, also an interactive preview gallery)
 tests/                  the test suite and its made-up data
 OVERVIEW.md             the two-minute read
 ```
@@ -171,6 +192,19 @@ With the GreenLight Pulse connector's source at hand, `PULSE_MODEL=<its model.mj
 record against the connector's own model; without it that part says it is skipped.
 
 ## Status
+
+0.5.0 (2026-11-26): **growth mode** ("REA Viral: why is @handle growing"), **Study view** for formats, and **1080 × 1350
+post cards** (`post_card.py` + `render_card.mjs` + `templates/post/card.html`):
+
+- **Growth mode (`growth.py`):** measures posting cadence and its change point, view concentration, crowd calls, who
+  reposted and tagged-account reposts, replies to others (marked as a sample), quote speed on big posts, and what the
+  weakest format lacks; fills `{key}` placeholders in `findings.json#growth` and checks the ready-to-paste reply draft.
+- **Study view:** Account and Niche reports show every format (including few-post formats and unformatted posts) in one
+  interactive Study view with post dots, tiles and side-by-side comparison.
+- **Post cards (`post_card.py`):** 10 layouts (5 account teardowns `t1`–`t5`, 5 niche reports `r1`–`r5`) in 7 styles
+  (`cobalt` default, `redword`, `night`, `holo`, `paper`, `warm`, `glass`), bundled OFL fonts and glass icons, strict
+  placeholder/quote/pronoun/threshold checks, and automatic text fitting. Also includes the 0.4.3 fixes
+  (`video_probe.py --not-read` preserves read videos; `analyze.py` flags suspect reach >= 1000× followers).
 
 0.4.2 (2026-11-23): every table in the reports reads on a phone (checked at 390 and 360 px) with no sideways
 scroll: each row stacks under its column names, nothing is dropped; the desktop page is unchanged.

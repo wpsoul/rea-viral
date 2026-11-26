@@ -89,6 +89,6 @@ measures them for every post (the words step), and you read the deep-read posts'
 
 No shell, no network, or every download refused: say once that the videos cannot be watched, and what that costs: no
 cut times, no first seconds frame by frame, no words per minute. Mark the picks in one go (with a shell):
-`video_probe.py <run> --picks --not-read "no network to download videos"`; without a shell, write each
+`video_probe.py <run> --picks --not-read "no network to download videos"` (a video already read keeps its probe and notes); without a shell, write each
 `videos/<id>/notes.json` as `{"post_id": "<id>", "read": false, "not_read_reason": "<why>"}`. Go on with covers and
 captions, and keep every claim about the videos INFERRED with that basis. Recipes keep empty `beats`.

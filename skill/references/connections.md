@@ -44,6 +44,25 @@ which links are links out, the quoted post, an article's title. Checked 2026-11-
 rows cost $0.0027, and the rows mixed in reposts, replies to others and the author's own replies, so map them with the
 rules in `data-shape.md` ("Text networks", "Replies") and below ("Own media and quoted media").
 
+## Growth reads (growth mode)
+
+Growth mode (`growth.md`) reads four small things beside the posts. Search a data connector by the job: "x post
+reposters", "x user tweets and replies", "x post detail", "x post comments", "x user profile". What each network gives,
+as far as checked:
+
+| Read | X | Threads | LinkedIn | TikTok, Instagram, YouTube |
+|---|---|---|---|---|
+| Who reposted a post (`reposters.csv`) | Yes: a page of reposters with followers and bio | Not public | Partly (reshares, often without counts) | No public list (TikTok reposts, Instagram shares and YouTube have none): the repost graph is "not read" |
+| Who quoted a post | Only through the network's own paid API key (the cheap readers have none): say "who quoted: not read" | Partly | Partly | No |
+| The account's replies to others (`replies_out.csv`) | Yes: its "tweets and replies", newest first, one window per page or two | Yes, the same way | Its comments are rarely listed | Its comments under other creators' posts are not listed: "not read" |
+| An original's time and views (`originals.csv`) | Yes: one post's details (views, time, the author's followers) | Time and likes (no views) | Time and reactions | A video's details, by its link |
+| The replies under a post, with the author's own (`comments.csv`) | Yes, a page at a time | Yes | Yes | Yes (the comments readers) |
+
+Checked 2026-11-24 on one X account through a data connector: a page of reposters $0.001, a page of the account's
+tweets and replies $0.0005, one post's details $0.001, a page of replies under a post $0.0005, a profile $0.0002. The
+whole growth read of that account (5 repost pages, 2 reply pages and the 35 profiles of the accounts answered, 4 reply
+pages, 15 originals) cost about $0.03.
+
 ## Finding posts for a niche
 
 A niche run reads in two ways: **finding** posts by words, tags or a trending list, then **each creator's recent

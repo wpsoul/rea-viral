@@ -18,7 +18,9 @@ import tempfile
 import urllib.error
 import urllib.request
 
-SKILL_VERSION = "0.4.2"  # 0.4.2 (2026-11-23): every table readable on a phone, no sideways scroll; 0.4.1: covers, own videos, fetching, corner names
+SKILL_VERSION = "0.5.0"  # 0.5.0 (2026-11-24): growth mode (growth.py: why an account grows, the reply draft); also the 0.4.3
+# fixes: video_probe --not-read keeps the videos already read, analyze.py warns on views >= 1000x followers.
+# 0.4.2: every table readable on a phone, no sideways scroll; 0.4.1: covers, own videos, fetching, corner names
 # Shape version 2 (2026-11-16) adds the text networks. It only ADDS: new networks, new post types and new optional
 # columns. A version-1 run (account.json "rea-viral/account@1", the old posts.csv header) is read exactly as before.
 NETWORKS = ("instagram", "tiktok", "youtube", "x", "threads", "linkedin")
@@ -40,6 +42,12 @@ POST_COLUMNS = [
 V2_POST_COLUMNS = ["reposts", "quotes", "bookmarks", "lang", "parts", "author_replies", "quoted_url", "own_media",
                    "reply_to", "reply_to_id"]
 OWN_MEDIA = ("video", "images", "image", "none")
+# 0.5.0 (optional): the growth files of an account run (references/growth.md; data-shape.md, "The growth files")
+REPOSTER_COLUMNS = ["post_id", "handle", "name", "followers", "bio", "kind", "at", "source"]
+REPLY_OUT_COLUMNS = ["reply_id", "url", "at", "to_handle", "to_followers", "to_bio", "conversation_id", "text", "views",
+                     "likes", "source"]
+ORIGINAL_COLUMNS = ["post_id", "original_id", "original_url", "original_handle", "original_followers", "original_at",
+                    "original_views", "source"]
 VIDEO_NETWORKS = ("youtube", "tiktok", "instagram")
 REQUIRED_POST_COLUMNS = ["post_id", "url", "published_at", "type"]
 COUNT_COLUMNS = ["views", "likes", "comments", "shares", "saves", "reposts", "quotes", "bookmarks"]

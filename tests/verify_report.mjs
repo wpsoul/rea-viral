@@ -1,12 +1,12 @@
 // Open a REA Viral report.html headless from file:// and check it, the way a person would open it.
 //
-//   node tests/verify_report.mjs <report.html> <screenshot dir> [--radar N] [--timeline] [--writing N]
+//   node tests/rea-viral/verify_report.mjs <report.html> <screenshot dir> [--radar N] [--timeline] [--writing N]
 //        [--gallery N] [--hooks N] [--watchlist N] [--trends N] [--post]
 //
 // Checks: no console error and no page error (a failed Google Fonts request is reported, not fatal: the page must
 // work offline), no dialog (captions and comments are data), only the page's own two scripts, the charts drew
-// (--radar N = that many bubbles; on every format chart, at both widths, each name label inside the plot, none over
-// another, a number in every bubble; --timeline = at least one dot), the How it writes section (--writing N = that many
+// (--radar N = the Study view lists every format of the data, at least N, the first with its dots and tiles; on any
+// bubble chart left, at both widths, each name label inside the plot, none over another, a number in every bubble; --timeline = at least one dot), the How it writes section (--writing N = that many
 // lifting or sinking features, and at least one first line on each side), every play has a Copy button, no monospace font
 // anywhere, no sideways scroll at phone width (390 px). At 390 and 360 px (0.4.2): nothing inside the report wider than
 // the window, no box that holds a table (or may scroll) scrolling sideways, every table cell with content shown, no text
@@ -17,6 +17,8 @@
 // did not work" section (--not-working N = at least N items drawn in it); and ONE FILE: the page copied ALONE into an
 // empty folder opens with no error, asks for no file but itself, and every picture on it loads (--pictures N = at
 // least N pictures inside it); its size is printed and must stay under 3 MB.
+// Growth mode (0.5.0): --growth N = a "Why it grows" section with N mechanisms drawn, the posts-a-week bars, and the
+// reply draft with its Copy button.
 // Exit 1 on any failure. Every wait has a timeout.
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -52,6 +54,7 @@ const wantTrends = numArg('--trends');
 const wantPost = args.includes('--post');
 const wantNotWorking = numArg('--not-working');
 const wantPictures = numArg('--pictures');
+const wantGrowth = numArg('--growth');
 fs.mkdirSync(outDir, { recursive: true });
 
 const fails = [];
@@ -96,7 +99,16 @@ try {
         innerW: window.innerWidth,
         theme: document.documentElement.getAttribute('data-theme'),
         bg: getComputedStyle(document.body).backgroundColor,
-        radarSvg: !!document.querySelector('svg[data-chart="radar"]'),
+        radarSvg: !!document.querySelector('section#radar .st'),
+        // the Study view (0.5.0): every format of the page's data in its list, each picked one with its dots
+        study: (() => {
+          const D = JSON.parse(document.getElementById('rea-data').textContent);
+          const ids = ((D.radar && D.radar.formats) || D.formats || []).map((f) => f.id);
+          const listed = Array.from(document.querySelectorAll('section#radar .st-list button[data-format]')).map((b) => b.getAttribute('data-format'));
+          const col = document.querySelector('section#radar .st-col');
+          return { ids, listed, missing: ids.filter((i) => !listed.includes(i)), dots: col ? col.querySelectorAll('circle[data-post]').length : 0,
+            scored: col ? col.querySelectorAll('.st-tile').length : 0 };
+        })(),
         timelineSvg: !!document.querySelector('svg[data-chart="timeline"]'),
         writingSection: !!document.querySelector('section#writing'),
         writingLabels: Array.from(document.querySelectorAll('section#writing .ev')).length,
@@ -107,6 +119,10 @@ try {
         galleryImgs: Array.from(document.querySelectorAll('#gallery img')).map((i) => ({ src: i.getAttribute('src'), ok: i.complete && i.naturalWidth > 0 })),
         hooksSection: !!document.querySelector('section#hooks'),
         notWorking: !!document.querySelector('section#not-working'),
+        growthSection: !!document.querySelector('section#growth'),
+        growthReply: !!document.querySelector('#growth-reply'),
+        growthCopy: Array.from(document.querySelectorAll('section#growth button')).filter((b) => /Copy reply/.test(b.textContent)).length,
+        growthBars: document.querySelectorAll('svg[data-chart="growth-weeks"] rect[data-week]').length,
         // the chart's labels (0.4.1): each inside the plot, none over another, a number in every bubble
         chart: Array.from(document.querySelectorAll('svg[data-chart="radar"]')).map((svg) => {
           const plot = svg.querySelector('rect.plot');
@@ -128,8 +144,12 @@ try {
     if (dialog) fail(tag + 'a dialog opened: ' + dialog); else pass(tag + 'no dialog');
     if (info.scripts !== 2) fail(tag + `expected the page's 2 scripts, found ${info.scripts}`); else pass(tag + 'only the page\'s own scripts');
     if (wantRadar != null) {
-      if (!info.radarSvg || info.drawn.radar !== wantRadar) fail(tag + `radar drew ${info.drawn.radar} bubbles, expected ${wantRadar}`);
-      else pass(tag + `radar drew ${wantRadar} bubbles`);
+      const st = info.study;
+      if (!info.radarSvg) fail(tag + 'no Study view in the formats section');
+      else if (st.missing.length) fail(tag + `formats missing from the Study list: ${st.missing.join(', ')}`);
+      else if (info.drawn.radar !== st.listed.length || st.listed.length < wantRadar) fail(tag + `Study listed ${st.listed.length} (drawn ${info.drawn.radar}), expected at least ${wantRadar}`);
+      else if (!st.dots || !st.scored) fail(tag + 'the picked format shows no dots or no post tiles');
+      else pass(tag + `Study: ${st.listed.length} formats listed (every format of the data), ${st.dots} dots and ${st.scored} tiles for the first`);
     }
     if (wantTimeline) {
       if (!info.timelineSvg || !(info.drawn.timeline > 0)) fail(tag + 'timeline drew no dots'); else pass(tag + `timeline drew ${info.drawn.timeline} dots`);
@@ -172,6 +192,13 @@ try {
       else if (c.over.length) fail(tag + `chart labels over each other: ${c.over.join(' | ')}`);
       else if (c.numbers !== c.bubbles) fail(tag + `${c.bubbles} bubbles but ${c.numbers} numbers`);
       else pass(tag + `chart: ${c.bubbles} bubbles numbered, ${c.labels} names placed inside the plot, none overlapping`);
+    }
+    if (wantGrowth != null) {
+      if (!info.growthSection) fail(tag + 'no "Why it grows" section');
+      else if (info.drawn.growth !== wantGrowth) fail(tag + `Why it grows drew ${info.drawn.growth} mechanisms, expected ${wantGrowth}`);
+      else if (!(info.growthBars > 0)) fail(tag + 'Why it grows drew no posts-a-week bars');
+      else if (wantGrowth > 0 && !(info.growthReply && info.growthCopy === 1)) fail(tag + 'Why it grows has no reply draft with its Copy button');
+      else pass(tag + `Why it grows: ${info.drawn.growth} mechanisms, ${info.drawn.growth_not} that do not move, ${info.growthBars} weeks drawn, the reply draft with its Copy button`);
     }
     if (!info.notWorking) fail(tag + 'no "What did not work" section');
     else if (wantNotWorking != null && !(info.drawn.not_working >= wantNotWorking)) fail(tag + `What did not work drew ${info.drawn.not_working} items, expected at least ${wantNotWorking}`);

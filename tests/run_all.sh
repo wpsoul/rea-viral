@@ -25,6 +25,10 @@ step "the other ways in: a niche (its formats across creators) and one post, aga
 python3 "$HERE/test_niche.py"; check $? test_niche.py
 step "cases a real run met (0.4.1): covers sheets, own videos, speech rate, names, replies, corner words, formats_check, fetching, seeds, what was not read"
 python3 "$HERE/test_field_cases.py"; check $? test_field_cases.py
+step "growth mode (0.5.0): growth.py on a made-up X account with planted answers, its files, its checks, the reply draft"
+python3 "$HERE/test_growth.py"; check $? test_growth.py
+step "post cards: post_card.py rules, standalone HTML, all 10 layouts and 7 styles at 1080x1350, fit step"
+python3 "$HERE/test_post_card.py" --work "$WORK/post-card"; check $? test_post_card.py
 step "Basic remake renderer: frame-exact (WebM clip, Playwright's Chromium)"
 python3 "$HERE/test_render.py" --work "$WORK/render-webm"; check $? "test_render.py webm"
 if [ -d "/Applications/Google Chrome.app" ] || command -v google-chrome >/dev/null 2>&1; then
@@ -62,6 +66,12 @@ W="$WORK/fx/writing_x"
 python3 -I "$SK/text_probe.py" "$W" >/dev/null && python3 -I "$SK/build_report.py" "$W" >/dev/null
 check $? "build the writing report"
 node "$HERE/verify_report.mjs" "$W/report.html" "$WORK/shots-writing" --timeline --writing 2; check $? "verify_report writing"
+step "the Account report with the growth block (made-up X account: 4 mechanisms, the posts-a-week bars, the reply draft)"
+GX="$(python3 "$HERE/test_growth.py" --make "$WORK/gfx")" && python3 -I "$SK/build_report.py" "$GX" >/dev/null
+check $? "build the growth report"
+node "$HERE/verify_report.mjs" "$GX/report.html" "$WORK/shots-growth" --timeline --growth 4; check $? "verify_report growth"
+node "$HERE/verify_report.mjs" "$GX/report-light.html" "$WORK/shots-growth-light" --growth 4 | tail -1
+check ${PIPESTATUS[0]} "verify_report growth light"
 step "the niche page, headless from file:// (made-up niche: 2 formats of the niche, 1 creator habit, 2 lifting openings)"
 python3 "$HERE/make_niche_fixtures.py" --out "$WORK/nfx" >/dev/null
 N="$WORK/nfx/niche_main"

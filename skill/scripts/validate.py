@@ -4,7 +4,8 @@
     python3 validate.py <run folder> [--json]
 
 Reads account.json (required), posts.csv, comments.csv, formats.json, findings.json, videos/*/notes.json and
-cost.csv when they exist; post.json in a post run. A niche folder (niche.json): niche.json, found.csv, formats.json,
+cost.csv when they exist; post.json in a post run; the growth files (reposters.csv, replies_out.csv, originals.csv)
+and findings.json "growth" in an account run's growth mode (references/growth.md). A niche folder (niche.json): niche.json, found.csv, formats.json,
 findings.json, cost.csv and every creator folder under accounts/ checked as an account (a post id must be unique
 across the niche). Prints one line per problem: file, row, column and what to write instead.
 Exit 0 = no errors (warnings may remain), 1 = errors, 2 = the folder could not be read.
@@ -21,9 +22,10 @@ import sys
 sys.dont_write_bytecode = True  # imports leave no __pycache__ in the skill folder
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (  # noqa: E402
-    ACCOUNT_SCHEMAS, COMMENT_COLUMNS, COUNT_COLUMNS, EVIDENCE, NETWORKS, OWN_MEDIA, POST_COLUMNS, POST_TYPES,
-    REQUIRED_COMMENT_COLUMNS, REQUIRED_POST_COLUMNS, TEXT_NETWORKS, UNKNOWN_WORDS, V2_POST_COLUMNS, ShapeError,
-    parse_author_replies, parse_bool, parse_count, parse_float, parse_parts, parse_time, read_csv, read_json,
+    ACCOUNT_SCHEMAS, COMMENT_COLUMNS, COUNT_COLUMNS, EVIDENCE, NETWORKS, ORIGINAL_COLUMNS, OWN_MEDIA, POST_COLUMNS,
+    POST_TYPES, REPLY_OUT_COLUMNS, REPOSTER_COLUMNS, REQUIRED_COMMENT_COLUMNS, REQUIRED_POST_COLUMNS, TEXT_NETWORKS,
+    UNKNOWN_WORDS, V2_POST_COLUMNS, ShapeError, parse_author_replies, parse_bool, parse_count, parse_float, parse_parts,
+    parse_time, read_csv, read_json,
 )
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
@@ -126,6 +128,19 @@ def check_account(folder, rep):
             rep.err(w + ":comments_read", 'an object {"posts": 14, "per_post": 50, "replies_read": true}')
         elif cr.get("replies_read") is not None and not isinstance(cr.get("replies_read"), bool):
             rep.err(w + ":comments_read.replies_read", "true or false")
+    gr = acc.get("growth_read")
+    if gr is not None:
+        if not isinstance(gr, dict):
+            rep.err(w + ":growth_read", 'an object {"reposters": {"posts": [...]}, "replies_out": {"windows": 1}}')
+        else:
+            rp = (gr.get("reposters") or {}) if isinstance(gr.get("reposters"), (dict, type(None))) else None
+            if rp is None or not isinstance(rp.get("posts", []), list):
+                rep.err(w + ":growth_read.reposters", 'an object {"posts": [the post ids whose reposters were read]}')
+            ro = gr.get("replies_out")
+            if ro is not None:
+                win_n = ro.get("windows") if isinstance(ro, dict) else None
+                if not isinstance(win_n, int) or isinstance(win_n, bool) or win_n < 1:
+                    rep.err(w + ":growth_read.replies_out.windows", "how many separate time windows of replies were read: 1 or more (1 = a sample)")
     ceiling = acc.get("spend_ceiling_usd")
     if ceiling is not None and (not isinstance(ceiling, (int, float)) or isinstance(ceiling, bool) or ceiling < 0):
         rep.err(w + ":spend_ceiling_usd", "a number of dollars, 0 or more")
@@ -380,6 +395,152 @@ def check_comments(folder, acc, posts, rep):
         rep.warn("comments.csv:header", "no author_is_creator column: the creator's own comments and replies cannot be counted")
 
 
+# ---------------------------------------------------------------------------------------------- the growth files
+
+def _growth_csv(folder, name, columns, required, rep):
+    path = os.path.join(folder, name)
+    if not os.path.exists(path):
+        return None
+    header, rows = read_csv(path)
+    for c in required:
+        if c not in header:
+            rep.err(name + ":header", "column %r is missing (references/data-shape.md, \"The growth files\")" % c)
+    for c in header:
+        if c not in columns:
+            rep.warn(name + ":header", "column %r is not in the shape; it is ignored" % c)
+    if any(c not in header for c in required):
+        return None
+    return rows
+
+
+def _cell(rep, where, fn, value, name):
+    try:
+        return fn(value, name) if fn is not parse_time else fn(value)
+    except ShapeError as e:
+        rep.err(where + ":" + name, str(e))
+        return None
+
+
+def check_growth_files(folder, acc, posts, rep):
+    """reposters.csv, replies_out.csv and originals.csv (0.5.0, growth mode): each row names a post of this run."""
+    own = str((acc or {}).get("handle") or "").lower().lstrip("@")
+    rows = _growth_csv(folder, "reposters.csv", REPOSTER_COLUMNS, ["post_id", "handle"], rep)
+    for i, r in enumerate(rows or []):
+        where = "reposters.csv:row %d" % (i + 2)
+        pid = (r.get("post_id") or "").strip()
+        if not pid:
+            rep.err(where + ":post_id", "empty: the account's post that was reposted")
+        elif posts and pid not in posts:
+            rep.err(where + ":post_id", "%r is not a post_id in posts.csv" % pid)
+        h = (r.get("handle") or "").strip()
+        if not h:
+            rep.err(where + ":handle", "empty: who reposted, without @")
+        elif h.startswith("@"):
+            rep.warn(where + ":handle", "write the handle without the @")
+        _cell(rep, where, parse_count, r.get("followers"), "followers")
+        _cell(rep, where, parse_time, r.get("at"), "at")
+        if (r.get("kind") or "").strip().lower() not in ("", "repost", "quote"):
+            rep.err(where + ":kind", "repost or quote (empty = repost), got %r" % r.get("kind"))
+    rr = (acc or {}).get("growth_read") or {}
+    if rows is not None and isinstance(rr, dict) and not ((rr.get("reposters") or {}) if isinstance(rr.get("reposters"), dict) else {}).get("posts"):
+        rep.warn("account.json:growth_read.reposters.posts", "list the posts whose reposters were read (a post with none still counts as read)")
+    replies = {}
+    rows = _growth_csv(folder, "replies_out.csv", REPLY_OUT_COLUMNS, ["reply_id", "at", "to_handle"], rep)
+    for i, r in enumerate(rows or []):
+        where = "replies_out.csv:row %d" % (i + 2)
+        rid = (r.get("reply_id") or "").strip()
+        if not rid:
+            rep.err(where + ":reply_id", "empty")
+        elif rid in replies:
+            rep.err(where + ":reply_id", "%r repeats row %d" % (rid, replies[rid]))
+        else:
+            replies[rid] = i + 2
+        t = _cell(rep, where, parse_time, r.get("at"), "at")
+        if t is None and (r.get("at") or "").strip() == "":
+            rep.err(where + ":at", "empty: when the reply was posted (ISO UTC); the rate needs it")
+        h = (r.get("to_handle") or "").strip()
+        if not h:
+            rep.err(where + ":to_handle", "empty: the account answered, without @")
+        elif h.lower().lstrip("@") == own:
+            rep.err(where + ":to_handle", "a reply to the account itself is not a reply to others: fold it into its post (author_replies)")
+        for c in ("to_followers", "views", "likes"):
+            _cell(rep, where, parse_count, r.get(c), c)
+    if rows is not None:
+        ro = rr.get("replies_out") if isinstance(rr, dict) else None
+        if not isinstance(ro, dict) or ro.get("windows") is None:
+            rep.warn("account.json:growth_read.replies_out.windows", "say how many separate time windows of replies were read (1 = a sample)")
+    rows = _growth_csv(folder, "originals.csv", ORIGINAL_COLUMNS, ["post_id", "original_at"], rep)
+    when = {}
+    if rows:
+        for name, idc, tc in (("posts.csv", "post_id", "published_at"), ("replies_out.csv", "reply_id", "at")):
+            if os.path.exists(os.path.join(folder, name)):
+                for x in read_csv(os.path.join(folder, name))[1]:
+                    try:
+                        when[(x.get(idc) or "").strip()] = parse_time(x.get(tc))
+                    except ShapeError:
+                        pass
+    for i, r in enumerate(rows or []):
+        where = "originals.csv:row %d" % (i + 2)
+        pid = (r.get("post_id") or "").strip()
+        if not pid:
+            rep.err(where + ":post_id", "empty: the account's quote (posts.csv) or reply (replies_out.csv)")
+        elif posts and pid not in posts and pid not in replies:
+            rep.err(where + ":post_id", "%r is neither a post in posts.csv nor a reply in replies_out.csv" % pid)
+        t = _cell(rep, where, parse_time, r.get("original_at"), "original_at")
+        if t is None and (r.get("original_at") or "").strip() == "":
+            rep.err(where + ":original_at", "empty: when the original was posted (ISO UTC); speed needs it")
+        own_t = when.get(pid)
+        if t is not None and own_t is not None and t > own_t:
+            rep.warn(where + ":original_at", "after the account's own post: is this the right original?")
+        for c in ("original_followers", "original_views"):
+            _cell(rep, where, parse_count, r.get(c), c)
+
+
+def check_growth_findings(folder, doc, posts, rep, texts):
+    """findings.json "growth": why_it_grows and doesnt_move are claims (each with its example, and numbers written as
+    {growth.json key}), copy_this plain lines. The reply draft itself is checked by growth.py."""
+    g = doc.get("growth")
+    if g is None:
+        return
+    if not isinstance(g, dict):
+        rep.err("findings.json:growth", 'an object {"why_it_grows": [...], "doesnt_move": [...], "copy_this": [...]}')
+        return
+    gp = os.path.join(folder, "growth.json")
+    gdoc = read_json(gp) if os.path.exists(gp) else None
+    import growth  # noqa: E402  (here, not at the top: growth imports analyze, which imports this file)
+    for sec in ("why_it_grows", "doesnt_move"):
+        items = g.get(sec) or []
+        if not isinstance(items, list):
+            rep.err("findings.json:growth." + sec, "a list of claims")
+            continue
+        for i, c in enumerate(items):
+            where = "findings.json:growth.%s[%d]" % (sec, i)
+            check_claim(c, where, folder, rep, texts=texts)
+            if not isinstance(c, dict):
+                continue
+            if not str(c.get("title") or "").strip():
+                rep.err(where + ".title", "missing: a short name (Volume, Crowd calls, ...)")
+            if sec == "why_it_grows" and not (c.get("posts") or c.get("links")):
+                rep.err(where, "an example: posts (the ids of the posts that show it) or links")
+            for p in c.get("posts") or []:
+                if posts and p not in posts:
+                    rep.warn(where + ".posts", "%r is not in posts.csv" % p)
+            keys = growth.placeholders(c.get("text")) + growth.placeholders(c.get("reply"))
+            if sec == "why_it_grows" and not keys:
+                rep.err(where, "1 or 2 real numbers, written as {growth.json key} so the script fills them (e.g. {crowd_calls.top.views})")
+            if keys and gdoc is None:
+                rep.err(where, "numbers from growth.json, but there is no growth.json: run growth.py")
+            for k in keys if gdoc is not None else []:
+                try:
+                    growth.get_path(gdoc, k)
+                except KeyError:
+                    rep.err(where, "{%s}: growth.json has no such key" % k)
+    for i, c in enumerate(g.get("copy_this") or []):
+        t = c.get("text") if isinstance(c, dict) else c
+        if not isinstance(t, str) or not t.strip():
+            rep.err("findings.json:growth.copy_this[%d]" % i, "a plain line (a string, or {\"text\": ...})")
+
+
 # ---------------------------------------------------------------------------------------------- formats.json
 
 def check_formats(folder, posts, rep):
@@ -584,6 +745,7 @@ def check_findings(folder, posts, rep):
             for p in (c.get("posts") or []) if isinstance(c, dict) else []:
                 if posts and p not in posts:
                     rep.warn("findings.json:%s[%d].posts" % (sec, i), "%r is not in posts.csv" % p)
+    check_growth_findings(folder, doc, posts, rep, texts)
     plays = doc.get("plays") or []
     if len(plays) > 10:
         rep.err("findings.json:plays", "ten plays at most (got %d)" % len(plays))
@@ -815,6 +977,7 @@ def validate(folder, inputs_only=False):
     posts = check_posts(folder, acc, rep)
     check_comments(folder, acc, posts, rep)
     check_formats(folder, posts, rep)
+    check_growth_files(folder, acc, posts, rep)
     if os.path.exists(os.path.join(folder, "post.json")):
         check_post_json(folder, posts, rep)
     if not inputs_only:

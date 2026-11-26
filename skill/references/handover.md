@@ -30,7 +30,10 @@ and `not_read`. **A post run** uses `headline` (why this one worked), `mechanism
 }
 ```
 
-`did_not_work` is optional, and new in version 0.4.0: a folder without it builds exactly as before.
+`did_not_work` is optional, and new in version 0.4.0: a folder without it builds exactly as before. `growth` (growth
+mode, 0.5.0: `why_it_grows`, `doesnt_move`, `copy_this`) is optional too; its claims follow the same rules, and its
+numbers are written as `{growth.json key}` (`growth.md`, step 4). With it, the Account report draws a "Why it grows"
+block and `build_report.py` writes `GROWTH.md`.
 
 ### A claim
 
@@ -118,7 +121,7 @@ It refuses to build while `validate.py` finds errors or while `analysis.json`, `
 
 ## The Niche report and the Post report
 
-- **The Niche report** (`report.html`, `NICHE.md`): what works now (your reading); the chart "Formats of the niche"
+- **The Niche report** (`report.html`, `NICHE.md`): what works now (your reading); "Formats of the niche" (the Study view)
   (across: how many of the niche's creators use a format; up: its lift over each creator's own usual; size:
   creators; arrow: the later half of the window against the earlier); the gallery of the formats (each creator's best
   post of each format, as a small picture of its cover or frame sheet, linked to the original post: no video is

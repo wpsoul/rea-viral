@@ -50,6 +50,7 @@ DEFAULTS = {
 # from how those feeds work; --min-age-days changes it). Any other network: 7.
 MIN_AGE_DAYS = {"x": 3, "threads": 3}
 DEFAULT_MIN_AGE_DAYS = 7
+SUSPECT_REACH = 1000         # views at or over this many times the followers at the post: warned (check the outliers)
 
 INPUT_FILES = ("account.json", "posts.csv", "comments.csv", "formats.json", "watch/counts.csv", "../watch/counts.csv")
 
@@ -487,6 +488,25 @@ def run(folder, metric=None, opts=None):
             f, how = None, "unknown"
         p["followers_at_post"] = {"value": rnd(f, 0), "how": how}
         p["reach"] = (p["views"] / float(f)) if (p["views"] is not None and f) else None
+    # Views far beyond what the follower count can explain (e.g. 15.7M views on 480 followers): the count may be from a
+    # reset or renamed account, the clip a repost of someone else's hit, or the views bought. Kept in the numbers, said.
+    sus = sorted([p for p in posts if p["reach"] is not None and p["reach"] >= SUSPECT_REACH],
+                 key=lambda p: -p["reach"])
+    if sus:
+        top = sus[0]
+        out["suspect_reach"] = {
+            "rule": "views >= %d x the followers at the post" % SUSPECT_REACH,
+            "posts": [{"post_id": p["post_id"], "views": p["views"], "followers_at_post": p["followers_at_post"]["value"],
+                       "views_per_follower": rnd(p["reach"], 0), "published_at": iso(p["published_at"]),
+                       "in_window": bool(p.get("in_window"))} for p in sus[:20]],
+            "count": len(sus),
+        }
+        out["warnings"].append(
+            "check the outliers: %d post%s ha%s views %d x the follower count or more (the top: %s views on %s followers, "
+            "%s). The follower count may belong to a reset or renamed account, the clip may be a repost of another "
+            "creator's hit, or the views bought; open them before calling them a finding (analysis.json#suspect_reach)" % (
+                len(sus), "" if len(sus) == 1 else "s", "s" if len(sus) == 1 else "ve", SUSPECT_REACH,
+                "{:,}".format(int(top["views"])), "{:,}".format(int(top["followers_at_post"]["value"] or 0)), top["post_id"]))
     scored = [p for p in posts if p["status"] == "scored"]
     med_rates = {k: median([p["rates"][k] for p in scored if p["rates"][k] is not None]) for k in RATE_KEYS}
     out["rates"] = {"median_" + k + "_rate": rnd(v, 5) for k, v in med_rates.items()}

@@ -76,6 +76,8 @@ otherwise no label (an empty `estimate_label` in posts_scored.csv means "no sign
 as a count. The followers at a post's time come from the nearest readings
 (linear between two within 7 days), else the current count (said so in `followers_at_post.how`).
 
+**Check the outliers.** A post with views 1000× the followers at its time or more (15.7M views on 480 followers) is warned by `analyze.py` and listed in `analysis.json#suspect_reach`: the follower count may belong to a reset or renamed account, the clip may be a repost of another creator's hit, or the views bought. It stays in the numbers; open it before you call it a finding, and say in the report what you found.
+
 Measured posts also carry `estimate_for_comparison`, so the estimate can be checked against real gains.
 
 ## The deep-read picks
@@ -127,3 +129,9 @@ its rank among the creator's scored posts, and:
   With one creator's posts most of these are leads: under 6 posts on a side is marked so.
 - **repeats**: the other posts of its format (your `formats.json`), how many were scored, how many sat above the
   creator's usual (1× or more) and how many at 2× or more, and their median.
+
+## Growth mode (growth.py)
+
+Why an account grows: posting cadence and its change point, where the views come from, crowd calls, tags and
+reposts, replies to others, speed on big posts and what the weakest format lacks. Every measure and its key in
+`growth.json`: `growth.md`, step 3.

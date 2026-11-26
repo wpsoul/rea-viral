@@ -1,6 +1,6 @@
 ---
 name: rea-viral
-description: "Reverse engineer what goes viral on social networks (YouTube Shorts, TikTok, Instagram, X, Threads, LinkedIn). Four ways in: one account (the main way: what worked and what did not, why it grows, its formats, how it writes, its comments, which posts brought followers), one post (why it beat its creator's usual, its words, whether the creator repeats it), a niche (which formats and hooks work NOW across many creators, which fade, who to watch) or words only (a voice sheet, a draft checked). Each run ends in a report: an Account, Post or Niche report, one HTML file. A trend beats its own creator's usual, never the biggest number; scripts do the numbers; every claim carries its evidence. Hands the report and its formats to a planner connector. Use when the user asks why an account grows or what works for it, why a post blew up, what is trending in a niche, which formats or hooks go viral, for a competitor teardown, a hook analysis, to write like a creator, or to remake a viral format."
+description: "Reverse engineer what goes viral on social networks (YouTube Shorts, TikTok, Instagram, X, Threads, LinkedIn). Four ways in: one account (the main way: what worked and what did not, why it grows, its formats, how it writes, its comments, which posts brought followers), one post (why it beat its creator's usual, its words, whether the creator repeats it), a niche (which formats and hooks work NOW across many creators, which fade, who to watch) or words only (a voice sheet, a draft checked). Each run ends in a report: an Account, Post or Niche report, one HTML file. A trend beats its own creator's usual, never the biggest number; scripts do the numbers; every claim carries its evidence. Hands the report to a planner connector. Use when the user asks why an account grows ("REA Viral: why is @x growing") or what works for it, why a post blew up, what is trending in a niche, which formats or hooks go viral, for a competitor teardown, a hook analysis, to write like a creator, or to remake a viral format."
 ---
 
 # REA Viral
@@ -13,7 +13,7 @@ the REA family started by morluto's REA (Reverse Engineer Anything).
 **Scripts do the numbers; you do the looking and the judgement.** The scripts are plain Python 3.8+ (standard
 library) in `scripts/`, next to this file; their word lists are in `data/`. Call this folder `SKILL_DIR`. Video work
 needs `ffmpeg` (it also makes the report's pictures small); `yt-dlp` helps (free reading and downloads); Node with
-Playwright is used only by the Basic remake.
+Playwright is used by the Basic remake and post card PNGs.
 
 ## First: pick the way in
 
@@ -22,6 +22,7 @@ Decide from what the user gave, before any setup question. Show no menu when the
 | The user gives | Way in | The run answers | Read |
 |---|---|---|---|
 | One account: a handle or a profile link, "why does @x grow", "what works for @x and what doesn't" | **An account** (the main way): the **Account report** | What worked and what did not: why it grows; its formats (its **Format map**), the ones under its usual or fading; how it writes and what sinks; its comments; which posts brought followers | `references/account-run.md` |
+| "REA Viral: why is @x growing", "REA Viral growth @x", "why is @x growing (REA Viral)", `/rea-viral growth @x` | **An account + growth mode** | The above, plus the growth mechanisms with their evidence (cadence, where the views come from, crowd calls, who reposts, replies, speed, what doesn't move), what to copy and a reply draft: `GROWTH.md` and a "Why it grows" block | `references/account-run.md`, then `references/growth.md` |
 | One link to a post or a video, "why did this blow up" | **A post**: the **Post report** | Why it beat its own creator's usual, and what in it sits under that usual; its words taken apart; whether the creator repeats it; its recipe | `references/post-run.md` |
 | A niche, a topic, keywords or tags, a list of accounts, "what works now in X", "what's trending in X" | **A niche**: the **Niche report** | Which formats and hooks work NOW across many creators (**the niche's formats**) and which fade; the trends behind them; recipes; who to watch | `references/niche.md` |
 | "How do they write?", "what hooks work in X?", a draft to check | **Words only** | How an account or a niche writes, its voice sheet or hooks, drafts; the user's own draft checked | `references/writing.md`, "Words only" |
@@ -84,9 +85,11 @@ Each way uses these in its own order (its reference has the exact commands):
 | Look | Covers on numbered sheets (each checked); each post's own video cut and measured, then you look (hits, ordinary posts and flops) | `covers_sheet.py`, `video_probe.py` | `deep-read.md` |
 | Words | Openings, shape, voice, asks against the usual | `text_probe.py` | `writing.md` |
 | Formats | You group posts into formats and check the grouping; the script measures and places them | `formats_check.py`, `radar.py` | `radar.md` |
+| Growth | Why an account grows: its mechanisms measured, your reading, the reply draft (growth mode) | `growth.py` | `growth.md` |
 | Comments | The comment section as a tactic (account run) | `comment_tactics.py` | `comments.md` |
 | Reading | Your claims, each labelled: what worked and what did not | `findings.json` | `handover.md` |
 | Hand-over | The report (one file), the file for agents, the planner files | `build_report.py` | `handover.md` |
+| Post picture | Make a 1080 × 1350 post card (account teardown `t1`–`t5` or niche report `r1`–`r5`, 7 styles) | `post_card.py`, `render_card.mjs` | `post.md` |
 | Making | A format as a video, checked against its recipe | `render_page.mjs`, `remake_check.py`, `check_app.py` | `remake.md` |
 
 Always `validate.py <run>` after writing the corpus, and go on only at 0 errors.
@@ -96,7 +99,9 @@ Always `validate.py <run>` after writing the corpus, and go on only at 0 errors.
 **An account** (`rea-viral/<network>-<handle>/`, the main way): setup → the corpus → `analyze.py` → watch the
 deep-read picks (outliers, ordinary posts, flops) → comments → `text_probe.py` (`voice.md`) → `formats.json` →
 `formats_check.py` (fix overlaps and misfits) → `radar.py` (its Format map) → `findings.json` (what worked, and `did_not_work`) → `build_report.py` (the Account
-report, `report.html`; `ACCOUNT.md`; `report_record.json`, `radar_rows.json` with its strongest format).
+report, `report.html`; `ACCOUNT.md`; `report_record.json`, `radar_rows.json` with its strongest format). Growth mode
+adds, after `radar.py`: the growth reads → `growth.py` → `findings.json` `growth` → `growth.py` (the reply draft) →
+`build_report.py` (`GROWTH.md` and the "Why it grows" block): `references/growth.md`.
 
 **A post** (`rea-viral/post-<network>-<post_id>/`): the post and its creator's 25 to 40 recent posts → watch it →
 mark its format in `formats.json` → `post_probe.py` → `findings.json` (why it worked, and what did not) →
@@ -154,7 +159,7 @@ and 3 formats (Format Radar)"; nothing saved, no line.
   videos (Scale it or Underused first): **Basic** (an HTML page rendered to MP4), **Standard** (an editable video:
   GreenLight Motion or HyperFrames, the user's pick) or **Advanced** (GreenLight Dash's Rebuild by Style). Every
   result passes `remake_check.py` against the recipe (`references/remake.md`).
-- **Draft posts** in the voice or with the hooks measured, checked by `draft_check.py`.
+- **Draft posts** in the voice or with the hooks measured, checked by `draft_check.py`, or **make a 1080 × 1350 post picture** (`post_card.py`, `references/post.md`) for an account teardown or niche report.
 - **The next way in**, in one line: an account run offers the niche run for its niche; a post run offers its
   creator's account or its niche; a niche run starts from its strongest format and offers to go deeper into a creator
   who owns it.
@@ -177,7 +182,8 @@ folder.
 rea-viral/<network>-<handle>/           an account: account.json posts.csv comments.csv, analysis.json radar.json
                                         formats/<id>.md writing.json voice.md videos/<id>/ findings.json ACCOUNT.md
                                         report.html report-light.html report-cover.jpg report_record.json brief.json
-                                        radar_rows.json
+                                        radar_rows.json; growth mode: reposters.csv replies_out.csv originals.csv
+                                        growth.json GROWTH.md; post picture: card.json post-card.html post-card.png
 rea-viral/post-<network>-<post_id>/     a post: post.json, account.json posts.csv (its creator's posts), post_probe.json
                                         formats/<id>.md videos/<id>/ findings.json POST.md report.html
                                         report-light.html report-cover.jpg report_record.json brief.json radar_rows.json
@@ -185,6 +191,7 @@ rea-viral/niche-<slug>/                 a niche: niche.json, found.csv, accounts
                                         trends.json trends.csv watchlist.csv planner_rows.json, formats.json radar.json
                                         formats/<id>.md, writing.json hooks.md, findings.json, NICHE.md, report.html
                                         report-light.html report_record.json brief.json radar_rows.json
+                                        (post picture: card.json post-card.html post-card.png)
 rea-viral/watch/                        Watch for every account
 ```
 
@@ -226,5 +233,6 @@ Every file and column: `references/data-shape.md`. Version 1 and 2 account folde
 creators, finding posts) · `writing.md` (words, hooks, voice sheet, drafts, words only) · `data-shape.md` (every file
 and column) · `connections.md` (readers, what each costs in depth, a planner connector) · `numbers.md` (every measure)
 · `deep-read.md` (watching videos) · `comments.md` · `radar.md` (formats: one account's Format map, the formats of a
-niche, recipes) · `handover.md` (findings.json, what did not work, the reports, the planner files) · `remake.md`
+niche, recipes) · `handover.md` (findings.json, what did not work, the reports, the planner files) · `growth.md` (growth mode: why an
+account grows, what to copy, the reply draft) · `post.md` (1080 × 1350 post cards: 10 layouts × 7 styles) · `remake.md`
 (Basic, Standard: GreenLight Motion or HyperFrames, Advanced) · `watch.md` (Scout and Watch).

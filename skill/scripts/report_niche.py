@@ -221,6 +221,9 @@ def page_data(folder, light=False):
     for x in [y for f in nw["formats"] for y in f["lowest"]] + nw["flops"]["picks"]:
         if x["post_id"] not in covers and x["post_id"] in by_id:
             covers[x["post_id"]] = pics.get(by_id[x["post_id"]]["cover"], "cover")
+    for p in posts:   # the Study view's "every post" tiles, last, while the budget lasts
+        if p.get("format") and p["id"] not in covers and p.get("status") != "baseline_only":
+            covers[p["id"]] = pics.get(p["cover"], "cover", optional=True)
     for p in posts:
         p["cover"] = covers.get(p["id"])
     sheets = dict((pid, (drawn_sheets.get(pid) if not covers.get(pid) else s)) for pid, s in sheets.items()
@@ -481,60 +484,18 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
 
 /* ---------- the radar */
 (function(){
-  var s = section('radar', 'Formats of the niche', 'Across: how many of the niche\'s creators use the format. Up: its lift over each creator\'s own usual. Size: creators behind it. Arrow: the later half of the window against the earlier half.');
-  var g = el('div', {cls: 'grid2'}); s.appendChild(g);
-  var placed = FM.filter(function(f){ return f.niche_format && f.lift != null; });
-  var numOf = {}; placed.forEach(function(f, i){ numOf[f.id] = i + 1; });
-  if (R.status !== 'ok' || !placed.length){
-    g.appendChild(el('div', {cls: 'panel'}, el('div', {cls: 'empty', text: R.status_note || (FM.length ? 'No format reached 3 creators: nothing is a format of the niche yet.' : 'No formats measured yet.')})));
-    if (!FM.length) return;
+  var s = section('radar', 'Formats of the niche', 'Every format seen in the niche, each post against its own creator\'s usual (1×). A format of the niche needs 3 creators or more. Pick one to study it.');
+  if (R.status !== 'ok' && !FM.length){
+    s.appendChild(el('div', {cls: 'panel'}, el('div', {cls: 'empty', text: R.status_note || 'No formats measured yet.'})));
+    return;
   }
-  if (placed.length){
-    var W = 560, H = 420, L = 54, Rr = 18, Tt = 18, B = 44;
-    var xmax = 1.0;
-    var ylo = -2, yhi = 2;
-    placed.forEach(function(f){ var y = Math.log2(f.lift); ylo = Math.min(ylo, Math.floor(y - 0.4)); yhi = Math.max(yhi, Math.ceil(y + 0.4)); });
-    function X(v){ return L + (W - L - Rr) * v / xmax; }
-    function Y(v){ return Tt + (H - Tt - B) * (yhi - Math.log2(Math.max(v, Math.pow(2, ylo)))) / (yhi - ylo); }
-    var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, 'class': 'chart', role: 'img', 'aria-label': 'Formats of the niche', 'data-chart': 'radar'});
-    var xs = (R.rules || {}).often_creators_share || 0.4, ys = (R.rules || {}).strong_lift || 1;
-    svg.appendChild(sv('rect', {x: L, y: Tt, width: W - L - Rr, height: H - Tt - B, fill: 'var(--panel2)', rx: 8, 'class': 'plot'}));
-    var corners = [];
-    svg.appendChild(sv('line', {x1: X(xs), x2: X(xs), y1: Tt, y2: H - B, 'class': 'split'}));
-    svg.appendChild(sv('line', {x1: L, x2: W - Rr, y1: Y(ys), y2: Y(ys), 'class': 'split'}));
-    [['Scale it', W - Rr - 8, Tt + 18, 'end', 'var(--scale)'], ['Underused', L + 8, Tt + 18, 'start', 'var(--under)'],
-     ['Overused', W - Rr - 8, H - B - 10, 'end', 'var(--fading)'], ['Drop', L + 8, H - B - 10, 'start', 'var(--drop)']].forEach(function(q){
-      svg.appendChild(sv('text', {x: q[1], y: q[2], 'text-anchor': q[3], text: q[0], fill: q[4], 'font-weight': 800, 'font-size': 13}));
-      corners.push(cornerBox(q[1], q[2], q[0], q[3])); });
-    for (var e = ylo; e <= yhi; e++) svg.appendChild(sv('text', {x: L - 6, y: Y(Math.pow(2, e)) + 4, 'text-anchor': 'end', text: (e >= 0 ? Math.pow(2, e) : '1/' + Math.pow(2, -e)) + '×'}));
-    [0, 0.2, 0.4, 0.6, 0.8, 1].forEach(function(v){ svg.appendChild(sv('text', {x: X(v), y: H - B + 16, 'text-anchor': 'middle', text: Math.round(v * 100) + '%'})); });
-    svg.appendChild(sv('text', {x: (L + W - Rr) / 2, y: H - 8, 'text-anchor': 'middle', text: 'share of the niche\'s creators using it'}));
-    svg.appendChild(sv('text', {x: 14, y: (Tt + H - B) / 2, 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + ((Tt + H - B) / 2) + ')', text: 'lift over each creator\'s own usual'}));
-    var maxC = Math.max.apply(null, placed.map(function(f){ return f.creators; }).concat([1]));
-    var labels = [];
-    placed.slice().sort(function(a, b){ return b.creators - a.creators; }).forEach(function(f){
-      var r = 9 + 22 * Math.sqrt(f.creators / maxC), cx = X(f.creators_share), cy = Y(f.lift), gg = sv('g', {'data-format': f.id});
-      gg.appendChild(sv('circle', {cx: cx, cy: cy, r: r, fill: QC[f.quadrant], 'fill-opacity': 0.28, stroke: QC[f.quadrant], 'stroke-width': 2}));
-      var len = 0;
-      if (f.direction != null){ len = Math.max(-1, Math.min(1, Math.log2(f.direction))) * 26;
-        if (Math.abs(len) > 3){ var y2 = cy - len; gg.appendChild(sv('line', {x1: cx, y1: cy, x2: cx, y2: y2, stroke: 'var(--text)', 'stroke-width': 2}));
-          gg.appendChild(sv('path', {d: 'M' + (cx - 5) + ' ' + (y2 + (len > 0 ? 6 : -6)) + 'L' + cx + ' ' + y2 + 'L' + (cx + 5) + ' ' + (y2 + (len > 0 ? 6 : -6)), fill: 'none', stroke: 'var(--text)', 'stroke-width': 2})); } }
-      gg.appendChild(sv('title', {text: f.name + ' · ' + QN[f.quadrant] + ' · ' + f.creators + ' creators · lift ' + xr(f.lift) + (f.direction_label ? ' · ' + f.direction_label : '')}));
-      bubbleNumber(gg, cx, cy, numOf[f.id], r, len);
-      labels.push({cx: cx, cy: cy, r: r, name: f.name.length > 30 ? f.name.slice(0, 29) + '…' : f.name, g: gg, n: numOf[f.id], full: f.name});
-      svg.appendChild(gg); drawn.radar++;
-    });
-    var off = placeLabels(labels, {x0: L, y0: Tt, x1: W - Rr, y1: H - B}, corners);
-    drawn.labels_off = off.length;
-    g.appendChild(el('div', {cls: 'panel'}, svg, off.length ? el('div', {cls: 'small muted', style: 'margin-top:6px', text: 'Named by number (no room beside the bubble): ' + off.sort(function(a, b){ return a.n - b.n; }).map(function(l){ return l.n + ' ' + l.full; }).join(' · ')}) : null));
-  }
-  var tbl = el('table', null, el('tr', null, el('th', {cls: 'num', text: '#'}), el('th', {text: 'Format'}), el('th', {text: 'Corner'}), el('th', {cls: 'num', text: 'Creators'}), el('th', {cls: 'num', text: 'Lift'}), el('th', {text: 'Direction'}), el('th', {text: 'First seen'})));
-  FM.forEach(function(f){ tbl.appendChild(el('tr', null, el('td', {cls: 'num muted', text: numOf[f.id] || ''}), el('td', null, el('a', {href: '#fmt-' + f.id, text: f.name})), el('td', null, el('span', {cls: 'q ' + f.quadrant, text: f.niche_format ? QN[f.quadrant] : f.scope_status})),
-    el('td', {cls: 'num', text: f.creators + ' · ' + pct(f.creators_share)}), el('td', {cls: 'num', text: xr(f.lift)}),
-    el('td', {cls: 'small', text: f.direction == null ? 'not enough posts' : xr(f.direction) + ' ' + (f.direction_label || '')}),
-    el('td', {cls: 'small', text: date(f.first_seen) + (f['new'] ? ' (new)' : '')}))); });
+  var top = el('div'); s.querySelector('.sec-head').appendChild(top);
+  if (R.status !== 'ok') s.appendChild(el('div', {cls: 'status', text: R.status_note || 'No format reached 3 creators: nothing is a format of the niche yet.'}));
+  var host = el('div'); s.appendChild(host);
+  drawn.radar = studyFormats(host, {formats: FM, posts: D.posts || [], niche: true, top: top,
+    recipe: function(id){ return id !== '__none'; }});
   var un = R.unformatted || {};
-  g.appendChild(el('div', {cls: 'panel'}, tbl, el('div', {cls: 'small muted', style: 'margin-top:8px'}, chip('MEASURED'), 'All numbers by radar.py. A format of the niche needs 3 creators or more; fewer is that creator\'s habit. ' + (un.posts ? un.posts + ' posts in the window (' + pct(un.share) + ') belong to no format.' : ''))));
+  s.appendChild(el('div', {cls: 'small muted', style: 'margin-top:8px'}, chip('MEASURED'), 'All numbers by radar.py and trends.py; the grouping is the agent\'s. A format of the niche needs 3 creators or more; fewer is that creator\'s habit. ' + (un.posts ? un.posts + ' posts in the window (' + pct(un.share) + ') belong to no format.' : '')));
 })();
 
 /* ---------- the gallery */

@@ -12,7 +12,11 @@ you for a password or a key.
 You do not pick from a menu. The skill picks the way from what you wrote.
 
 1. **An account** ("why does @someone grow?", "what works for my account and what doesn't?"). The main way. It reads
-   the account's posts for up to a year and says what worked and what did not.
+   the account's posts for up to a year and says what worked and what did not. Say "REA Viral: why is @someone
+   growing" for **growth mode** on top: the 3 to 5 things that drive the growth (posting pace, questions to a named
+   crowd, who reposts, replies, speed), each with an example and real numbers, what doesn't move, what to copy, and a
+   reply you can paste (`GROWTH.md`). You can also turn a teardown or niche run into a 1080 × 1350 post picture
+   (`post_card.py`, 10 layouts × 7 styles).
 2. **One post** (a link). It says why that post did better than the creator usually does, what in it did not, and
    whether the creator repeats the trick.
 3. **A niche** ("what works now in AI video editing?"). It finds posts of the niche, reads each creator's recent

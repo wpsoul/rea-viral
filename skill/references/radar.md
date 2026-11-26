@@ -3,10 +3,10 @@
 Two views, one file shape (`radar.json`), one recipe shape (`formats/<id>.md`):
 
 - **The Format map** is what an account run (and a post run) draws: **that account's own formats**, each against the
-  account's own baseline. `radar.json` `scope: "account"`. Its chart is "Format map" in the Account report.
+  account's own baseline. `radar.json` `scope: "account"`. It is the "Format map" section of the Account report (the Study view).
 - **The formats of a niche** are the many-creators view of a niche run: which formats are working NOW across the
   niche, each post against its own creator's usual, each format with the creators behind it. `radar.json`
-  `scope: "shared"`. Its chart is "Formats of the niche" in the Niche report.
+  `scope: "shared"`. It is the "Formats of the niche" section of the Niche report (the same Study view).
 
 Both come from `radar.py`, which picks the scope from the folder (`niche.json` present: shared). The file name, the
 keys and `scope: "shared"` stay as they are, so older run folders and the planners that read this shape still read
@@ -53,8 +53,8 @@ and a format whose container is in the frames, not the words, needs no `match`.
 
 ## The four corners, and the direction
 
-The chart: across = how often (split at 15% of the window's posts); up = lift (split at 1×, the account's own usual);
-bubble size = follower pull; arrow = direction. **A corner says only where the format sits** (how often, how much it
+The corners: across = how often (split at 15% of the window's posts); up = lift (split at 1×, the account's own
+usual). **A corner says only where the format sits** (how often, how much it
 lifts); **the direction says where it is going** (`rising`, `steady`, `fading`). The two never mix: a format in
 Scale it can be fading, a format in Overused can be rising.
 
@@ -67,7 +67,7 @@ Scale it can be fading, a format in Overused can be rising.
 
 Words that changed in 0.4.1: the corner "Fading" is now **Overused** (`quadrant: "overused"`), and it no longer takes
 a lifting format whose later posts did worse (that one stays in its corner with the direction `fading`); the
-direction "weakening" is now **fading**. `rising`, `steady` and `fading` are only ever the direction, on the chart,
+direction "weakening" is now **fading**. `rising`, `steady` and `fading` are only ever the direction, in the report,
 the legends, the chips, `ACCOUNT.md`, `NICHE.md`, `brief.json` and `radar_rows.json`. An older `radar.json` with the
 old words is read in the new ones (the corner from its share and lift); it is never rewritten.
 
@@ -79,9 +79,13 @@ The arrow matters: an Underused or Scale it format that is fading is said with i
 a thing to make more of. The grouping is yours (`grouping` in radar.json says so); the numbers of each group are
 MEASURED.
 
-On the chart each bubble carries a number and its name is placed beside it where it fits inside the plot, clear of
-the other names and bubbles (on a phone too); a name with no room is listed under the chart by its number, and the
-table beside the chart has the same numbers.
+**How the report shows the formats (0.5.0: the Study view, not a bubble chart).** One list of EVERY format, best
+corner first: the ones with too few posts, a niche's creator habits and few-creator formats, and the posts in no
+format are listed too, each with its own chip, never left out. Pick one: its posts (and creators), its median against
+the usual, its posts at 2× or more, early → late (the median of its earlier half of scored posts, then its later half;
+6+ scored posts), every scored post as a dot against 1× with its median marked, its container, and every post best
+first (12, then "All N"). "Compare two" shows two formats side by side. The chip is the corner from `radar.json`; the
+numbers are the rows'. Its code is `studyFormats()` in `page_kit.py`, the same for the Account and Niche reports.
 
 The formats under 1× (Overused, Drop) and the fading ones are also listed in the Account report's "What did not
 work", each with its three lowest posts and how many of the account's flops it holds.
@@ -131,7 +135,7 @@ niche"), then measures each format of `formats.json` from the window's posts **s
 | Key | Meaning |
 |---|---|
 | `creators`, `by_creator` | The creators with scored posts in it, and per creator: its posts, its median ratio, its hits, its best post |
-| `creators_share` | `creators` over the niche's creators with scored posts: the chart's across |
+| `creators_share` | `creators` over the niche's creators with scored posts: the corner's across |
 | `lift` | The median of the creators' medians: each creator counts once, so one prolific creator cannot carry a format. `lift_posts` beside it is the median over posts |
 | `hit_rate`, `creators_hit` | The share of its scored posts at 2× their own creator's usual or more; the creators with at least one such post |
 | `direction`, `direction_label` | The median ratio of its posts in the later half of the window over the earlier half (3+ scored posts in each half): `rising` ≥ 1.33, `fading` < 0.75, else `steady`; null = not enough posts |
@@ -157,7 +161,8 @@ Only creators with posts in the window count, across and toward the 3 creators: 
 had no post in the window is named in the report and counts nowhere (`niche.md`, step 2).
 
 A format with fewer than 3 creators is not placed: `quadrant: "too_few"`, `quadrant_name: "Not a niche format:
-creator habit"` (or `few creators`), listed under the chart and in the gallery, never called a format of the niche.
+creator habit"` (or `few creators`), listed in the Study view (its chip says so) and in the gallery, never called a
+format of the niche.
 One with 3 to 5 scored posts is placed and marked `few_posts`. Under 3 creators with their own usual, or under 20
 scored posts in the window, `radar.py` calls no format at all (`status: too_few_creators` or `too_few_posts`).
 A format of the niche under 1× or fading is also listed in the Niche report's "What did not work", with its lowest
@@ -169,7 +174,8 @@ smallest count that reads as a pattern of the niche, and it stays reachable with
 
 ## The recipe: formats/<id>.md
 
-`radar.py` (and `post_probe.py` for a post run) writes a skeleton once and later replaces only its measured parts (the JSON block's `measured` object and
+`radar.py` (and `post_probe.py` for a post run) writes a skeleton once and later replaces only its measured parts (the
+JSON block's `measured` object and
 the table between the `rea:measured` markers). You fill the rest from the deep read. The JSON block is what a remake
 and `remake_check.py` read:
 
@@ -198,7 +204,9 @@ and `remake_check.py` read:
 `voice` links the account's voice sheet (`voice.md`), or for a niche format the niche's hooks (`hooks.md`): the recipe
 holds the container, the voice sheet how its words are written; a draft or a remake follows both. A niche recipe's
 `measured` also carries `scope: "shared"`, `creators`, `by_creator`, `direction_label`, `first_seen` and `new`, and its
-beats must hold on watched posts of at least two different creators. Start `length_s` and `cuts_per_10s` from the measured medians; change
-them only with a reason you write in the prose. Mark a beat `"cut": true` only when the watched videos show a hard cut there. Below the block, in prose: the
+beats must hold on watched posts of at least two different creators. Start `length_s` and `cuts_per_10s` from the
+measured medians; change
+them only with a reason you write in the prose. Mark a beat `"cut": true` only when the watched videos show a hard cut
+there. Below the block, in prose: the
 beats as seen (SEEN, with the posts), the caption style, the pace, the sound, and **what not to copy** (a face, a
 mascot, a voice, an authority the user does not have).

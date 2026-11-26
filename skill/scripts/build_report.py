@@ -42,6 +42,7 @@ import validate  # noqa: E402
 import brief  # noqa: E402
 import hand_over  # noqa: E402
 import page_kit  # noqa: E402
+import growth  # noqa: E402
 from analyze import input_fingerprint  # noqa: E402
 
 RECIPE_RE = re.compile(r"```json rea-recipe\s*\n(.*?)\n```", re.S)
@@ -138,7 +139,7 @@ def page_data(folder, light=False):
     problems = [p for p in (stale(folder, an, "analysis.json", "analyze.py"),
                             stale(folder, radar, "radar.json", "radar.py"),
                             stale(folder, com, "comments.json", "comment_tactics.py"),
-                            stale(folder, wr, "writing.json", "text_probe.py")) if p]
+                            stale(folder, wr, "writing.json", "text_probe.py"), growth.stale(folder)) if p]
     if problems:
         die("\n".join(problems), 1)
     findings = load_opt(folder, "findings.json") or {}
@@ -165,9 +166,9 @@ def page_data(folder, light=False):
     by_id = dict((p["id"], p) for p in posts)
     covers = {}
 
-    def cover_of(pid):
+    def cover_of(pid, optional=False):
         if pid not in covers and pid in by_id:
-            covers[pid] = pics.get(by_id[pid]["cover"], "cover")
+            covers[pid] = pics.get(by_id[pid]["cover"], "cover", optional=optional)
     for pid in wanted:
         cover_of(pid)
     for pid, v in vids.items():
@@ -182,6 +183,9 @@ def page_data(folder, light=False):
     for pid, v in vids.items():
         if not v["probe"].get("sheet_first"):
             cover_of(pid)
+    for f in (radar or {}).get("formats") or []:
+        for pid in f.get("post_ids") or []:   # the Study view's "every post" tiles, last, while the budget lasts
+            cover_of(pid, optional=True)
     for p in posts:
         p["cover"] = covers.get(p["id"])
     d = {
@@ -204,6 +208,7 @@ def page_data(folder, light=False):
         "voice": voice_view(folder),
         "videos": vids,
         "not_working": nw,
+        "growth": growth.page_view(growth.view(folder)),
         "limits": page_kit.dedupe_limits(page_kit.run_limits("account", folder), findings),
         "missing_files": None,
         "cost": cost(folder),
@@ -494,6 +499,12 @@ def account_md(d):
     if marks:
         L.append("| What changed when? | %s | analysis.json#timeline.marks, radar.json#timeline_marks |" % "; ".join(
             "%s %s" % (m["at"], m["text"]) for m in sorted(marks, key=lambda m: m["at"])[:4]))
+    gv = d.get("growth")
+    if gv:   # growth mode (growth.py): why it grows, in mechanisms with their numbers
+        short = "; ".join("%d. %s" % (i, x.get("title") or "") for i, x in enumerate(gv.get("why") or [], 1)) or \
+            "measured, not read yet (findings.json growth)"
+        L.append("| Why is it growing (growth mode)? | %s%s | GROWTH.md, growth.json, findings.json#growth |" % (
+            short.replace("|", "/"), "" if gv.get("ready") or not gv.get("reply") else "; the reply draft is not ready"))
     wr = d.get("writing") or {}
     if wr:
         st = [f for f in (wr.get("features") or []) + (wr.get("numbers") or []) if f.get("claim_ok")]
@@ -647,10 +658,10 @@ PAGE = r"""<!doctype html>
 <style>
 :root{--bg:#0c0e11;--panel:#14171c;--panel2:#1a1e24;--line:#262b33;--text:#e9ecef;--muted:#98a2ad;--faint:#6c7580;
 --accent:#33efab;--accent-text:#0f1115;--measured:#33efab;--seen:#7db9ff;--inferred:#f3c56b;--bad:#ff7a7a;
---scale:#33efab;--under:#7db9ff;--fading:#f3c56b;--drop:#ff8f8f;--radius:12px}
+--scale:#33efab;--under:#7db9ff;--fading:#f3c56b;--drop:#ff8f8f;--radius:12px;--chip-text:#0f1115}
 :root[data-theme="light"]{--bg:#f6f7f9;--panel:#ffffff;--panel2:#f0f2f5;--line:#dfe3e8;--text:#14171c;--muted:#56606b;
 --faint:#7d8792;--measured:#0f9e6e;--seen:#2f6fd0;--inferred:#a7700b;--bad:#c93c3c;--scale:#0f9e6e;--under:#2f6fd0;
---fading:#a7700b;--drop:#c93c3c}
+--fading:#a7700b;--drop:#c93c3c;--chip-text:#ffffff}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text)}
 body{font-family:Manrope,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;
@@ -692,7 +703,7 @@ th{text-align:left;color:var(--muted);font-weight:700;font-size:12px;padding:6px
 td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
 .num{text-align:right;white-space:nowrap}
-.q{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px;color:var(--accent-text)}
+.q{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px;color:var(--chip-text)}
 .q.scale_it{background:var(--scale)}.q.underused{background:var(--under)}.q.overused,.q.fading{background:var(--fading)}.q.drop{background:var(--drop)}
 .q.too_few{background:var(--faint)}
 svg text{font-family:inherit;fill:var(--muted);font-size:11px}
@@ -718,7 +729,7 @@ svg .split{stroke:var(--faint);stroke-dasharray:4 4}
 .pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--muted)}
 .status{border-left:3px solid var(--inferred);padding:10px 14px;background:var(--panel);border-radius:8px;margin-top:16px}
 .empty{color:var(--faint);font-size:13.5px}
-.quote{border-left:2px solid var(--line);padding-left:10px;margin:6px 0;font-size:13.5px}
+.quote{border-left:2px solid var(--line);padding-left:10px;margin:6px 0;font-size:13.5px;overflow-wrap:anywhere}
 .fmt{margin-top:14px}
 .fmt:first-child{margin-top:0}
 footer{margin-top:48px;color:var(--faint);font-size:12.5px}
@@ -732,6 +743,8 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px;font-weigh
 .voice h3{margin-top:12px}
 .voice p{margin:4px 0;font-size:13.5px;overflow-wrap:anywhere}
 .rules{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.gr-n{font-weight:800;margin-right:6px}
+.gr-copy{margin:4px 0 0 20px;padding:0;font-size:14px}.gr-copy li{margin:3px 0}
 /*__STACK_CSS__*/
 </style>
 </head>
@@ -844,6 +857,143 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
   s.appendChild(p);
 })();
 
+/* ---------- why it grows (growth mode, growth.py) */
+(function(){
+  var GV = D.growth;
+  if (!GV) return;
+  drawn.growth = 0; drawn.growth_not = 0; drawn.growth_bars = 0;
+  var G = GV.g || {}, rules = G.rules || {};
+  var s = section('growth', 'Why it grows', 'Growth mode: the mechanisms behind the growth, each with an example and its numbers. growth.py measures every number; each reason is the agent\'s reading, labelled.');
+  if (G.status && G.status !== 'ok') s.appendChild(el('div', {cls: 'status'}, el('strong', {text: 'Status: ' + G.status + '. '}), G.status_note || ''));
+  function link(id, url){ return url ? el('a', {href: url, text: id}) : el('span', {text: id}); }
+  function src(x){
+    if (x.evidence === 'MEASURED') return 'From ' + (x.from || '');
+    if (x.evidence === 'INFERRED') return 'Basis: ' + (x.basis || '');
+    return null;
+  }
+  function item(x, n){
+    var ex = (x.posts || []).map(function(e, i){ return [i ? ', ' : '', link(e.post_id, e.url)]; });
+    (x.links || []).forEach(function(u){ ex.push([ex.length ? ', ' : '', el('a', {href: u, text: String(u).replace(/^https?:\/\//, '').slice(0, 48)})]); });
+    var box = el('div', {cls: 'claim gr-item'},
+      el('div', null, n ? el('span', {cls: 'gr-n', text: n + '.'}) : null, chip(x.evidence), x.title ? el('strong', {text: x.title + '. '}) : null, x.text || ''),
+      ex.length ? el('div', {cls: 'basis'}, (x.evidence === 'SEEN' ? 'Seen in ' : 'Example: '), ex, (x.quote || []).length ? el('span', {cls: 'muted', text: ' · "' + x.quote[0] + '"'}) : null) : null,
+      src(x) ? el('div', {cls: 'basis', text: src(x)}) : null);
+    (x.marks || []).forEach(function(m){ box.appendChild(el('div', {cls: 'small muted', text: 'Note: ' + m + '.'})); });
+    return box;
+  }
+  var p = el('div', {cls: 'panel'}); s.appendChild(p);
+  if (!GV.has_reading) p.appendChild(el('div', {cls: 'empty', text: 'The agent\'s reading is not written yet (findings.json "growth"); the numbers below are what it starts from.'}));
+  (GV.why || []).forEach(function(x, i){ p.appendChild(item(x, i + 1)); drawn.growth++; });
+  if ((GV.doesnt_move || []).length){ p.appendChild(el('h3', {text: 'What doesn\'t move', style: 'margin-top:14px'})); GV.doesnt_move.forEach(function(x){ p.appendChild(item(x)); drawn.growth_not++; }); }
+  if ((GV.copy_this || []).length){ p.appendChild(el('h3', {text: 'Copy this', style: 'margin-top:14px'}));
+    p.appendChild(el('ol', {cls: 'gr-copy'}, GV.copy_this.map(function(t){ return el('li', {text: t}); }))); }
+  if (GV.reply){
+    p.appendChild(el('h3', {text: 'The reply draft', style: 'margin-top:14px'}));
+    p.appendChild(el('div', {cls: 'prompt', id: 'growth-reply', text: GV.reply}));
+    p.appendChild(el('div', {cls: 'row'},
+      el('button', {cls: 'btn primary', type: 'button', text: 'Copy reply', onclick: function(e){ copyText(GV.reply, e.target, 'Copy reply'); }}),
+      el('span', {cls: 'small muted', text: GV.reply_chars + ' characters · then a separate follow-up line: ' + GV.follow_up})));
+    if (!GV.ready) p.appendChild(el('div', {cls: 'status'}, el('strong', {text: 'Not ready: '}), (GV.checks || []).join(' · ')));
+  }
+  function copyText(text, b, label){
+    function ok(){ b.textContent = 'Copied'; setTimeout(function(){ b.textContent = label; }, 1400); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback); else fallback();
+    function fallback(){ var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch (e) {} document.body.removeChild(t); }
+  }
+  // the measured parts
+  var m = el('div', {cls: 'grid2', style: 'margin-top:12px'});
+  s.appendChild(el('details', {cls: 'more'}, el('summary', {text: 'The numbers behind it'}), m));
+  var c = G.cadence || {}, cp = c.change_point, wk = c.weeks || [];
+  var pc1 = el('div', {cls: 'panel'}, el('h3', null, chip('MEASURED'), 'Posting cadence'));
+  if (wk.length){
+    var W = 560, H = 170, L = 30, Rr = 8, T = 14, B = 26, mx = Math.max.apply(null, wk.map(function(w){ return w.posts; }).concat([1]));
+    var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, 'class': 'chart', role: 'img', 'aria-label': 'Posts a week', 'data-chart': 'growth-weeks'});
+    var bw = (W - L - Rr) / wk.length;
+    [0, mx].forEach(function(v){ var y = T + (H - T - B) * (1 - v / mx); svg.appendChild(sv('line', {x1: L, x2: W - Rr, y1: y, y2: y, 'class': 'axis'})); svg.appendChild(sv('text', {x: L - 5, y: y + 4, 'text-anchor': 'end', text: String(v)})); });
+    wk.forEach(function(w, i){
+      var h = (H - T - B) * w.posts / mx, x = L + i * bw + 2, isCp = cp && w.week === cp.at;
+      var r = sv('rect', {x: x, y: H - B - h, width: Math.max(2, bw - 4), height: Math.max(0, h), rx: 3, fill: w.partial ? 'var(--faint)' : 'var(--accent)', opacity: 0.85, 'data-week': w.week});
+      r.appendChild(sv('title', {text: w.week + ': ' + w.posts + ' posts' + (w.partial ? ' (week still running, ' + w.days + ' days)' : '')})); svg.appendChild(r);
+      if (isCp) svg.appendChild(sv('line', {x1: x - 2, x2: x - 2, y1: T, y2: H - B, stroke: 'var(--inferred)', 'stroke-dasharray': '3 3'}));
+      if (!(i % Math.max(1, Math.ceil(wk.length / 8)))) svg.appendChild(sv('text', {x: x + bw / 2 - 2, y: H - 8, 'text-anchor': 'middle', text: w.week.slice(5)}));
+      drawn.growth_bars++;
+    });
+    pc1.appendChild(svg);
+  }
+  if (cp) pc1.appendChild(el('div', {cls: 'small', style: 'margin-top:6px'}, chip('MEASURED'), 'From ' + date(cp.at) + ': ' + cp.before + ' → ' + cp.after + ' posts a week (4 weeks against 4 weeks). Since then ' + cp.since.posts + ' posts in ' + cp.since.days + ' days, ' + cp.since.per_week + ' a week.'));
+  else pc1.appendChild(el('div', {cls: 'small muted', text: 'No change in posting pace was measured (analysis.json#timeline.marks).'}));
+  var mt = el('table', {style: 'margin-top:8px'}, el('tr', null, el('th', {text: 'Month'}), el('th', {cls: 'num', text: 'Posts'}), el('th', {cls: 'num', text: 'Views'}), el('th', {cls: 'num', text: 'Median views'}), el('th', {cls: 'num', text: 'Median replies'})));
+  (c.months || []).forEach(function(x){ mt.appendChild(el('tr', null, el('td', {text: x.month}), el('td', {cls: 'num', text: x.posts + (x.too_new ? ' (' + x.too_new + ' new)' : '')}), el('td', {cls: 'num', text: num(x.views)}), el('td', {cls: 'num', text: num(x.median_views)}), el('td', {cls: 'num', text: num(x.median_replies)}))); });
+  pc1.appendChild(mt);
+  m.appendChild(pc1);
+  var co = G.concentration || {}, ts = co.top_slice || {};
+  var pc2 = el('div', {cls: 'panel'}, el('h3', null, chip('MEASURED'), 'Where the views come from'));
+  pc2.appendChild(el('div', {cls: 'small'}, 'Since ' + date((co.period || {}).from) + ': ' + (co.posts || 0) + ' posts, ' + num(co.views) + ' views. The top ' + (ts.n || 0) + ' posts hold ' + pct(ts.share) + '; half the views come from ' + ((co.half || {}).n || '—') + ' post' + ((co.half || {}).n === 1 ? '' : 's') + '.'));
+  var tt = el('table', {style: 'margin-top:8px'}, el('tr', null, el('th', {text: 'Post'}), el('th', {cls: 'num', text: 'Views'}), el('th', {cls: 'num', text: 'Share'}), el('th', {cls: 'num', text: 'Replies'}), el('th', {text: 'What it is'})));
+  (co.top_posts || []).forEach(function(x){ tt.appendChild(el('tr', null, el('td', null, link(x.post_id.slice(-6), x.url), el('div', {cls: 'small muted', text: x.first_line.slice(0, 70)})), el('td', {cls: 'num', text: num(x.views)}), el('td', {cls: 'num', text: pct(x.share)}), el('td', {cls: 'num', text: num(x.replies)}),
+    el('td', {cls: 'small', text: (x.kinds || []).map(function(k){ return k.replace(/_/g, ' '); }).join(', ') + (x.too_new ? ' · under ' + rules.settle_days + ' days old' : '')}))); });
+  pc2.appendChild(tt);
+  m.appendChild(pc2);
+  var cc = G.crowd_calls || {};
+  var pc3 = el('div', {cls: 'panel'}, el('h3', null, chip('MEASURED'), 'Crowd calls: a named crowd or "I\'ll reply to everyone"'));
+  if (!(cc.posts || []).length) pc3.appendChild(el('div', {cls: 'empty', text: 'None found in the window.'}));
+  else {
+    pc3.appendChild(el('div', {cls: 'small', text: cc.count + ' posts; ' + pct(cc.share_in_period) + ' of the views since ' + date((co.period || {}).from) + '.'}));
+    var ct = el('table', {style: 'margin-top:8px'}, el('tr', null, el('th', {text: 'Post'}), el('th', {cls: 'num', text: 'Views'}), el('th', {cls: 'num', text: 'Replies'}), el('th', {cls: 'num', text: 'Own replies read'})));
+    cc.posts.forEach(function(x){ ct.appendChild(el('tr', null, el('td', null, link(x.post_id.slice(-6), x.url), el('div', {cls: 'small muted', text: x.first_line.slice(0, 70)})), el('td', {cls: 'num', text: num(x.views)}), el('td', {cls: 'num', text: num(x.replies)}),
+      el('td', {cls: 'num', text: x.author_replies_read == null ? (x.author_replies_sample ? x.author_replies_sample + ' (sample)' : 'not read') : x.author_replies_read + ' of ' + x.replies_read + ' rows'}))); });
+    pc3.appendChild(ct);
+  }
+  m.appendChild(pc3);
+  var rg = G.repost_graph || {};
+  var pc4 = el('div', {cls: 'panel'}, el('h3', null, chip('MEASURED'), 'Who reposted the top posts'));
+  if (!(rg.posts || []).length) pc4.appendChild(el('div', {cls: 'empty', text: 'Not read.'}));
+  else {
+    pc4.appendChild(el('div', {cls: 'small', text: 'Tagged accounts that reposted: ' + rg.tagged_reposted + ' of ' + rg.tagged + ', on ' + rg.posts.length + ' posts read (one page each). Big: ' + (rules.big_account || '') + '.'}));
+    var rt = el('table', {style: 'margin-top:8px'}, el('tr', null, el('th', {text: 'Post'}), el('th', {cls: 'num', text: 'Reposts read'}), el('th', {cls: 'num', text: 'Tagged, reposted'}), el('th', {text: 'Big accounts'})));
+    rg.posts.forEach(function(x){ rt.appendChild(el('tr', null, el('td', null, link(x.post_id.slice(-6), x.url)), el('td', {cls: 'num', text: x.rows_read + ' of ' + (x.reposts == null ? '?' : x.reposts)}), el('td', {cls: 'num', text: x.tagged_count ? x.tagged_reposted_count + ' of ' + x.tagged_count : '—'}),
+      el('td', {cls: 'small', text: (x.reposters || []).filter(function(r){ return r.big; }).map(function(r){ return '@' + r.handle + ' ' + num(r.followers) + (r.tagged ? ' (tagged)' : ''); }).join(', ') || '—'}))); });
+    pc4.appendChild(rt);
+    if ((rg.repeat_reposters || []).length) pc4.appendChild(el('div', {cls: 'small muted', style: 'margin-top:6px', text: 'On two or more of these posts: ' + rg.repeat_reposters.map(function(r){ return '@' + r.handle; }).join(', ') + '.'}));
+  }
+  m.appendChild(pc4);
+  var ro = G.replies_out;
+  var pc5 = el('div', {cls: 'panel'}, el('h3', null, chip('MEASURED'), 'Replies to other accounts'));
+  if (!ro) pc5.appendChild(el('div', {cls: 'empty', text: 'Not read.'}));
+  else {
+    pc5.appendChild(el('div', {cls: 'small', text: ro.count + ' replies in ' + num(ro.span_minutes) + ' min (' + ro.note + '); ' + ro.targets + ' accounts, ' + ro.in_own_threads + ' in its own threads, ' + ro.to_big + ' to big accounts, ' + ro.to_circle + ' to accounts that reposted or were tagged.'}));
+    var bs = ro.by_size || {};
+    pc5.appendChild(el('div', {cls: 'rules'}, Object.keys(bs).filter(function(k){ return bs[k]; }).map(function(k){ return el('span', {cls: 'pill', text: ((ro.by_size_labels || {})[k] || k) + ': ' + bs[k]}); })));
+    (ro.examples || []).slice(0, 4).forEach(function(x){ pc5.appendChild(el('div', {cls: 'quote'}, chip('SEEN'), '"' + x.text.slice(0, 140) + '"', el('span', {cls: 'muted small'}, ' · to @' + x.to + (x.to_followers != null ? ' (' + num(x.to_followers) + ')' : '') + ' · ', link('reply', x.url)))); });
+  }
+  m.appendChild(pc5);
+  var sp = G.speed;
+  var pc6 = el('div', {cls: 'panel'}, el('h3', null, chip('MEASURED'), 'Speed on big posts'));
+  if (!sp) pc6.appendChild(el('div', {cls: 'empty', text: 'Not read.'}));
+  else {
+    var st = el('table', null, el('tr', null, el('th', {text: 'Own post'}), el('th', {text: 'Original'}), el('th', {cls: 'num', text: 'Its views'}), el('th', {cls: 'num', text: 'Minutes after'}), el('th', {cls: 'num', text: 'Own views'})));
+    sp.items.filter(function(x){ return x.big; }).slice(0, 8).forEach(function(x){ st.appendChild(el('tr', null, el('td', null, link(x.kind + ' ' + x.post_id.slice(-6), x.url)), el('td', null, el('a', {href: x.original_url, text: '@' + x.original_handle})), el('td', {cls: 'num', text: num(x.original_views)}), el('td', {cls: 'num', text: num(x.minutes)}), el('td', {cls: 'num', text: num(x.own_views)}))); });
+    pc6.appendChild(st);
+  }
+  m.appendChild(pc6);
+  var fl = G.flops;
+  var pc7 = el('div', {cls: 'panel'}, el('h3', null, chip('MEASURED'), 'What the weakest format lacks'));
+  if (!fl) pc7.appendChild(el('div', {cls: 'empty', text: 'No format with 6 scored posts or more sits under the account\'s usual.'}));
+  else {
+    var f = fl.format || {};
+    pc7.appendChild(el('div', {cls: 'small', text: f.name + ': ' + f.posts + ' posts in the window at ' + xr(f.lift) + ' the usual, ' + f.hits + ' hits, ' + f.flops + ' of the ' + f.flops_all + ' flops.'}));
+    var ft = el('table', {style: 'margin-top:8px'}, el('tr', null, el('th', {text: 'In the words and media'}), el('th', {cls: 'num', text: 'In the format'}), el('th', {cls: 'num', text: 'Other posts'})));
+    Object.keys(fl.features || {}).forEach(function(k){ var x = fl.features[k], isN = k === 'chars'; ft.appendChild(el('tr', null, el('td', {text: x.label + ((fl.lacks || []).indexOf(k) >= 0 ? ' (lacks)' : '')}), el('td', {cls: 'num', text: isN ? num(x.format) : pct(x.format)}), el('td', {cls: 'num', text: isN ? num(x.rest) : pct(x.rest)}))); });
+    pc7.appendChild(ft);
+  }
+  m.appendChild(pc7);
+  var fo = G.followers || {};
+  var pc8 = el('div', {cls: 'panel'}, el('h3', {text: 'Followers, and what is a sample'}));
+  pc8.appendChild(el('div', {cls: 'small'}, chip('MEASURED'), fo.measured ? (date(fo.from) + ' to ' + date(fo.to) + ': ' + num(fo.first) + ' to ' + num(fo.last) + ' followers.') : ('Follower growth ' + (fo.note || 'cannot be measured') + '.')));
+  (G.limits || []).forEach(function(x){ pc8.appendChild(el('div', {cls: 'small', style: 'margin-top:4px'}, el('strong', {text: x.what + ': '}), x.why)); });
+  m.appendChild(pc8);
+})();
+
 /* ---------- what did not work */
 (function(){
   var NW = D.not_working || {}, FL = NW.flops || {}, WD = NW.words || {};
@@ -938,7 +1088,7 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
 
 /* ---------- format radar */
 (function(){
-  var s = section('radar', 'Format map', 'This account\'s own formats. Across: how often a format is used. Up: its lift over the account\'s own baseline. Size: follower pull. Arrow: its direction.');
+  var s = section('radar', 'Format map', 'Every format of this account, each post against the account\'s own usual (1×). Pick one to study it.');
   var p = el('div', {cls: 'grid2'});
   s.appendChild(p);
   var fm = (R.formats || []);
@@ -948,56 +1098,13 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
         R.posts.map(function(q){ return el('tr', null, el('td', null, postLink(q.post_id)), el('td', {text: date(q.published_at)}), el('td', {cls: 'num', text: num(q.views)})); })) : null));
     return;
   }
-  var W = 560, H = 420, L = 54, Rr = 18, T = 18, B = 44;
-  var placed = fm.filter(function(f){ return f.quadrant !== 'too_few' && f.lift != null; });
-  var xmax = Math.max(0.4, Math.max.apply(null, placed.map(function(f){ return f.share; }).concat([0])) * 1.18);
-  var ylo = -2, yhi = 2;
-  placed.forEach(function(f){ var y = Math.log2(f.lift); ylo = Math.min(ylo, Math.floor(y - 0.4)); yhi = Math.max(yhi, Math.ceil(y + 0.4)); });
-  function X(v){ return L + (W - L - Rr) * v / xmax; }
-  function Y(v){ return T + (H - T - B) * (yhi - Math.log2(Math.max(v, Math.pow(2, ylo)))) / (yhi - ylo); }
-  var svg = sv('svg', {viewBox: '0 0 ' + W + ' ' + H, 'class': 'chart', role: 'img', 'aria-label': 'Format map', 'data-chart': 'radar'});
-  var xs = (R.rules || {}).often_share || 0.15, ys = (R.rules || {}).strong_lift || 1;
-  svg.appendChild(sv('rect', {x: L, y: T, width: W - L - Rr, height: H - T - B, fill: 'var(--panel2)', rx: 8, 'class': 'plot'}));
-  var corners = [];
-  svg.appendChild(sv('line', {x1: X(xs), x2: X(xs), y1: T, y2: H - B, 'class': 'split'}));
-  svg.appendChild(sv('line', {x1: L, x2: W - Rr, y1: Y(ys), y2: Y(ys), 'class': 'split'}));
-  [['Scale it', W - Rr - 8, T + 18, 'end', 'var(--scale)'], ['Underused', L + 8, T + 18, 'start', 'var(--under)'],
-   ['Overused', W - Rr - 8, H - B - 10, 'end', 'var(--fading)'], ['Drop', L + 8, H - B - 10, 'start', 'var(--drop)']].forEach(function(q){
-    svg.appendChild(sv('text', {x: q[1], y: q[2], 'text-anchor': q[3], text: q[0], fill: q[4], 'font-weight': 800, 'font-size': 13}));
-    corners.push(cornerBox(q[1], q[2], q[0], q[3])); });
-  var numOf = {}; placed.forEach(function(f, i){ numOf[f.id] = i + 1; });
-  for (var e = ylo; e <= yhi; e++){ svg.appendChild(sv('text', {x: L - 6, y: Y(Math.pow(2, e)) + 4, 'text-anchor': 'end', text: (e >= 0 ? Math.pow(2, e) : '1/' + Math.pow(2, -e)) + '×'})); }
-  [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].forEach(function(v){ if (v > xmax) return; svg.appendChild(sv('text', {x: X(v), y: H - B + 16, 'text-anchor': 'middle', text: Math.round(v * 100) + '%'})); });
-  svg.appendChild(sv('text', {x: (L + W - Rr) / 2, y: H - 8, 'text-anchor': 'middle', text: 'share of posts'}));
-  var tt = sv('text', {x: 14, y: (T + H - B) / 2, 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + ((T + H - B) / 2) + ')', text: 'lift over baseline'}); svg.appendChild(tt);
-  var labels = [];
-  var maxM = 0; placed.forEach(function(f){ if (f.follower_pull.level === 'measured' && f.follower_pull.value > maxM) maxM = f.follower_pull.value; });
-  placed.slice().sort(function(a, b){ return (b.follower_pull.value || 0) - (a.follower_pull.value || 0); }).forEach(function(f){
-    var pull = f.follower_pull || {}, n = 0;
-    if (pull.level === 'measured' && maxM > 0) n = Math.max(0, pull.value) / maxM; else if (pull.level === 'estimated') n = pull.value || 0;
-    var r = 9 + 24 * Math.sqrt(Math.max(0, Math.min(1, n)));
-    var cx = X(f.share), cy = Y(f.lift), g = sv('g', {'data-format': f.id});
-    g.appendChild(sv('circle', {cx: cx, cy: cy, r: r, fill: QC[f.quadrant], 'fill-opacity': pull.level === 'none' ? 0.08 : 0.28, stroke: QC[f.quadrant], 'stroke-width': 2}));
-    var len = 0;
-    if (f.direction != null){
-      len = Math.max(-1, Math.min(1, Math.log2(f.direction))) * 26;
-      if (Math.abs(len) > 3){ var y2 = cy - len; g.appendChild(sv('line', {x1: cx, y1: cy, x2: cx, y2: y2, stroke: 'var(--text)', 'stroke-width': 2}));
-        g.appendChild(sv('path', {d: 'M' + (cx - 5) + ' ' + (y2 + (len > 0 ? 6 : -6)) + 'L' + cx + ' ' + y2 + 'L' + (cx + 5) + ' ' + (y2 + (len > 0 ? 6 : -6)), fill: 'none', stroke: 'var(--text)', 'stroke-width': 2})); }
-    }
-    bubbleNumber(g, cx, cy, numOf[f.id], r, len);
-    labels.push({cx: cx, cy: cy, r: r, name: f.name.length > 26 ? f.name.slice(0, 25) + '…' : f.name, g: g, n: numOf[f.id], full: f.name});
-    g.appendChild(sv('title', {text: f.name + ' · ' + QN[f.quadrant] + ' · ' + pct(f.share) + ' of posts · lift ' + xr(f.lift) + ' · hit rate ' + pct(f.hit_rate) + ' · ' + (pull.label || '')}));
-    svg.appendChild(g); drawn.radar++;
-  });
-  var off = placeLabels(labels, {x0: L, y0: T, x1: W - Rr, y1: H - B}, corners);
-  drawn.labels_off = off.length;
-  p.appendChild(el('div', {cls: 'panel'}, svg, off.length ? el('div', {cls: 'small muted', style: 'margin-top:6px', text: 'Named by number (no room beside the bubble): ' + off.sort(function(a, b){ return a.n - b.n; }).map(function(l){ return l.n + ' ' + l.full; }).join(' · ')}) : null));
-  var tbl = el('table', null, el('tr', null, el('th', {cls: 'num', text: '#'}), el('th', {text: 'Format'}), el('th', {text: 'Corner'}), el('th', {cls: 'num', text: 'Posts'}), el('th', {cls: 'num', text: 'Lift'}), el('th', {cls: 'num', text: 'Hits'}), el('th', {text: 'Direction'})));
-  fm.forEach(function(f){ tbl.appendChild(el('tr', null, el('td', {cls: 'num muted', text: numOf[f.id] || ''}), el('td', null, el('a', {href: '#fmt-' + f.id, text: f.name})), el('td', null, el('span', {cls: 'q ' + f.quadrant, text: QN[f.quadrant]})),
-    el('td', {cls: 'num', text: f.posts_total + ' · ' + pct(f.share)}), el('td', {cls: 'num', text: xr(f.lift)}), el('td', {cls: 'num', text: pct(f.hit_rate)}),
-    el('td', {cls: 'small', text: f.direction == null ? 'not enough posts' : xr(f.direction) + ' ' + (f.direction_label || '')}))); });
+  var top = el('div'); s.querySelector('.sec-head').appendChild(top);
+  p.className = '';
+  var host = el('div'); p.appendChild(host);
+  drawn.radar = studyFormats(host, {formats: fm, posts: (D.posts || []).filter(function(q){ return q.in_window; }), niche: false, top: top,
+    recipe: function(id){ return id !== '__none'; }});
   var un = R.unformatted || {};
-  p.appendChild(el('div', {cls: 'panel'}, tbl, el('div', {cls: 'small muted', style: 'margin-top:8px'}, chip('MEASURED'), 'All numbers by radar.py. ' + (un.posts ? un.posts + ' posts (' + pct(un.share) + ') belong to no format.' : ''))));
+  p.appendChild(el('div', {cls: 'small muted', style: 'margin-top:8px'}, chip('MEASURED'), 'All numbers by radar.py and analyze.py; the grouping is the agent\'s. ' + (un.posts ? un.posts + ' posts (' + pct(un.share) + ') belong to no format.' : '')));
   var list = el('div', {cls: 'panel', style: 'margin-top:14px'});
   fm.forEach(function(f){
     var rc = (D.recipes || {})[f.id] || {}, rec = rc.recipe || {}, pull = f.follower_pull || {};
@@ -1315,6 +1422,9 @@ def build(folder, light_only=False):
         write_text(os.path.join(folder, "report.html"), page(d))
     write_text(os.path.join(folder, "report-light.html"), page(light_account(d)))
     write_text(os.path.join(folder, "ACCOUNT.md"), account_md(d))
+    gv = growth.view(folder)
+    if gv:
+        write_text(os.path.join(folder, "GROWTH.md"), growth.growth_md(gv))
     d["hand_over"] = account_hand_over(folder, d)
     d["light_only"] = light_only
     return d
@@ -1451,6 +1561,12 @@ def main(argv):
         for x in (d.get("pictures") or {}).get("left") or []:
             print("  left out of the page: %s (%s)" % (x["file"], x["why"]))
     print(page_kit.light_line(os.path.join(folder, "report-light.html")))
+    if d.get("growth"):
+        gv = d["growth"]
+        print("GROWTH.md written (growth mode: %d mechanisms, %d that do not move; the reply draft %s)" % (
+            len(gv.get("why") or []), len(gv.get("doesnt_move") or []),
+            "%d characters, ready" % gv["reply_chars"] if gv.get("ready") else
+            ("NOT READY: " + "; ".join(gv.get("checks") or [])) if gv.get("reply") else "not written yet"))
     ho = d.get("hand_over") or {}
     cv = (ho.get("record") or {}).get("cover")
     print("report-cover%s: %s" % (os.path.splitext(cv["path"])[1], page_kit.kb(cv["size"])) if cv else

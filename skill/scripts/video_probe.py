@@ -440,9 +440,15 @@ def main(argv):
         if not_read:
             vdir = os.path.join(folder, "videos", pid)
             os.makedirs(vdir, exist_ok=True)
+            ppath = os.path.join(vdir, "probe.json")
+            old = read_json(ppath) if os.path.exists(ppath) else None
+            if old and old.get("read"):
+                # A video already read keeps its probe and notes: --not-read only marks the ones never read.
+                print("%s: already read, kept" % pid)
+                continue
             res = {"schema": "rea-viral/probe@1", "post_id": pid, "url": posts[pid].get("url"), "read": False,
                    "not_read_reason": not_read}
-            write_json(os.path.join(vdir, "probe.json"), res)
+            write_json(ppath, res)
             npath = os.path.join(vdir, "notes.json")
             n = read_json(npath) if os.path.exists(npath) else None
             if n is None or n.get("read") is None:
@@ -480,7 +486,10 @@ def mark_not_read(folder, pid, post, why):
     """A picked post whose video is not known to be its own: read false, with why (the report shows it)."""
     vdir = os.path.join(folder, "videos", pid)
     os.makedirs(vdir, exist_ok=True)
-    write_json(os.path.join(vdir, "probe.json"), {"schema": "rea-viral/probe@1", "post_id": pid, "url": (post or {}).get("url"),
+    ppath = os.path.join(vdir, "probe.json")
+    if os.path.exists(ppath) and (read_json(ppath) or {}).get("read"):
+        return  # read before: never written over with "not read"
+    write_json(ppath, {"schema": "rea-viral/probe@1", "post_id": pid, "url": (post or {}).get("url"),
                                                   "read": False, "not_read_reason": why})
     npath = os.path.join(vdir, "notes.json")
     n = read_json(npath) if os.path.exists(npath) else None

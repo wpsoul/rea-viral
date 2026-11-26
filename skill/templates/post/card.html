@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REA Viral post card</title>
+<!-- REA Viral post card: 10 layouts (teardown t1-t5, niche report r1-r5) x 7 styles, 1080 x 1350.
+     Opened as it is: a gallery of every layout in every style with sample data (switch type and style at the top).
+     Filled by scripts/post_card.py: ONE card from a run's numbers, its fonts and icon inside (opens anywhere), rendered
+     to PNG by scripts/render_card.mjs. Fonts: Poppins, Inter Tight, Archivo, Red Hat Display (SIL OFL 1.1, fonts/OFL.txt).
+     Spec: references/post.md. -->
+<link rel="stylesheet" href="fonts/fonts.css" id="rea-fonts">
+<style>
+html,body{margin:0;background:#0f1012;color:#eceef1;font-family:Inter,system-ui,sans-serif}
+body.one{background:none}
+body.one .wrap{display:none}
+.wrap{max-width:1880px;margin:0 auto;padding:20px 16px 80px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #26282d}
+.bar .t{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#9a9ea7}
+.seg{display:inline-flex;gap:2px;background:#17181b;border:1px solid #26282d;border-radius:9px;padding:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;color:#9a9ea7;font:600 13px Inter,system-ui,sans-serif;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#0f1012;color:#eceef1;box-shadow:0 0 0 1px #26282d}
+.note{font-size:12.5px;color:#9a9ea7;margin:12px 0 0;line-height:1.5}
+.note code{color:#eceef1}
+#view{margin-top:20px;display:flex;flex-wrap:wrap;gap:24px}
+.row-h{flex:0 0 100%;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#eceef1;padding:14px 0 0;border-top:1px solid #26282d}
+.row-h:first-child{border-top:0;padding-top:0}
+figure{margin:0}
+.box{position:relative;overflow:hidden;border-radius:12px;box-shadow:0 0 0 1px #26282d}
+.box>.L{transform-origin:0 0}
+figcaption{font-size:12.5px;color:#9a9ea7;margin-top:8px;font-weight:600}
+figcaption.bad{color:#ff8f8f}
+
+/* ================================================================ Cobalt, the kept style */
+.L{--ff:Poppins,sans-serif;--acc:#3d6bff;--acc-rgb:61,107,255;--acc2:#7fa2ff;--acc2-rgb:127,162,255;--line-rgb:150,175,255;--card-rgb:10,22,80;
+  --bad:var(--bad);--bad-rgb:255,125,143;--bad-hi:#ffb3be;--bad-lo:#b8344a;--post:#0b1236;--grad-a:#ffffff;--grad-b:#8fb0ff;--ink:#ffffff;--ink-rgb:255,255,255;--soft:#c9d3f5;--muted:#8d9ac8;
+  --line:rgba(var(--line-rgb),.18);--red:var(--bad);--card:rgba(var(--card-rgb),.55);--mark-bg:rgba(var(--acc-rgb),.35);--mark-ink:#ffffff;--ico-filter:none;--h-w:300;--h-b:700;
+  --bg:radial-gradient(70% 50% at 88% 92%,#1f45ff 0%,#0c1b7a 32%,#050b2a 62%,#03061a 100%);--glow:rgba(120,150,255,.16);
+  position:relative;width:1080px;height:1350px;overflow:hidden;color:var(--ink);font-family:var(--ff);font-variant-numeric:tabular-nums;background:var(--bg)}
+.L::before{content:"";position:absolute;inset:0;background:radial-gradient(45% 30% at 18% 0%,var(--glow),transparent 70%);pointer-events:none}
+.L .in{position:relative;height:100%;box-sizing:border-box;padding:84px 84px 76px;display:flex;flex-direction:column}
+.k{font:600 21px/1 var(--ff);letter-spacing:.26em;text-transform:uppercase;color:var(--blue2)}
+.h{font:var(--h-w) 70px/1.04 var(--ff);letter-spacing:-.035em;margin:20px 0 0}
+.h b{font-weight:var(--h-b);color:var(--blue2)}
+.s{font:400 24px/1.4 var(--ff);color:var(--muted);margin:16px 0 0}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font:400 18px/1.4 var(--ff);color:var(--muted)}
+.foot b{color:var(--ink);font-weight:600}
+.hr{height:1px;background:var(--line)}
+.bad{color:var(--red)!important}
+mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0 6px;font-weight:600;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+.ico{position:absolute;pointer-events:none;z-index:1}
+.ico img{position:relative;width:100%;display:block;filter:var(--ico-filter) brightness(1.22) saturate(1.12) drop-shadow(0 30px 40px rgba(0,0,0,.45))}
+.ico::before{content:"";position:absolute;inset:-10%;border-radius:50%;background:radial-gradient(circle,rgba(var(--acc-rgb),.7),rgba(var(--acc-rgb),0) 68%);filter:blur(40px)}
+.L .h,.L .s{max-width:720px;position:relative}
+.L.t1 .h{max-width:none}
+.L.t3 .h{max-width:700px}
+.t1 .ico{width:200px;right:70px;top:176px;transform:rotate(-8deg)}.t1 .rows{margin-top:84px!important}
+.t2 .ico,.t3 .ico{width:320px;right:-30px;top:36px;transform:rotate(-8deg)}
+.t4 .ico{width:270px;right:-20px;top:30px;transform:rotate(6deg)}
+.t5 .ico,.r3 .ico{width:280px;right:-10px;top:24px;transform:rotate(-6deg)}
+.r1 .ico,.r2 .ico,.r4 .ico,.r5 .ico{width:230px;right:-24px;top:28px;transform:rotate(-8deg)}
+.r1 .h,.r2 .h,.r3 .h,.r4 .h,.r5 .h{font-size:60px;max-width:790px}
+.r3 .ico{width:230px}
+.r5 .row{height:92px!important}
+.sk-holo .ico{right:6px;top:52px}
+/* T1 scorecard: profile header + number-led rows */
+.t1 .who{display:flex;align-items:center;gap:22px}
+.av{width:84px;height:84px;border-radius:50%;background:linear-gradient(140deg,var(--acc),var(--acc));display:flex;align-items:center;justify-content:center;font:700 38px/1 var(--ff);flex:none}
+.t1 .who b{display:block;font:600 30px/1.1 var(--ff)}.t1 .who span{font:400 22px/1.3 var(--ff);color:var(--muted)}
+.t1 .who .fl{margin-left:auto;text-align:right}.t1 .who .fl b{font:700 40px/1 var(--ff)}
+.t1 .rows{margin-top:44px}
+.t1 .r{display:grid;grid-template-columns:330px 1fr;gap:36px;align-items:center;padding:30px 0;border-top:1px solid var(--line)}
+.t1 .r:last-child{border-bottom:1px solid var(--line)}
+.t1 .r .n{font:700 64px/1 var(--ff);letter-spacing:-.03em}
+.t1 .r .n small{display:block;font:400 19px/1.3 var(--ff);color:var(--muted);letter-spacing:0;margin-top:8px}
+.t1 .r p{margin:0;font:500 30px/1.3 var(--ff)}
+.t1 .r p span{display:block;font:400 21px/1.4 var(--ff);color:var(--muted);margin-top:6px}
+
+/* T2 2x2 stat grid */
+.t2 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px}
+.t2 .c{background:var(--card);border:1.5px solid var(--line);border-radius:28px;padding:32px 32px;min-height:250px;display:flex;flex-direction:column;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.t2 .c .i{font:600 20px/1 var(--ff);color:var(--blue2);letter-spacing:.14em}
+.t2 .c .n{font:700 70px/1 var(--ff);letter-spacing:-.035em;margin-top:auto}
+.t2 .c p{margin:16px 0 0;font:500 26px/1.3 var(--ff)}
+.t2 .strip{margin-top:20px;display:flex;align-items:center;gap:26px;border:1.5px solid rgba(var(--bad-rgb),.35);border-radius:22px;padding:24px 32px;background:rgba(var(--bad-rgb),.06)}
+.t2 .strip .n{font:700 52px/1 var(--ff);color:var(--red)}
+.t2 .strip p{margin:0;font:400 23px/1.35 var(--ff);color:var(--soft)}
+
+/* T3 hero number + checklist */
+.t3 .hero{margin-top:36px}
+.t3 .hero .n{font:700 250px/.9 var(--ff);letter-spacing:-.06em;background:linear-gradient(180deg,var(--grad-a) 30%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.t3 .hero p{margin:14px 0 0;font:400 28px/1.35 var(--ff);color:var(--soft)}
+.t3 .hero p b{color:var(--ink);font-weight:600}
+.t3 .list{margin-top:64px;display:flex;flex-direction:column;gap:38px}
+.t3 .li{display:grid;grid-template-columns:54px 1fr auto;gap:22px;align-items:center}
+.t3 .ic{width:54px;height:54px;border-radius:50%;background:rgba(var(--acc-rgb),.25);border:1.5px solid rgba(var(--acc2-rgb),.5);display:flex;align-items:center;justify-content:center;font:700 26px/1 var(--ff);color:var(--ink)}
+.t3 .li.x .ic{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5);color:var(--red)}
+.t3 .li p{margin:0;font:500 34px/1.25 var(--ff)}
+.t3 .li .tag{font:600 27px/1 var(--ff);color:var(--blue2);background:rgba(var(--acc-rgb),.16);border-radius:999px;padding:12px 20px;white-space:nowrap}
+.t3 .li.x .tag{color:var(--red);background:rgba(var(--bad-rgb),.1)}
+
+/* T4 proof post */
+.t4 .post{margin-top:40px;background:var(--post);border:1.5px solid var(--line);border-radius:30px;padding:36px 40px;box-shadow:0 50px 100px -40px rgba(0,0,0,.8),0 0 0 1px rgba(var(--ink-rgb),.02)}
+.t4 .ph{display:flex;align-items:center;gap:18px}.t4 .ph .av{width:64px;height:64px;font-size:28px}
+.t4 .ph b{font:600 25px/1.1 var(--ff)}.t4 .ph span{display:block;font:400 20px/1.3 var(--ff);color:var(--muted)}
+.t4 .ph .x{margin-left:auto;font:700 30px/1 var(--ff);color:var(--ink)}
+.t4 .post p{margin:26px 0 0;font:400 34px/1.45 var(--ff);color:var(--ink)}
+.t4 .stats{display:flex;gap:34px;margin-top:26px;padding-top:22px;border-top:1px solid var(--line);font:500 22px/1 var(--ff);color:var(--muted)}
+.t4 .stats b{color:var(--ink);font-weight:700;font-size:28px;margin-right:6px}
+.t4 .cap{margin:22px 0 0;font:500 23px/1.35 var(--ff);color:var(--blue2)}
+.t4 .chips{margin-top:44px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.t4 .ch{border:1.5px solid var(--line);border-radius:22px;padding:34px 26px;background:rgba(var(--card-rgb),.4)}
+.t4 .ch .n{font:700 48px/1 var(--ff);letter-spacing:-.02em}
+.t4 .ch p{margin:12px 0 0;font:400 20px/1.35 var(--ff);color:var(--soft)}
+
+/* T5 numbered editorial */
+.t5 .rows{margin-top:44px;display:flex;flex-direction:column}
+.t5 .r{display:grid;grid-template-columns:118px 1fr auto;gap:26px;align-items:start;padding:44px 0;border-top:1px solid var(--line)}
+.t5 .r .no{font:700 76px/.85 var(--ff);letter-spacing:-.04em;background:linear-gradient(180deg,var(--grad-a) 30%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.t5 .r h3{margin:2px 0 0;font:600 34px/1.2 var(--ff)}
+.t5 .r p{margin:10px 0 0;font:400 23px/1.4 var(--ff);color:var(--muted)}
+.t5 .r .n{font:600 36px/1 var(--ff);color:var(--blue2);text-align:right;white-space:nowrap;padding-top:6px}
+.t5 .r .n small{display:block;font:400 17px/1.3 var(--ff);color:var(--muted);margin-top:6px}
+.t5 .r.x .no{background:linear-gradient(180deg,var(--bad-hi) 20%,var(--bad));-webkit-background-clip:text;background-clip:text}
+
+/* R1 diverging bars around 1x */
+.r1 .chart{margin-top:44px;position:relative}
+.r1 .row{display:grid;grid-template-columns:400px 1fr;align-items:center;gap:22px;height:86px}
+.r1 .row .lab{font:500 23px/1.25 var(--ff);text-align:right;color:var(--ink)}
+.r1 .track{position:relative;height:44px}
+.r1 .one{position:absolute;top:-8px;bottom:-8px;left:22%;width:2px;background:rgba(var(--ink-rgb),.55)}
+.r1 .b{position:absolute;top:0;height:44px;border-radius:8px;display:flex;align-items:center;font:700 23px/1 var(--ff)}
+.r1 .b.up{left:22%;background:linear-gradient(90deg,var(--acc),var(--acc2));justify-content:flex-end;padding-right:14px}
+.r1 .b.dn{right:78%;background:linear-gradient(270deg,var(--bad),var(--bad-lo));justify-content:flex-start}
+.r1 .b.dn span{position:absolute;left:calc(100% + 16px);color:var(--red)}
+.r1 .grp{font:600 18px/1 var(--ff);letter-spacing:.22em;color:var(--muted);margin:22px 0 8px}
+.r1 .axis{display:grid;grid-template-columns:400px 1fr;gap:22px;margin-top:8px;font:500 17px/1 var(--ff);color:var(--muted)}
+.r1 .axis div{position:relative;height:20px}.r1 .axis span{position:absolute;transform:translateX(-50%)}
+
+/* R2 two columns */
+.r2 .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:46px}
+.r2 .col{border-radius:28px;padding:34px 32px;background:rgba(var(--card-rgb),.5);border:1.5px solid var(--line)}
+.r2 .col.no{background:rgba(var(--bad-rgb),.05);border-color:rgba(var(--bad-rgb),.28)}
+.r2 .col h4{margin:0 0 10px;font:600 20px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--blue2)}
+.r2 .col.no h4{color:var(--red)}
+.r2 .it{padding:22px 0;border-top:1px solid var(--line)}
+.r2 .it:first-of-type{border-top:0}
+.r2 .it .n{font:700 52px/1 var(--ff);letter-spacing:-.03em}
+.r2 .col.no .it .n{color:var(--red)}
+.r2 .it p{margin:8px 0 0;font:400 22px/1.3 var(--ff);color:var(--soft)}
+.r2 .tip{margin-top:22px;display:flex;align-items:center;gap:24px;border-radius:24px;padding:24px 32px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.35),rgba(var(--acc-rgb),.1));border:1.5px solid rgba(var(--acc2-rgb),.4)}
+.r2 .tip .n{font:700 48px/1 var(--ff)}.r2 .tip p{margin:0;font:500 23px/1.35 var(--ff)}
+
+/* R3 ranked list, number first */
+.r3 .list{margin-top:40px}
+.r3 .it{display:grid;grid-template-columns:200px 1fr;gap:30px;align-items:baseline;padding:20px 0;border-top:1px solid var(--line)}
+.r3 .it .n{font:700 54px/1 var(--ff);letter-spacing:-.03em}
+.r3 .it p{margin:0;font:400 27px/1.3 var(--ff);color:var(--ink)}
+.r3 .gap{height:22px}
+
+/* R4 the winner + the rest */
+.r4 .win{margin-top:40px;border-radius:32px;padding:44px 44px 40px;background:linear-gradient(140deg,rgba(var(--acc-rgb),.55),rgba(var(--acc-rgb),.35));border:1.5px solid rgba(var(--line-rgb),.45);position:relative;overflow:hidden}
+.r4 .win .k{color:var(--ink)}
+.r4 .win .n{font:700 180px/.95 var(--ff);letter-spacing:-.05em;margin-top:18px}
+.r4 .win p{margin:14px 0 0;font:500 34px/1.25 var(--ff)}
+.r4 .rest{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.r4 .m{border:1.5px solid var(--line);border-radius:22px;padding:34px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px;background:rgba(var(--card-rgb),.4)}
+.r4 .m p{margin:0;font:400 23px/1.3 var(--ff);color:var(--soft)}
+.r4 .m b{font:700 32px/1 var(--ff);white-space:nowrap}
+
+/* R5 dot plot on a log scale */
+.r5 .plot{margin-top:48px}
+.r5 .row{display:grid;grid-template-columns:380px 1fr 92px;gap:24px;align-items:center;height:100px;border-top:1px solid var(--line)}
+.r5 .row:last-child{border-bottom:1px solid var(--line)}
+.r5 .lab{font:500 25px/1.25 var(--ff);color:var(--ink)}
+.r5 .tr{position:relative;height:100%}
+.r5 .tr::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(var(--line-rgb),.15)}
+.r5 .one{position:absolute;top:0;bottom:0;width:2px;background:rgba(var(--ink-rgb),.45)}
+.r5 .stem{position:absolute;top:calc(50% - 2px);height:4px;border-radius:2px}
+.r5 .dot{position:absolute;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;box-shadow:0 0 0 6px rgba(var(--acc-rgb),.2)}
+.r5 .v{font:700 28px/1 var(--ff);text-align:right}
+.r5 .ax{display:grid;grid-template-columns:380px 1fr 92px;gap:24px;margin-top:10px;font:500 17px/1 var(--ff);color:var(--muted)}
+.r5 .ax div{position:relative;height:20px}.r5 .ax span{position:absolute;transform:translateX(-50%)}
+
+/* ---------------------------------------------------------------- the other kept skins (same layouts, their own tokens) */
+.L.sk-redword{--ff:"Red Hat Display",sans-serif;--acc:#ff1f3d;--acc-rgb:255,31,61;--acc2:#ff5a6e;--acc2-rgb:255,90,110;--line-rgb:255,255,255;--card-rgb:24,20,22;
+  --bad:#9aa1ac;--bad-rgb:154,161,172;--bad-hi:#d4d8de;--bad-lo:#6b717b;--post:#141213;--grad-a:#ffffff;--grad-b:#ffb3bd;--soft:#d9d2d4;--muted:#9a9395;--h-w:400;--h-b:700;
+  --bg:radial-gradient(60% 45% at 92% 95%,#b3102a 0%,#4a0711 35%,#0d0b0c 70%,#0b0a0b 100%);--glow:rgba(255,90,110,.08);--mark-bg:rgba(255,31,61,.3)}
+.L.sk-night{--ff:"Inter Tight",Inter,sans-serif;--acc:#6a3cff;--acc-rgb:106,60,255;--acc2:#c09cff;--acc2-rgb:192,156,255;--line-rgb:255,255,255;--card-rgb:32,33,40;
+  --bad:#ff7d7d;--bad-rgb:255,125,125;--bad-hi:#ffc0c0;--bad-lo:#c44;--post:#1b1c22;--grad-a:#ffffff;--grad-b:#b990ff;--soft:#d6d7de;--muted:#9fa1ac;--h-w:600;--h-b:800;
+  --bg:radial-gradient(120% 80% at 50% 0%,#24252c 0%,#121318 55%,#0b0c10 100%);--glow:rgba(106,60,255,.12);--mark-bg:rgba(106,60,255,.6);--ico-filter:hue-rotate(28deg)}
+.L.sk-holo{--ff:Archivo,sans-serif;--acc:#7fc4ff;--acc-rgb:127,196,255;--acc2:#ffe59a;--acc2-rgb:255,229,154;--line-rgb:255,255,255;--card-rgb:31,35,48;
+  --bad:#ff8fa3;--bad-rgb:255,143,163;--bad-hi:#ffc6d0;--bad-lo:#c25670;--post:#1f2330;--grad-a:#ffb3e6;--grad-b:#9ad7ff;--soft:#d3d8e6;--muted:#9aa1b4;--h-w:500;--h-b:800;
+  --bg:radial-gradient(90% 60% at 50% 20%,#232736 0%,#161921 60%,#0f1117 100%);--glow:rgba(154,215,255,.08);--mark-bg:rgba(154,215,255,.22);--ico-filter:hue-rotate(-18deg) saturate(.8)}
+.L.sk-holo::after{content:"";position:absolute;inset:20px;border-radius:44px;padding:10px;pointer-events:none;
+  background:conic-gradient(from 210deg,#ff9ad5,#9ad7ff,#b8ffc9,#ffe59a,#ffb3e6,#a8c4ff,#ff9ad5);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.L.sk-holo .in{padding:96px 92px 88px}
+.L.sk-paper{--ff:"Inter Tight",Inter,sans-serif;--acc:#2b2b2b;--acc-rgb:20,20,22;--acc2:#0f0f10;--acc2-rgb:15,15,16;--line-rgb:0,0,0;--card-rgb:255,255,255;
+  --bad:#e2463c;--bad-rgb:226,70,60;--bad-hi:#f07a70;--bad-lo:#b52a21;--post:#ffffff;--grad-a:#0f0f10;--grad-b:#3a3a3d;--ink:#0f0f10;--ink-rgb:15,15,16;--soft:#2f3034;--muted:#5b5c62;--h-w:800;--h-b:900;
+  --bg:#f6f6f2;--glow:transparent;--mark-bg:#c4f05a;--mark-ink:#0f0f10;--ico-filter:hue-rotate(-140deg) saturate(1.1)}
+.L.sk-paper{background-image:linear-gradient(#e6e6e0 1.5px,transparent 1.5px),linear-gradient(90deg,#e6e6e0 1.5px,transparent 1.5px);background-size:72px 72px}
+.L.sk-paper .h b{background:linear-gradient(transparent 55%,#c4f05a 55%,#c4f05a 92%,transparent 92%);padding:0 6px}
+.L.sk-warm{--ff:"Inter Tight",Inter,sans-serif;--acc:#e8613c;--acc-rgb:232,97,60;--acc2:#d4512c;--acc2-rgb:212,81,44;--line-rgb:80,60,40;--card-rgb:255,253,249;
+  --bad:#8d8378;--bad-rgb:141,131,120;--bad-hi:#b8afa4;--bad-lo:#6b6258;--post:#fffdf9;--grad-a:#e8613c;--grad-b:#b8411f;--ink:#2a2622;--ink-rgb:42,38,34;--soft:#4a423a;--muted:#7d746a;--h-w:500;--h-b:600;
+  --bg:#f4efe7;--glow:transparent;--mark-bg:rgba(232,97,60,.16);--mark-ink:#b8411f;--ico-filter:hue-rotate(160deg) saturate(1.2)}
+.L.sk-warm{background-image:radial-gradient(#d9d1c4 1.6px,transparent 1.6px);background-size:36px 36px}
+.L.sk-glass{--ff:"Inter Tight",Inter,sans-serif;--acc:#2f6bff;--acc-rgb:47,107,255;--acc2:#2f6bff;--acc2-rgb:47,107,255;--line-rgb:17,25,37;--card-rgb:255,255,255;
+  --bad:#d9453b;--bad-rgb:217,69,59;--bad-hi:#f08a82;--bad-lo:#a62a21;--post:rgba(255,255,255,.6);--grad-a:#111925;--grad-b:#2f6bff;--ink:#111925;--ink-rgb:17,25,37;--soft:#2a3648;--muted:#4f5d70;--h-w:600;--h-b:700;
+  --bg:radial-gradient(90% 70% at 50% 35%,#eef3f8 0%,#d6e0ea 55%,#b9c7d6 100%);--glow:rgba(255,255,255,.5);--mark-bg:rgba(47,107,255,.16);--mark-ink:#1340c4}
+.L.sk-glass .t2 .c,.L.sk-glass .c,.L.sk-glass .strip,.L.sk-glass .post,.L.sk-glass .col,.L.sk-glass .tip,.L.sk-glass .m,.L.sk-glass .ch,.L.sk-glass .win,.L.sk-glass.t1 .r,.L.sk-glass.t3 .li,.L.sk-glass.r1 .chart,.L.sk-glass.r3 .list{backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3)}
+.L.sk-glass .post,.L.sk-glass .col,.L.sk-glass .win,.L.sk-glass.r1 .chart,.L.sk-glass.r3 .list{box-shadow:0 50px 100px -40px rgba(0,0,0,.8),0 0 0 1px rgba(var(--ink-rgb),.02)}
+.L.sk-glass .c,.L.sk-glass .strip,.L.sk-glass .tip,.L.sk-glass .m,.L.sk-glass .ch,.L.sk-glass.t1 .r,.L.sk-glass.t3 .li{box-shadow:0 30px 64px -26px rgba(0,0,0,.55),0 0 0 1px rgba(var(--ink-rgb),.02)}
+.L.sk-paper .c,.L.sk-paper .strip,.L.sk-paper .post,.L.sk-paper .col,.L.sk-paper .tip,.L.sk-paper .m,.L.sk-paper .ch,.L.sk-paper .win,.L.sk-paper.t1 .r,.L.sk-paper.t3 .li,.L.sk-paper.r1 .chart,.L.sk-paper.r3 .list,
+.L.sk-warm .c,.L.sk-warm .strip,.L.sk-warm .post,.L.sk-warm .col,.L.sk-warm .tip,.L.sk-warm .m,.L.sk-warm .ch,.L.sk-warm .win,.L.sk-warm.t1 .r,.L.sk-warm.t3 .li,.L.sk-warm.r1 .chart,.L.sk-warm.r3 .list{box-shadow:0 18px 40px -22px rgba(60,40,20,.32),0 2px 6px rgba(60,40,20,.06)}
+.L.sk-paper .win,.L.sk-warm .win,.L.sk-glass .win{color:var(--ink)}
+.L.sk-paper .r4 .win,.L.sk-paper .win{background:#0f0f10;border-color:#0f0f10;color:#fff}
+.L.sk-paper .win .n,.L.sk-paper .win p,.L.sk-paper .win .k{color:#fff}
+.L.sk-paper .win .n{background:none}
+.r1 .b.up,.r1 .b.dn{color:#fff}
+/* light skins: style lists and charts as cards (white/warm/frosted bg, border, shadows); t5/r5 stay clean without card back */
+.L.sk-paper.t1 .rows,.L.sk-warm.t1 .rows,.L.sk-glass.t1 .rows,.L.sk-holo.t1 .rows{margin-top:36px!important}
+.L.sk-paper.t1 .rows,.L.sk-warm.t1 .rows,.L.sk-glass.t1 .rows{display:flex;flex-direction:column;gap:14px}
+.L.sk-paper.t1 .r,.L.sk-warm.t1 .r,.L.sk-glass.t1 .r{background:var(--post);border:1.5px solid var(--line);border-radius:22px;padding:22px 30px;grid-template-columns:300px 1fr;gap:28px}
+.L.sk-paper.t3 .list,.L.sk-warm.t3 .list,.L.sk-glass.t3 .list{margin-top:42px;gap:16px}
+.L.sk-paper.t3 .li,.L.sk-warm.t3 .li,.L.sk-glass.t3 .li{background:var(--post);border:1.5px solid var(--line);border-radius:22px;padding:18px 24px}
+.L.sk-paper.t3 .li.x,.L.sk-warm.t3 .li.x,.L.sk-glass.t3 .li.x{border-color:rgba(var(--bad-rgb),.35)}
+.L.sk-paper.r1 .chart,.L.sk-warm.r1 .chart,.L.sk-glass.r1 .chart{margin-top:34px;background:var(--post);border:1.5px solid var(--line);border-radius:28px;padding:20px 34px 26px}
+.L.sk-paper.r1 .grp:first-child,.L.sk-warm.r1 .grp:first-child,.L.sk-glass.r1 .grp:first-child{margin-top:6px}
+.L.sk-paper.r1 .row,.L.sk-warm.r1 .row,.L.sk-glass.r1 .row,.L.sk-paper.r1 .axis,.L.sk-warm.r1 .axis,.L.sk-glass.r1 .axis{grid-template-columns:350px 1fr}
+.L.sk-paper.r3 .list,.L.sk-warm.r3 .list,.L.sk-glass.r3 .list{margin-top:34px;background:var(--post);border:1.5px solid var(--line);border-radius:28px;padding:10px 36px}
+.L.sk-paper.r3 .it:first-child,.L.sk-warm.r3 .it:first-child,.L.sk-glass.r3 .it:first-child{border-top:0}
+.L.sk-paper.r3 .it,.L.sk-warm.r3 .it,.L.sk-glass.r3 .it{padding:18px 0}
+.L.sk-paper.r3 .gap,.L.sk-warm.r3 .gap,.L.sk-glass.r3 .gap{height:14px}
+/* light skins: no halo behind the icon, only a light soft shadow (owner 2026-11-25) */
+.sk-paper .ico::before,.sk-warm .ico::before,.sk-glass .ico::before{display:none}
+.sk-paper .ico img,.sk-warm .ico img,.sk-glass .ico img{filter:var(--ico-filter) brightness(1.22) saturate(1.12) drop-shadow(0 14px 18px rgba(40,30,20,.16))}
+
+/* ---------------------------------------------------------------- added for the skill (post_card.py), same look */
+.L .n{white-space:nowrap}
+.L .n small{white-space:normal}
+.t2 .grid .c:last-child:nth-child(odd){grid-column:1/-1}
+.r1 .b.up span.o{position:absolute;left:calc(100% + 14px);color:var(--acc2)}
+.t1 .who>div:nth-child(2){min-width:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar"><span class="t">REA Viral · post cards · 1080 × 1350</span><div class="seg" id="kind"></div></div>
+  <div class="bar" style="border:0;padding-top:12px"><div class="seg" id="skin"></div><div class="seg" id="content"></div></div>
+  <p class="note">Real runs: an account run (@nicravesh, growth mode) and a niche run (solo founders on X). Long text and Fewer
+    items are made-up stress data for the fit step (shrunk text is noted under a card; red = it still spills). Click a card for full
+    size. Make one from your own run: <code>python3 scripts/post_card.py &lt;run folder&gt; --layout t3 --skin cobalt</code> (references/post.md).</p>
+  <div id="view"></div>
+</div>
+<div id="one"></div>
+<script type="application/json" id="rea-card">null</script>
+<script>
+(function () {
+  'use strict';
+  // ------------------------------------------------------------------ the styles, the layouts, the icons
+  var SKINS = [['cobalt', 'Cobalt'], ['redword', 'Red Word'], ['night', 'Night Notes'], ['holo', 'Holo Card'], ['paper', 'Paper Pin'], ['warm', 'Warm Studio'], ['glass', 'Glass Studio']];
+  var LAYOUTS = {
+    teardown: [['t1', 'Scorecard'], ['t2', '2×2 numbers'], ['t3', 'Hero number + checklist'], ['t4', 'The proof post'], ['t5', 'Numbered editorial']],
+    report: [['r1', 'Diverging bars'], ['r2', 'Works | Doesn’t'], ['r3', 'Ranked, number first'], ['r4', 'The winner + the rest'], ['r5', 'Dot plot']]
+  };
+  // one glass icon per layout, by meaning; Red Word has its own red set; Night and Holo tint the blue set (--ico-filter)
+  var ICON = { t1: 'key', t2: 'arrow-up', t3: 'arrow-up', t4: 'bubble', t5: 'king', r1: 'arrow-up', r2: 'key', r3: 'king', r4: 'arrow-up', r5: 'bubble' };
+  var RED = { key: 'cursor', king: 'cursor', 'arrow-up': 'arrow-up', bubble: 'bubble' };
+  var NO_ICON = { holo: 1, paper: 1, warm: 1, glass: 1 };   // owner 2026-11-25: no icons on Holo or the light styles for now
+
+  // ------------------------------------------------------------------ the sample data of the gallery (real runs)
+  var SAMPLE = {
+    teardown: {
+      type: 'teardown', kicker: 'Teardown', title: 'Why <b>@nicravesh</b> is growing',
+      t1: { title: 'Why it’s <b>growing</b>' },
+      t2: { sub: '47 posts on X, Sep 30 – Nov 24, each against the account’s own normal.' },
+      account: { name: 'KIKI', handle: '@nicravesh', initial: 'K', followers: '481', window: 'Sep 30 – Nov 24', glyph: '𝕏' },
+      items: [
+        { n: '0.5 → 9.8', unit: 'posts a week', line: 'They post almost every day', sub: 'Since Nov 2. November: 39 posts, 37.9K views', short: 'Posts almost every day', tag: '0.5 → 9.8 / wk',
+          t5: { sub: 'Same kind of post, Kling vs Seedance, 10 times in 11 days', n: '9.8', unit: 'a week' } },
+        { n: '68', unit: 'replies, 12.1K views', line: 'They ask one group a question', sub: 'And promise to reply to everyone', short: 'Asks one group a question', tag: '68 replies',
+          say: 'replies when they ask one group a question', t5: { sub: '“AI video creators, what’s your go-to? I’ll reply to everyone”', unit: 'replies' } },
+        { n: '4 of 6', unit: 'tagged reposted', line: 'They tag the people in their videos', sub: 'And the tool, in the first reply', short: 'Tags the people in the video', tag: '4 of 6 reposted',
+          say: 'tagged people reposted their video', t5: { sub: 'Creators and the tool, in the first reply', unit: 'reposted' } },
+        { n: '77 min', unit: 'after the original', line: 'They jump on big news fast', sub: 'Their Durov quote got 7.3K views', short: 'Quotes big news fast', tag: '77 min',
+          say: 'to quote big news; it got 7.3K views', t5: { short: 'Jumps on big news fast', sub: 'Quoted @durov 77 minutes after the post', n: '7.3K', unit: 'views' } }
+      ],
+      miss: { n: '0.72×', unit: '0 hits in 11 posts', line: 'Meme clips don’t work', sub: 'One-line caption, nobody tagged, nothing to answer', short: 'Meme clips with one line', tag: '0.72×',
+        say: 'Meme clips with a one-line caption don’t work: 0 hits in 11 posts.', t5: { sub: 'One-line caption, nothing to answer: 0 hits in 11 posts', unit: 'normal' } },
+      hero: { n: '37.9K', line: 'views in November, from <b>1.4K</b> in October' },
+      proof: { date: 'Nov 22', text: '<mark>AI video creators</mark>, what’s your go-to right now? Seedance 2.5, Kling 4.0, MiniMax H3… or something else? Drop your favorite + what you’re building with it. <mark>I’ll reply to everyone</mark>, let’s connect 🤝',
+        stats: [['68', 'replies'], ['41', 'bookmarks'], ['12.1K', 'views']], caption: 'Name one crowd, ask one question, promise to answer: their best post.',
+        chips: [{ n: '9.8', text: 'posts a week, up from 0.5' }, { n: '4 of 6', text: 'tagged people reposted' }, { n: '77 min', text: 'to quote big news' }] },
+      foot: '1× = the account’s normal · 47 posts on X', brand: 'Made with <b>REA Viral</b>'
+    },
+    report: {
+      type: 'report', kicker: 'Save this', title: 'What works for <b>solo founders</b> on X right now',
+      r1: { sub: 'Each post against its creator’s own usual. Right of the line = above it.' },
+      r3: { sub: '14 creators, 661 posts, Oct 24 – Nov 23. Ranked by how far each format beats its creator’s usual.' },
+      r5: { sub: 'Where each format lands against its creator’s usual (the white line).' },
+      works: [
+        { v: 2.71, n: '2.71×', label: 'Own revenue number in line 1' },
+        { v: 2.68, n: '2.68×', label: 'List post: a colon line, one item per line', r5: { label: 'List post (one item per line)' } },
+        { v: 1.62, n: '1.62×', label: 'Long post, story or guide (600+ characters)' },
+        { v: 1.20, n: '1.20×', label: 'Ship / launch demo, rising' }
+      ],
+      doesnt: [
+        { v: 0.93, n: '0.93×', label: 'Quote with a short take (the most used: 197 posts)', r1: { label: 'Quote with a short take (197 posts)' }, r4: { label: 'Quote with a short take' }, r5: { label: 'Quote with a short take (197 posts)' } },
+        { v: 0.92, n: '0.92×', label: 'One-liner' },
+        { v: 0.85, n: '0.85×', label: 'Short question' },
+        { v: 0.82, n: '0.82×', label: 'Video clip (not a launch)' }
+      ],
+      tip: { n: '2.27×', label: 'Any post with a list in it (63 posts, 13 creators). Without one: 0.95×.', r4: { label: 'Has a list anywhere in it' } },
+      winner: 'Put your own revenue number in line 1', winner_k: '#1 format',
+      foot: '1× = each creator’s own usual · 14 creators · 661 posts', brand: 'Measured with <b>REA Viral</b>'
+    }
+  };
+
+  // ------------------------------------------------------------------ building one card from its data
+  // Every text in the data is HTML already (post_card.py escapes the run's words and adds only <b> and <mark>).
+  // Any item (and the card itself) may hold a per-layout override: {"line": "...", "t5": {"n": "9.8"}}.
+  function at(o, id) { if (!o || !o[id]) return o; var r = {}, k; for (k in o) r[k] = o[k]; for (k in o[id]) r[k] = o[id][k]; return r; }
+  function lc(s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : ''; }
+  function el(t, cls, html) { return html ? '<' + t + (cls ? ' class="' + cls + '"' : '') + '>' + html + '</' + t + '>' : ''; }
+  function pad2(i) { return (i < 10 ? '0' : '') + i; }
+  function head(d) { return '<div class="k">' + d.kicker + '</div><h1 class="h">' + d.title + '</h1>'; }
+  function foot(d) { return '<div class="foot"><span>' + (d.foot || '') + '</span><span>' + (d.brand || '') + '</span></div>'; }
+  function shortOf(it) { return it.short || it.line; }
+  function tagOf(it) { return it.tag || it.n; }
+  function sayOf(it) { return it.say || (it.unit ? it.unit + ': ' + lc(it.line) : it.line); }
+  function missSay(m) { return m.say || [m.line, m.unit].filter(Boolean).join(': '); }
+
+  var T = {
+    t1: function (d, items, m) {
+      var a = d.account;
+      function row(r, bad) { return '<div class="r"><div class="n' + bad + '">' + r.n + el('small', '', r.unit) + '</div><p>' + r.line + el('span', '', r.sub) + '</p></div>'; }
+      return '<div class="who"><div class="av">' + a.initial + '</div><div><b>' + a.name + '</b><span>' + a.handle + (a.window ? ' · ' + a.window : '') + '</span></div>' +
+        '<div class="fl"><b>' + a.followers + '</b><span>followers</span></div></div>' +
+        '<h1 class="h" style="margin-top:46px">' + d.title + '</h1><div class="rows">' + items.map(function (r) { return row(r, ''); }).join('') + (m ? row(m, ' bad') : '') + '</div>';
+    },
+    t2: function (d, items, m) {
+      return head(d) + el('p', 's', d.sub) + '<div class="grid">' + items.map(function (c, i) {
+        return '<div class="c"><div class="i">' + pad2(i + 1) + '</div><div class="n">' + c.n + '</div><p>' + sayOf(c) + '</p></div>'; }).join('') + '</div>' +
+        (m ? '<div class="strip"><div class="n">' + m.n + '</div><p>' + missSay(m) + '</p></div>' : '');
+    },
+    t3: function (d, items, m) {
+      var h = d.hero;
+      return head(d) + '<div class="hero"><div class="n">' + h.n + '</div>' + el('p', '', h.line) + '</div><div class="list">' + items.map(function (l) {
+        return '<div class="li"><div class="ic">✓</div><p>' + shortOf(l) + '</p><span class="tag">' + tagOf(l) + '</span></div>'; }).join('') +
+        (m ? '<div class="li x"><div class="ic">✕</div><p>' + shortOf(m) + '</p><span class="tag">' + tagOf(m) + '</span></div>' : '') + '</div>';
+    },
+    t4: function (d) {
+      var p = d.proof, a = d.account, chips = p.chips || [];
+      return head(d) + '<div class="post"><div class="ph"><div class="av">' + a.initial + '</div><div><b>' + a.name + '</b><span>' + a.handle + (p.date ? ' · ' + p.date : '') + '</span></div>' +
+        '<div class="x">' + (a.glyph || '') + '</div></div><p>' + p.text + '</p>' +
+        ((p.stats || []).length ? '<div class="stats">' + p.stats.map(function (s) { return '<span><b>' + s[0] + '</b>' + s[1] + '</span>'; }).join('') + '</div>' : '') + '</div>' +
+        el('p', 'cap', p.caption) +
+        (chips.length ? '<div class="chips" style="grid-template-columns:repeat(' + chips.length + ',1fr)">' + chips.map(function (c) {
+          return '<div class="ch"><div class="n">' + c.n + '</div>' + el('p', '', c.text) + '</div>'; }).join('') + '</div>' : '');
+    },
+    t5: function (d, items, m) {
+      return head(d) + '<div class="rows">' + items.map(function (r, i) {
+        return '<div class="r"><div class="no">' + pad2(i + 1) + '</div><div><h3>' + shortOf(r) + '</h3>' + el('p', '', r.sub) + '</div><div class="n">' + r.n + el('small', '', r.unit) + '</div></div>'; }).join('') +
+        (m ? '<div class="r x"><div class="no">✕</div><div><h3>' + m.line + '</h3>' + el('p', '', m.sub) + '</div><div class="n bad">' + m.n + el('small', '', m.unit) + '</div></div>' : '') + '</div>';
+    }
+  };
+
+  function scale(all) {   // the 1x line sits at 22 %; the lowest lift at 0 %, the highest at 100 %
+    var vs = all.map(function (w) { return w.v; });
+    var hi = Math.max(3, Math.ceil(Math.max.apply(null, vs)));
+    var lo = Math.max(0.05, Math.min(0.75, Math.floor(Math.min.apply(null, vs) * 20) / 20 - 0.05));
+    return { hi: hi, lo: lo,
+      pos: function (v) { v = Math.min(Math.max(v, lo), hi); return v >= 1 ? 22 + (v - 1) / (hi - 1) * 78 : 22 - (1 - v) / (1 - lo) * 22; },
+      lg: function (v) { v = Math.min(Math.max(v, lo), hi); return Math.log(v / lo) / Math.log(hi / lo) * 100; } };
+  }
+  var R = {
+    r1: function (d, W, D) {
+      var s = scale(W.concat(D)), step = Math.max(1, Math.ceil((s.hi - 1) / 3)), ticks = [1], t;
+      for (t = 1 + step; t <= s.hi; t += step) ticks.push(t);
+      return head(d) + el('p', 's', d.sub) + '<div class="chart">' +
+        (W.length ? '<div class="grp">WORKS</div>' + W.map(function (w) { var wd = s.pos(w.v) - 22;
+          return '<div class="row"><div class="lab">' + w.label + '</div><div class="track"><div class="one"></div><div class="b up" style="width:' + wd + '%">' +
+            (wd >= 13 ? w.n : '<span class="o">' + w.n + '</span>') + '</div></div></div>'; }).join('') : '') +
+        (D.length ? '<div class="grp">DOESN’T</div>' + D.map(function (w) {
+          return '<div class="row"><div class="lab">' + w.label + '</div><div class="track"><div class="one"></div><div class="b dn" style="width:' + (22 - s.pos(w.v)) + '%"><span>' + w.n + '</span></div></div></div>'; }).join('') : '') +
+        '<div class="axis"><div></div><div>' + ticks.map(function (a) { return '<span style="left:' + s.pos(a) + '%">' + a + '×</span>'; }).join('') + '</div></div></div>';
+    },
+    r2: function (d, W, D) {
+      function col(list, cls, h) { return list.length ? '<div class="col' + cls + '"><h4>' + h + '</h4>' + list.map(function (w) { return '<div class="it"><div class="n">' + w.n + '</div><p>' + w.label + '</p></div>'; }).join('') + '</div>' : ''; }
+      return head(d) + '<div class="cols"' + (W.length && D.length ? '' : ' style="grid-template-columns:1fr"') + '>' + col(W, '', 'Works') + col(D, ' no', 'Doesn’t') + '</div>' +
+        (d.tip ? '<div class="tip"><div class="n">' + d.tip.n + '</div><p>' + d.tip.label + '</p></div>' : '');
+    },
+    r3: function (d, W, D) {
+      function it(w, bad) { return '<div class="it"><div class="n' + bad + '">' + w.n + '</div><p>' + w.label + '</p></div>'; }
+      return head(d) + el('p', 's', d.sub) + '<div class="list">' + W.map(function (w) { return it(w, ''); }).join('') + (W.length && D.length ? '<div class="gap"></div>' : '') +
+        D.map(function (w) { return it(w, ' bad'); }).join('') + '</div>';
+    },
+    r4: function (d, W, D) {
+      var win = W[0], rest = W.slice(1).map(function (w) { return [w, '']; });
+      if (d.tip) rest.push([d.tip, '']);
+      D.forEach(function (w) { if (rest.length < 7) rest.push([w, ' class="bad"']); });
+      return head(d) + '<div class="win"><div class="k">' + (d.winner_k || '#1 format') + '</div><div class="n">' + win.n + '</div><p>' + (d.winner || win.label) + '</p></div>' +
+        (rest.length ? '<div class="rest">' + rest.map(function (x) { return '<div class="m"><p>' + x[0].label + '</p><b' + x[1] + '>' + x[0].n + '</b></div>'; }).join('') + '</div>' : '');
+    },
+    r5: function (d, W, D) {
+      var s = scale(W.concat(D)), one = s.lg(1);
+      var ticks = [0.5, 0.8, 1, 1.5, 2, 3, 5, 10, 20, 50].filter(function (t) { return t >= s.lo && t <= s.hi; });
+      return head(d) + el('p', 's', d.sub) + '<div class="plot">' + W.concat(D).map(function (w) {
+        var x = s.lg(w.v), up = w.v >= 1, c = up ? 'var(--acc2)' : 'var(--bad)';
+        return '<div class="row"><div class="lab">' + w.label + '</div><div class="tr"><div class="one" style="left:' + one + '%"></div>' +
+          '<div class="stem" style="left:' + Math.min(x, one) + '%;width:' + Math.abs(x - one) + '%;background:' + c + '"></div><div class="dot" style="left:' + x + '%;background:' + c + '"></div></div>' +
+          '<div class="v' + (up ? '' : ' bad') + '">' + w.n + '</div></div>'; }).join('') +
+        '</div><div class="ax"><div></div><div>' + ticks.map(function (a) { return '<span style="left:' + s.lg(a) + '%">' + a + '×</span>'; }).join('') + '</div></div>';
+    }
+  };
+
+  function iconSrc(d) {
+    if (d.icon !== undefined) return d.icon;                 // a filled card carries its icon inside (or null)
+    var n = ICON[d.layout]; if (!n || NO_ICON[d.skin]) return null;
+    return 'icons/' + (d.skin === 'redword' ? 'red-' + RED[n] : 'cobalt-' + n) + '.png';
+  }
+  function build(d0) {
+    var id = d0.layout, d = at(d0, id), html;
+    if (d.type === 'report') {
+      var W = (d.works || []).map(function (w) { return at(w, id); }), D = (d.doesnt || []).map(function (w) { return at(w, id); });
+      d.tip = at(d.tip, id);
+      html = R[id](d, W, D);
+    } else {
+      d.hero = at(d.hero, id); d.proof = at(d.proof, id);
+      html = T[id](d, (d.items || []).map(function (it) { return at(it, id); }), at(d.miss, id));
+    }
+    var box = document.createElement('div'), src = iconSrc(d);
+    box.className = 'L ' + id + ' sk-' + d.skin; box.setAttribute('data-l', id); box.setAttribute('data-skin', d.skin);
+    box.innerHTML = '<div class="in">' + (src ? '<div class="ico"><img alt="" src="' + src + '"></div>' : '') + html + foot(d) + '</div>';
+    return box;
+  }
+
+  // ------------------------------------------------------------------ fit: shrink until nothing spills
+  // A text wider than its box shrinks alone (to 56 %, a headline to 45 %; then a too-long word may break); content that reaches the foot zooms down as a whole
+  // (to 70 % at most). What still spills is a problem the card reports (window.__reaCard.problems).
+  function ownText(n) { for (var c = n.firstChild; c; c = c.nextSibling) if (c.nodeType === 3 && c.nodeValue.trim()) return true; return false; }
+  function texts(card) { return Array.prototype.filter.call(card.querySelectorAll('.in *'), function (n) { return !n.closest('.ico') && ownText(n); }); }
+  function measure(card, list) {
+    var inn = card.querySelector('.in'), ft = inn.querySelector('.foot'), cr = card.getBoundingClientRect(), s = cr.width / 1080;
+    var kids = Array.prototype.filter.call(inn.children, function (c) { return !c.classList.contains('foot') && !c.classList.contains('ico'); });
+    var bottom = Math.max.apply(null, kids.map(function (c) { return c.getBoundingClientRect().bottom; }));
+    var fr = ft.getBoundingClientRect(), wide = list.filter(function (n) {
+      var r = n.getBoundingClientRect();
+      if (!r.width) return false;
+      if (r.right > cr.right - 24 * s + 0.5 || r.left < cr.left + 24 * s - 0.5) return true;
+      return getComputedStyle(n).display !== 'inline' && n.scrollWidth > n.clientWidth + 1;
+    });
+    return { gap: (fr.top - bottom) / s, footBottom: (fr.bottom - cr.top) / s, wide: wide, kids: kids };
+  }
+  function fit(card) {
+    var list = texts(card), z = 1, shrunk = [], m, k;
+    list.forEach(function (n) { n.__base = parseFloat(getComputedStyle(n).fontSize); n.__f = 1; n.__min = n.closest('.h') ? 0.45 : 0.56; });
+    for (k = 0; k < 120; k++) {
+      m = measure(card, list);
+      var can = m.wide.filter(function (n) { return n.__f > n.__min; });
+      if (!can.length && m.wide.length && !card.__wrapped) {   // last resort: a word longer than its box (a long @handle) may break
+        card.__wrapped = true; m.wide.forEach(function (n) { n.style.overflowWrap = 'anywhere'; }); continue;
+      }
+      if (can.length) {
+        can.forEach(function (n) { n.__f = Math.round(n.__f * 0.94 * 1000) / 1000; n.style.fontSize = (n.__base * n.__f) + 'px'; if (shrunk.indexOf(n) < 0) shrunk.push(n); });
+        continue;
+      }
+      if (m.gap < 16 && z > 0.7) { z = Math.round((z - 0.025) * 1000) / 1000; m.kids.forEach(function (c) { c.style.zoom = z; }); continue; }
+      break;
+    }
+    m = measure(card, list);
+    var problems = [];
+    if (m.gap < 16) problems.push('the content reaches the foot (' + Math.round(m.gap) + ' px from it) even at ' + Math.round(z * 100) + ' %: shorten the lines or drop an item');
+    if (m.footBottom > 1350 - 40) problems.push('the foot is pushed down to ' + Math.round(m.footBottom) + ' px of 1350');
+    m.wide.forEach(function (n) { problems.push('too wide even when shrunk: "' + n.textContent.replace(/\s+/g, ' ').trim().slice(0, 50) + '"'); });
+    return { ok: !problems.length, zoom: z, gap: Math.round(m.gap), shrunk: shrunk.map(function (n) { return n.textContent.replace(/\s+/g, ' ').trim().slice(0, 50); }), problems: problems };
+  }
+  function fontsReady() { return document.fonts ? document.fonts.ready : Promise.resolve(); }
+
+  // ------------------------------------------------------------------ one card (filled by post_card.py) or the gallery
+  var data = null;
+  try { data = JSON.parse(document.getElementById('rea-card').textContent); } catch (e) { console.error('rea-card: the card data does not parse: ' + e); }
+  if (data) {
+    document.body.classList.add('one');
+    var card = build(data);
+    document.getElementById('one').appendChild(card);
+    void card.offsetHeight;
+    fontsReady().then(function () {
+      var r = fit(card);
+      r.fonts = Array.from(document.fonts || []).filter(function (f) { return f.status === 'loaded'; }).map(function (f) { return f.family.replace(/["']/g, ''); })
+        .filter(function (f, i, a) { return a.indexOf(f) === i; });
+      r.layout = data.layout; r.skin = data.skin;
+      window.__reaCard = r;
+      document.body.setAttribute('data-ready', r.ok ? 'ok' : 'problems');
+    });
+    return;
+  }
+  // ---- the gallery and design lab: every layout, one style or all seven, real runs or text that stresses the fit
+  var MORE = {
+    long: {   // long names, long lines, wide numbers: the fit step must shrink, never spill
+      teardown: {
+        type: 'teardown', kicker: 'Teardown of a long handle', title: 'Why <b>@the_very_long_creator_handle</b> keeps growing so fast',
+        t1: { title: 'Why it’s <b>growing</b> this quarter' },
+        t2: { sub: '312 posts on Instagram, Aug 1 – Nov 24, each against the account’s own normal, with the reels and carousels counted together.' },
+        account: { name: 'Alexandra Montgomery-Fitzgerald', handle: '@the_very_long_creator_handle', initial: 'A', followers: '1.2M', window: 'Aug 1 – Nov 24', glyph: 'Instagram' },
+        items: [
+          { n: '12.4K → 98.1K', unit: 'median views a reel, before and after the change', line: 'They moved every reel to a three-second hook with a number on screen', sub: 'Since Sep 14. October: 61 posts, 4.1M views, 22 of them over twice the normal', short: 'Opens every reel on a number', tag: '12.4K → 98.1K / reel' },
+          { n: '1,284', unit: 'comments, 412K views', line: 'They ask one group of people a long open question with three options', sub: 'And promise to answer every single comment within the first two hours', short: 'Asks one named crowd a question', tag: '1,284 comments' },
+          { n: '17 of 23', unit: 'tagged accounts shared it', line: 'They credit every brand and person in the first comment', sub: 'The brands repost; the people bring their own followers along', short: 'Credits everyone in the first comment', tag: '17 of 23 shared' },
+          { n: '1,440 min', unit: 'after the original, still the top reply', line: 'They answer the biggest posts of the week with a reaction reel', sub: 'Their reaction to the launch got 2.3M views against a normal of 98.1K', short: 'Reacts to big launches', tag: '1,440 min' }
+        ],
+        miss: { n: '0.41×', unit: '1 hit in 37 posts', line: 'Carousels of quotes with no face and no question don’t work', sub: 'No hook, nobody tagged, nothing to answer, posted at random hours', short: 'Quote carousels without a face', tag: '0.41×' },
+        hero: { n: '4.1M → 12.9M', line: 'views in November, from <b>4.1M</b> in October, on the same number of posts' },
+        proof: { date: 'Nov 21', text: '<mark>Reel editors and motion designers</mark>, which tool are you actually paying for in 2026? After Effects, CapCut Pro, DaVinci, Premiere, or one of the new AI editors everyone keeps posting about? Tell me what you cut with and what you would never go back to. <mark>I answer every comment today</mark>, promise 🎬',
+          stats: [['1,284', 'comments'], ['9.4K', 'saves'], ['412K', 'views']], caption: 'Name one crowd, ask one question with options, promise to answer every comment: the best reel of the quarter.',
+          chips: [{ n: '98.1K', text: 'median views a reel, up from 12.4K' }, { n: '17 of 23', text: 'tagged accounts shared it' }, { n: '1,440 min', text: 'after the original launch' }] },
+        foot: '1× = the account’s normal · 312 posts on Instagram', brand: 'Made with <b>REA Viral</b>'
+      },
+      report: {
+        type: 'report', kicker: 'Save this before you post', title: 'What works for <b>AI video editing and motion design tools</b> on YouTube Shorts right now',
+        r1: { sub: 'Each post against its creator’s own usual, over the last thirty days. Right of the line = above it.' },
+        r3: { sub: '38 creators, 2,412 posts, Oct 17 – Nov 16. Ranked by how far each beats its creator’s usual.' },
+        r5: { sub: 'Where each lands against its creator’s usual (the white line), on a log scale.' },
+        works: [
+          { v: 17.15, n: '17.15×', label: 'Shape creatures on a ledge, rendered in a template app with a watermark' },
+          { v: 2.68, n: '2.68×', label: 'Before and after of the same clip, split screen, with the tool named on screen' },
+          { v: 1.46, n: '1.46×', label: 'A three-step tutorial that ends on the finished render' },
+          { v: 1.04, n: '1.04×', label: 'Speed ramp edit set to a trending sound' }
+        ],
+        doesnt: [
+          { v: 0.97, n: '0.97×', label: 'A talking head review of a new AI video model, with no footage of it' },
+          { v: 0.72, n: '0.72×', label: 'Wrestling aura edits with heavy flashes' },
+          { v: 0.55, n: '0.55×', label: 'Logo reveal templates' },
+          { v: 0.31, n: '0.31×', label: 'A slideshow of AI images with a voice-over read by a text-to-speech voice' }
+        ],
+        tip: { n: '2.27×', label: 'Any Short whose first frame names the tool in big type (163 posts, 21 creators). Without it: 0.95×.', r4: { label: 'Names the tool on the first frame' } },
+        winner: 'Shape creatures on a ledge, rendered in a template app', winner_k: '#1 format',
+        foot: '1× = each creator’s own usual · 38 creators · 2,412 posts', brand: 'Measured with <b>REA Viral</b>'
+      }
+    },
+    few: {    // the least a card holds: 3 items and no miss; 2 works, 1 doesn't, no tip
+      teardown: {
+        type: 'teardown', kicker: 'Teardown', title: 'Why <b>@sam</b> is growing', t1: { title: 'Why it’s <b>growing</b>' },
+        t2: { sub: '24 posts on Threads, Oct 25 – Nov 24, each against the account’s own normal.' },
+        account: { name: 'Sam', handle: '@sam', initial: 'S', followers: '2.4K', window: 'Oct 25 – Nov 24', glyph: 'Threads' },
+        items: [
+          { n: '3 → 7', unit: 'posts a week', line: 'They post every day now', sub: 'Since Nov 3', short: 'Posts every day', tag: '3 → 7 / wk' },
+          { n: '212', unit: 'replies', line: 'They ask one question', sub: 'And answer it themselves first', short: 'Asks one question' },
+          { n: '64%', unit: 'of the views in 3 posts', line: 'A few posts carry the month', sub: 'All three open on a number', short: 'A few posts carry the month' }
+        ],
+        hero: { n: '31K', line: 'views in November, from <b>9K</b> in October' },
+        proof: { date: 'Nov 20', text: 'What is one thing you stopped doing this year that made your work better? <mark>I’ll go first</mark>: meetings before noon.',
+          stats: [['212', 'replies'], ['18K', 'views']], caption: 'One question, answered first.', chips: [{ n: '3 → 7', text: 'posts a week' }, { n: '64%', text: 'of the views in 3 posts' }] },
+        foot: '1× = the account’s normal · 24 posts on Threads', brand: 'Made with <b>REA Viral</b>'
+      },
+      report: {
+        type: 'report', kicker: 'Save this', title: 'What works for <b>indie game devs</b> on TikTok right now',
+        r1: { sub: 'Each post against its creator’s own usual. Right of the line = above it.' },
+        r3: { sub: '9 creators, 180 posts, Oct 24 – Nov 23.' }, r5: { sub: 'Where each lands against its creator’s usual (the white line).' },
+        works: [{ v: 2.1, n: '2.10×', label: 'Devlog with a bug that became a feature' }, { v: 1.3, n: '1.30×', label: 'Before and after of one scene' }],
+        doesnt: [{ v: 0.8, n: '0.80×', label: 'Trailer cut' }],
+        foot: '1× = each creator’s own usual · 9 creators · 180 posts', brand: 'Measured with <b>REA Viral</b>'
+      }
+    }
+  };
+  var CONTENT = [['sample', 'Real runs'], ['long', 'Long text (fit test)'], ['few', 'Fewer items']];
+  function sampleOf(c, k) { return c === 'sample' ? SAMPLE[k] : MORE[c][k]; }
+  var H = location.hash;
+  var kind = /report/.test(H) ? 'report' : 'teardown', only = (H.match(/l=(\w+)/) || [])[1];
+  var skin = (H.match(/skin=(\w+)/) || [])[1] || 'cobalt', content = (H.match(/c=(\w+)/) || [])[1] || 'sample';
+  if (!MORE[content]) content = 'sample';
+  function hash() { try { history.replaceState(null, '', '#' + kind + '&skin=' + skin + (content !== 'sample' ? '&c=' + content : '') + (only ? '&l=' + only : '')); } catch (e) { /* file:// in some browsers */ } }
+  function seg(id, list, cur, set) {
+    var el = document.getElementById(id); el.textContent = '';
+    list.forEach(function (k) { var b = document.createElement('button'); b.textContent = k[1]; b.setAttribute('aria-pressed', k[0] === cur);
+      b.onclick = function () { set(k[0]); hash(); render(); }; el.appendChild(b); });
+  }
+  function render() {
+    seg('kind', [['teardown', 'Account teardown'], ['report', 'Niche report']], kind, function (k) { kind = k; only = null; });
+    seg('skin', SKINS.map(function (k) { return [k[0], k[1] + (k[0] === 'cobalt' ? ' (default)' : '')]; }).concat([['all', 'All styles']]), skin, function (k) { skin = k; });
+    seg('content', CONTENT, content, function (k) { content = k; });
+    var v = document.getElementById('view'); v.textContent = '';
+    var skins = skin === 'all' ? SKINS.map(function (k) { return k[0]; }) : [skin];
+    var lays = LAYOUTS[kind].filter(function (l) { return !only || l[0] === only; });
+    var per = only ? (skin === 'all' ? 4 : 1) : 5;
+    var W = per === 1 ? 1080 : Math.min(400, Math.floor((v.clientWidth - 24 * (per - 1)) / per)), s = W / 1080, made = [];
+    skins.forEach(function (sk) {
+      if (skin === 'all') { var hd = document.createElement('div'); hd.className = 'row-h';
+        hd.textContent = SKINS.filter(function (k) { return k[0] === sk; })[0][1] + (sk === 'cobalt' ? ' · default' : '') + (NO_ICON[sk] ? ' · no icons' : ''); v.appendChild(hd); }
+      lays.forEach(function (l, i) {
+        var d = {}, k, src = sampleOf(content, kind); for (k in src) d[k] = src[k];
+        d.layout = l[0]; d.skin = sk;
+        var c = build(d), fig = document.createElement('figure'), box = document.createElement('div'), cap = document.createElement('figcaption');
+        box.className = 'box'; box.style.width = W + 'px'; box.style.height = Math.round(1350 * s) + 'px'; fig.style.width = W + 'px';
+        c.style.transform = 'scale(' + s + ')'; box.appendChild(c); cap.textContent = (i + 1) + ' · ' + l[1] + ' · ' + l[0] + (skin === 'all' ? ' · ' + sk : '');
+        fig.appendChild(box); fig.appendChild(cap); v.appendChild(fig); made.push([c, cap]);
+        fig.style.cursor = only ? 'zoom-out' : 'zoom-in';
+        fig.onclick = function () { if (only) { only = null; } else { only = l[0]; if (skin === 'all') skin = sk; } hash(); render(); };
+      });
+    });
+    fontsReady().then(function () {
+      made.forEach(function (x) { var r = fit(x[0]);
+        if (!r.ok) { x[1].className = 'bad'; x[1].textContent += ' · ' + r.problems.join('; '); }
+        else if (r.zoom < 1 || r.shrunk.length) x[1].textContent += ' · fitted' + (r.zoom < 1 ? ' ' + Math.round(r.zoom * 100) + ' %' : '') + (r.shrunk.length ? ', ' + r.shrunk.length + ' shrunk' : ''); });
+      document.body.setAttribute('data-ready', kind);
+    });
+  }
+  window.addEventListener('resize', function () { clearTimeout(window.__reaRs); window.__reaRs = setTimeout(render, 200); });
+  render();
+})();
+</script>
+</body>
+</html>

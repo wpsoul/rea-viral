@@ -97,6 +97,12 @@ examples that do not fit and the formats it shows you missed (`radar.md`, "Check
 (Scale it, Underused, Overused, Drop: where it sits, never where it is going), `radar.json` (`scope: "account"`) and a
 recipe skeleton `formats/<id>.md` to fill from the deep read (`radar.md`). With no watched video, leave `beats` empty: a recipe without beats is not offered for a remake.
 
+## Step 7b: Growth mode (when asked why it grows)
+
+"REA Viral: why is @handle growing" (or "REA Viral growth @handle", "why is @handle growing (REA Viral)",
+`/rea-viral growth @handle`) adds, here: the growth reads, `growth.py`, your reading in `findings.json` `growth` and
+the reply draft (`growth.md`). The other steps stay as they are.
+
 ## Step 8: What worked, what did not, and the plays
 
 Write `findings.json` (`handover.md`): the headline, the mechanisms (what worked), `did_not_work`, how it writes,
