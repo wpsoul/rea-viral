@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>REA Viral post card</title>
-<!-- REA Viral post card: 10 layouts (teardown t1-t5, niche report r1-r5) x 7 styles, 1080 x 1350.
-     Opened as it is: a gallery of every layout in every style with sample data (switch type and style at the top).
+<!-- REA Viral post card: 22 layouts across 9 report types (t1-t5, r1-r6, p1-p3, f1-f2, a1-a2, d1, w1, c1, x1) x 7 styles, 1080 x 1350.
+     Opened as it is: interactive design lab & gallery of every layout in every style with sample, long-text, and few-item data.
      Filled by scripts/post_card.py: ONE card from a run's numbers, its fonts and icon inside (opens anywhere), rendered
      to PNG by scripts/render_card.mjs. Fonts: Poppins, Inter Tight, Archivo, Red Hat Display (SIL OFL 1.1, fonts/OFL.txt).
      Spec: references/post.md. -->
@@ -18,7 +18,8 @@ body.one .wrap{display:none}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #26282d}
 .bar .t{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#9a9ea7}
 .seg{display:inline-flex;gap:2px;background:#17181b;border:1px solid #26282d;border-radius:9px;padding:2px;flex-wrap:wrap}
-.seg button{border:0;background:none;color:#9a9ea7;font:600 13px Inter,system-ui,sans-serif;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button{border:0;background:none;color:#9a9ea7;font:600 13px Inter,system-ui,sans-serif;padding:6px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button:hover{color:#eceef1}
 .seg button[aria-pressed="true"]{background:#0f1012;color:#eceef1;box-shadow:0 0 0 1px #26282d}
 .note{font-size:12.5px;color:#9a9ea7;margin:12px 0 0;line-height:1.5}
 .note code{color:#eceef1}
@@ -32,22 +33,31 @@ figcaption{font-size:12.5px;color:#9a9ea7;margin-top:8px;font-weight:600}
 figcaption.bad{color:#ff8f8f}
 
 /* ================================================================ Cobalt, the kept style */
-.L{--ff:Poppins,sans-serif;--acc:#3d6bff;--acc-rgb:61,107,255;--acc2:#7fa2ff;--acc2-rgb:127,162,255;--line-rgb:150,175,255;--card-rgb:10,22,80;
-  --bad:var(--bad);--bad-rgb:255,125,143;--bad-hi:#ffb3be;--bad-lo:#b8344a;--post:#0b1236;--grad-a:#ffffff;--grad-b:#8fb0ff;--ink:#ffffff;--ink-rgb:255,255,255;--soft:#c9d3f5;--muted:#8d9ac8;
-  --line:rgba(var(--line-rgb),.18);--red:var(--bad);--card:rgba(var(--card-rgb),.55);--mark-bg:rgba(var(--acc-rgb),.35);--mark-ink:#ffffff;--ico-filter:none;--h-w:300;--h-b:700;
+.L{--ff:Poppins,sans-serif;--acc:#3d6bff;--acc-rgb:61,107,255;--acc2:#7fa2ff;--acc2-rgb:127,162,255;--blue2:var(--acc2);--line-rgb:150,175,255;--card-rgb:10,22,80;
+  --bad:#ff7d8f;--bad-rgb:255,125,143;--bad-hi:#ffb3be;--bad-lo:#b8344a;--warn:#f3c56b;--warn-rgb:243,197,107;--good:#33efab;--good-rgb:51,239,171;
+  --post:#0b1236;--grad-a:#ffffff;--grad-b:#8fb0ff;--ink:#ffffff;--ink-rgb:255,255,255;--soft:#c9d3f5;--muted:#8d9ac8;
+  --line:rgba(var(--line-rgb),.18);--red:var(--bad);--card:rgba(var(--card-rgb),.55);--mark-bg:rgba(var(--acc-rgb),.35);--mark-ink:#ffffff;--ico-filter:none;--h-w:300;--h-b:700;--b-w:700;
   --bg:radial-gradient(70% 50% at 88% 92%,#1f45ff 0%,#0c1b7a 32%,#050b2a 62%,#03061a 100%);--glow:rgba(120,150,255,.16);
   position:relative;width:1080px;height:1350px;overflow:hidden;color:var(--ink);font-family:var(--ff);font-variant-numeric:tabular-nums;background:var(--bg)}
+.L.sk-cobalt{--h-b:600;--b-w:600}
+.L.sk-cobalt b,.L.sk-cobalt strong{font-weight:600}
 .L::before{content:"";position:absolute;inset:0;background:radial-gradient(45% 30% at 18% 0%,var(--glow),transparent 70%);pointer-events:none}
 .L .in{position:relative;height:100%;box-sizing:border-box;padding:84px 84px 76px;display:flex;flex-direction:column}
 .k{font:600 21px/1 var(--ff);letter-spacing:.26em;text-transform:uppercase;color:var(--blue2)}
-.h{font:var(--h-w) 70px/1.04 var(--ff);letter-spacing:-.035em;margin:20px 0 0}
+.h{font:var(--h-w) 70px/1.04 var(--ff);letter-spacing:-.035em;margin:20px 0 0;overflow-wrap:anywhere}
 .h b{font-weight:var(--h-b);color:var(--blue2)}
 .s{font:400 24px/1.4 var(--ff);color:var(--muted);margin:16px 0 0}
-.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font:400 18px/1.4 var(--ff);color:var(--muted)}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;font:400 18px/1.4 var(--ff);color:var(--muted)}
 .foot b{color:var(--ink);font-weight:600}
 .hr{height:1px;background:var(--line)}
 .bad{color:var(--red)!important}
 mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0 6px;font-weight:600;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.krow{display:flex;align-items:center;justify-content:flex-start;gap:16px;flex-wrap:wrap;max-width:720px}
+.sk-holo .krow,.sk-paper .krow,.sk-warm .krow,.sk-glass .krow{max-width:none}
+.badge{display:inline-flex;align-items:center;font:var(--b-w) 15px/1 var(--ff);letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;border-radius:999px;background:rgba(var(--acc-rgb),.2);border:1.5px solid rgba(var(--acc2-rgb),.45);color:var(--acc2);white-space:nowrap}
+.badge.warn{background:rgba(var(--warn-rgb),.16);border-color:rgba(var(--warn-rgb),.5);color:var(--warn)}
+.badge.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.48);color:var(--red)!important}
+.badge.good{background:rgba(var(--good-rgb),.16);border-color:rgba(var(--good-rgb),.48);color:var(--good)}
 
 .ico{position:absolute;pointer-events:none;z-index:1}
 .ico img{position:relative;width:100%;display:block;filter:var(--ico-filter) brightness(1.22) saturate(1.12) drop-shadow(0 30px 40px rgba(0,0,0,.45))}
@@ -56,119 +66,137 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
 .L.t1 .h{max-width:none}
 .L.t3 .h{max-width:700px}
 .t1 .ico{width:200px;right:70px;top:176px;transform:rotate(-8deg)}.t1 .rows{margin-top:84px!important}
+.a1 .ico{width:170px;right:56px;top:160px;transform:rotate(-8deg)}
 .t2 .ico,.t3 .ico{width:320px;right:-30px;top:36px;transform:rotate(-8deg)}
 .t4 .ico{width:270px;right:-20px;top:30px;transform:rotate(6deg)}
 .t5 .ico,.r3 .ico{width:280px;right:-10px;top:24px;transform:rotate(-6deg)}
 .r1 .ico,.r2 .ico,.r4 .ico,.r5 .ico{width:230px;right:-24px;top:28px;transform:rotate(-8deg)}
-.r1 .h,.r2 .h,.r3 .h,.r4 .h,.r5 .h{font-size:60px;max-width:790px}
+.p1 .ico,.p2 .ico,.p3 .ico,.f1 .ico,.f2 .ico,.a2 .ico,.d1 .ico,.w1 .ico,.c1 .ico,.x1 .ico,.r6 .ico{width:190px;right:-12px;top:24px;transform:rotate(-8deg)}
+.r1 .h,.r2 .h,.r3 .h,.r4 .h,.r5 .h{font-size:58px;max-width:760px}
+.r6 .h,.p1 .h,.p2 .h,.p3 .h,.f1 .h,.f2 .h,.a1 .h,.a2 .h,.d1 .h,.w1 .h,.c1 .h,.x1 .h{font-size:58px;max-width:720px}
+.sk-holo .h,.sk-paper .h,.sk-warm .h,.sk-glass .h{max-width:none}
 .r3 .ico{width:230px}
 .r5 .row{height:92px!important}
 .sk-holo .ico{right:6px;top:52px}
+
 /* T1 scorecard: profile header + number-led rows */
-.t1 .who{display:flex;align-items:center;gap:22px}
-.av{width:84px;height:84px;border-radius:50%;background:linear-gradient(140deg,var(--acc),var(--acc));display:flex;align-items:center;justify-content:center;font:700 38px/1 var(--ff);flex:none}
-.t1 .who b{display:block;font:600 30px/1.1 var(--ff)}.t1 .who span{font:400 22px/1.3 var(--ff);color:var(--muted)}
-.t1 .who .fl{margin-left:auto;text-align:right}.t1 .who .fl b{font:700 40px/1 var(--ff)}
+.t1 .who,.a1 .who{display:flex;align-items:center;gap:22px}
+.av{width:84px;height:84px;border-radius:50%;background:linear-gradient(140deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font:var(--b-w) 38px/1 var(--ff);color:#fff;flex:none}
+.t1 .who b,.a1 .who b{display:block;font:600 30px/1.1 var(--ff)}.t1 .who span,.a1 .who span{font:400 22px/1.3 var(--ff);color:var(--muted)}
+.t1 .who .fl,.a1 .who .fl{margin-left:auto;text-align:right}.t1 .who .fl b,.a1 .who .fl b{font:var(--b-w) 40px/1 var(--ff)}
 .t1 .rows{margin-top:44px}
 .t1 .r{display:grid;grid-template-columns:330px 1fr;gap:36px;align-items:center;padding:30px 0;border-top:1px solid var(--line)}
 .t1 .r:last-child{border-bottom:1px solid var(--line)}
-.t1 .r .n{font:700 64px/1 var(--ff);letter-spacing:-.03em}
+.t1 .r .n{font:var(--b-w) 64px/1 var(--ff);letter-spacing:-.03em}
 .t1 .r .n small{display:block;font:400 19px/1.3 var(--ff);color:var(--muted);letter-spacing:0;margin-top:8px}
 .t1 .r p{margin:0;font:500 30px/1.3 var(--ff)}
 .t1 .r p span{display:block;font:400 21px/1.4 var(--ff);color:var(--muted);margin-top:6px}
 
-/* T2 2x2 stat grid */
-.t2 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px}
-.t2 .c{background:var(--card);border:1.5px solid var(--line);border-radius:28px;padding:32px 32px;min-height:250px;display:flex;flex-direction:column;
+/* T2 2x2 stat grid (0.5.1: crisp .u unit subtitle instead of "unit: line" mashup) */
+.t2 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:44px}
+.t2 .c{background:var(--card);border:1.5px solid var(--line);border-radius:28px;padding:30px 32px;min-height:245px;display:flex;flex-direction:column;
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .t2 .c .i{font:600 20px/1 var(--ff);color:var(--blue2);letter-spacing:.14em}
-.t2 .c .n{font:700 70px/1 var(--ff);letter-spacing:-.035em;margin-top:auto}
-.t2 .c p{margin:16px 0 0;font:500 26px/1.3 var(--ff)}
+.t2 .c .n{font:var(--b-w) 68px/1 var(--ff);letter-spacing:-.035em;margin-top:auto}
+.t2 .c .u{font:500 20px/1.25 var(--ff);color:var(--muted);margin-top:8px}
+.t2 .c p{margin:12px 0 0;font:500 25px/1.3 var(--ff)}
 .t2 .strip{margin-top:20px;display:flex;align-items:center;gap:26px;border:1.5px solid rgba(var(--bad-rgb),.35);border-radius:22px;padding:24px 32px;background:rgba(var(--bad-rgb),.06)}
-.t2 .strip .n{font:700 52px/1 var(--ff);color:var(--red)}
+.t2 .strip .n{font:var(--b-w) 52px/1 var(--ff);color:var(--red)}
 .t2 .strip p{margin:0;font:400 23px/1.35 var(--ff);color:var(--soft)}
 
 /* T3 hero number + checklist */
 .t3 .hero{margin-top:36px}
-.t3 .hero .n{font:700 250px/.9 var(--ff);letter-spacing:-.06em;background:linear-gradient(180deg,var(--grad-a) 30%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.t3 .hero .n{font:var(--b-w) 250px/.9 var(--ff);letter-spacing:-.06em;background:linear-gradient(180deg,var(--grad-a) 30%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
 .t3 .hero p{margin:14px 0 0;font:400 28px/1.35 var(--ff);color:var(--soft)}
 .t3 .hero p b{color:var(--ink);font-weight:600}
 .t3 .list{margin-top:64px;display:flex;flex-direction:column;gap:38px}
 .t3 .li{display:grid;grid-template-columns:54px 1fr auto;gap:22px;align-items:center}
-.t3 .ic{width:54px;height:54px;border-radius:50%;background:rgba(var(--acc-rgb),.25);border:1.5px solid rgba(var(--acc2-rgb),.5);display:flex;align-items:center;justify-content:center;font:700 26px/1 var(--ff);color:var(--ink)}
+.t3 .ic{width:54px;height:54px;border-radius:50%;background:rgba(var(--acc-rgb),.25);border:1.5px solid rgba(var(--acc2-rgb),.5);display:flex;align-items:center;justify-content:center;font:var(--b-w) 26px/1 var(--ff);color:var(--ink)}
 .t3 .li.x .ic{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5);color:var(--red)}
 .t3 .li p{margin:0;font:500 34px/1.25 var(--ff)}
 .t3 .li .tag{font:600 27px/1 var(--ff);color:var(--blue2);background:rgba(var(--acc-rgb),.16);border-radius:999px;padding:12px 20px;white-space:nowrap}
 .t3 .li.x .tag{color:var(--red);background:rgba(var(--bad-rgb),.1)}
 
-/* T4 proof post */
-.t4 .post{margin-top:40px;background:var(--post);border:1.5px solid var(--line);border-radius:30px;padding:36px 40px;box-shadow:0 50px 100px -40px rgba(0,0,0,.8),0 0 0 1px rgba(var(--ink-rgb),.02)}
-.t4 .ph{display:flex;align-items:center;gap:18px}.t4 .ph .av{width:64px;height:64px;font-size:28px}
-.t4 .ph b{font:600 25px/1.1 var(--ff)}.t4 .ph span{display:block;font:400 20px/1.3 var(--ff);color:var(--muted)}
-.t4 .ph .x{margin-left:auto;font:700 30px/1 var(--ff);color:var(--ink)}
-.t4 .post p{margin:26px 0 0;font:400 34px/1.45 var(--ff);color:var(--ink)}
-.t4 .stats{display:flex;gap:34px;margin-top:26px;padding-top:22px;border-top:1px solid var(--line);font:500 22px/1 var(--ff);color:var(--muted)}
-.t4 .stats b{color:var(--ink);font-weight:700;font-size:28px;margin-right:6px}
+/* T4 proof post (shared with P1) */
+.t4 .post,.p1 .post{margin-top:36px;background:var(--post);border:1.5px solid var(--line);border-radius:30px;padding:34px 38px;box-shadow:0 50px 100px -40px rgba(0,0,0,.8),0 0 0 1px rgba(var(--ink-rgb),.02)}
+.t4 .ph,.p1 .ph{display:flex;align-items:center;gap:18px}.t4 .ph .av,.p1 .ph .av{width:64px;height:64px;font-size:28px}
+.t4 .ph b,.p1 .ph b{font:600 25px/1.1 var(--ff)}.t4 .ph span,.p1 .ph span{display:block;font:400 20px/1.3 var(--ff);color:var(--muted)}
+.t4 .ph .x,.p1 .ph .x{margin-left:auto;font:var(--b-w) 30px/1 var(--ff);color:var(--ink)}
+.t4 .post p,.p1 .post p{margin:24px 0 0;font:400 32px/1.42 var(--ff);color:var(--ink)}
+.t4 .stats,.p1 .stats{display:flex;gap:30px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--line);font:500 21px/1 var(--ff);color:var(--muted)}
+.t4 .stats b,.p1 .stats b{color:var(--ink);font-weight:var(--b-w);font-size:26px;margin-right:6px}
 .t4 .cap{margin:22px 0 0;font:500 23px/1.35 var(--ff);color:var(--blue2)}
 .t4 .chips{margin-top:44px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .t4 .ch{border:1.5px solid var(--line);border-radius:22px;padding:34px 26px;background:rgba(var(--card-rgb),.4)}
-.t4 .ch .n{font:700 48px/1 var(--ff);letter-spacing:-.02em}
+.t4 .ch .n{font:var(--b-w) 48px/1 var(--ff);letter-spacing:-.02em}
 .t4 .ch p{margin:12px 0 0;font:400 20px/1.35 var(--ff);color:var(--soft)}
 
 /* T5 numbered editorial */
 .t5 .rows{margin-top:44px;display:flex;flex-direction:column}
 .t5 .r{display:grid;grid-template-columns:118px 1fr auto;gap:26px;align-items:start;padding:44px 0;border-top:1px solid var(--line)}
-.t5 .r .no{font:700 76px/.85 var(--ff);letter-spacing:-.04em;background:linear-gradient(180deg,var(--grad-a) 30%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.t5 .r .no{font:var(--b-w) 76px/.85 var(--ff);letter-spacing:-.04em;background:linear-gradient(180deg,var(--grad-a) 30%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
 .t5 .r h3{margin:2px 0 0;font:600 34px/1.2 var(--ff)}
 .t5 .r p{margin:10px 0 0;font:400 23px/1.4 var(--ff);color:var(--muted)}
 .t5 .r .n{font:600 36px/1 var(--ff);color:var(--blue2);text-align:right;white-space:nowrap;padding-top:6px}
 .t5 .r .n small{display:block;font:400 17px/1.3 var(--ff);color:var(--muted);margin-top:6px}
 .t5 .r.x .no{background:linear-gradient(180deg,var(--bad-hi) 20%,var(--bad));-webkit-background-clip:text;background-clip:text}
 
-/* R1 diverging bars around 1x */
-.r1 .chart{margin-top:44px;position:relative}
-.r1 .row{display:grid;grid-template-columns:400px 1fr;align-items:center;gap:22px;height:86px}
-.r1 .row .lab{font:500 23px/1.25 var(--ff);text-align:right;color:var(--ink)}
-.r1 .track{position:relative;height:44px}
-.r1 .one{position:absolute;top:-8px;bottom:-8px;left:22%;width:2px;background:rgba(var(--ink-rgb),.55)}
-.r1 .b{position:absolute;top:0;height:44px;border-radius:8px;display:flex;align-items:center;font:700 23px/1 var(--ff)}
-.r1 .b.up{left:22%;background:linear-gradient(90deg,var(--acc),var(--acc2));justify-content:flex-end;padding-right:14px}
-.r1 .b.dn{right:78%;background:linear-gradient(270deg,var(--bad),var(--bad-lo));justify-content:flex-start}
-.r1 .b.dn span{position:absolute;left:calc(100% + 16px);color:var(--red)}
-.r1 .grp{font:600 18px/1 var(--ff);letter-spacing:.22em;color:var(--muted);margin:22px 0 8px}
-.r1 .axis{display:grid;grid-template-columns:400px 1fr;gap:22px;margin-top:8px;font:500 17px/1 var(--ff);color:var(--muted)}
-.r1 .axis div{position:relative;height:20px}.r1 .axis span{position:absolute;transform:translateX(-50%)}
+/* R1 diverging bars around 1x (open canvas, continuous 1x line, left-aligned labels, shared with A2) */
+.r1 .chart,.a2 .chart{margin-top:26px;position:relative}
+.r1 .ch-head,.a2 .ch-head{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.r1 .ch-head .ch-k,.a2 .ch-head .ch-k{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.r1 .ch-head .ch-ax,.a2 .ch-head .ch-ax{position:relative;height:26px}
+.r1 .ch-head .one-pill,.a2 .ch-head .one-pill{position:absolute;left:32%;transform:translateX(-50%);top:0;font:var(--b-w) 13px/1 var(--ff);letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:999px;background:rgba(var(--ink-rgb),.12);color:var(--ink);white-space:nowrap}
+.r1 .ch-body,.a2 .ch-body{position:relative}
+.r1 .ch-body .one-line,.a2 .ch-body .one-line{position:absolute;top:0;bottom:0;left:calc(340px + 24px + (100% - 364px) * .32);width:2px;background:rgba(var(--ink-rgb),.32);pointer-events:none;z-index:2}
+.r1 .grp,.a2 .grp{font:var(--b-w) 14px/1 var(--ff);letter-spacing:.22em;text-transform:uppercase;color:var(--acc2);margin:18px 0 6px}
+.r1 .grp.dn,.a2 .grp.dn{color:var(--red);margin-top:20px}
+.r1 .row,.a2 .row{display:grid;grid-template-columns:340px 1fr;align-items:center;gap:24px;min-height:66px;padding:7px 0;border-top:1px solid rgba(var(--line-rgb),.12)}
+.r1 .row:first-of-type,.a2 .row:first-of-type{border-top:0}
+.r1 .row .lab,.a2 .row .lab{font:500 21px/1.25 var(--ff);text-align:left;color:var(--ink);min-width:0}
+.a2 .row .lab small{display:block;font:600 14px/1.2 var(--ff);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.r1 .track,.a2 .track{position:relative;height:38px;background:rgba(var(--line-rgb),.08);border-radius:10px}
+.r1 .b,.a2 .b{position:absolute;top:0;height:38px;display:flex;align-items:center;font:var(--b-w) 20px/1 var(--ff);z-index:3}
+.r1 .b.up,.a2 .b.up{left:32%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:0 10px 10px 0;justify-content:flex-end;padding-right:12px;color:#fff}
+.r1 .b.dn,.a2 .b.dn{right:68%;background:linear-gradient(270deg,var(--bad),var(--bad-lo));border-radius:10px 0 0 10px;justify-content:flex-start;color:#fff}
+.r1 .b.dn span,.a2 .b.dn span{position:absolute;left:calc(100% + 14px);color:var(--red);white-space:nowrap}
+.r1 .b.up span.o,.a2 .b.up span.o{position:absolute;left:calc(100% + 12px);color:var(--acc2);white-space:nowrap}
+.r1 .axis,.a2 .axis{display:grid;grid-template-columns:340px 1fr;gap:24px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font:600 16px/1 var(--ff);color:var(--muted)}
+.r1 .axis div,.a2 .axis div{position:relative;height:20px}.r1 .axis span{position:absolute;transform:translateX(-50%)}.a2 .axis span{position:absolute;transform:translateX(-50%)}
 
-/* R2 two columns */
-.r2 .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:46px}
-.r2 .col{border-radius:28px;padding:34px 32px;background:rgba(var(--card-rgb),.5);border:1.5px solid var(--line)}
-.r2 .col.no{background:rgba(var(--bad-rgb),.05);border-color:rgba(var(--bad-rgb),.28)}
-.r2 .col h4{margin:0 0 10px;font:600 20px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--blue2)}
-.r2 .col.no h4{color:var(--red)}
-.r2 .it{padding:22px 0;border-top:1px solid var(--line)}
-.r2 .it:first-of-type{border-top:0}
-.r2 .it .n{font:700 52px/1 var(--ff);letter-spacing:-.03em}
-.r2 .col.no .it .n{color:var(--red)}
-.r2 .it p{margin:8px 0 0;font:400 22px/1.3 var(--ff);color:var(--soft)}
-.r2 .tip{margin-top:22px;display:flex;align-items:center;gap:24px;border-radius:24px;padding:24px 32px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.35),rgba(var(--acc-rgb),.1));border:1.5px solid rgba(var(--acc2-rgb),.4)}
-.r2 .tip .n{font:700 48px/1 var(--ff)}.r2 .tip p{margin:0;font:500 23px/1.35 var(--ff)}
+/* R2 two columns (shared with D1) */
+.r2 .cols,.d1 .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:32px}
+.r2 .col,.d1 .col{border-radius:26px;padding:28px 28px;background:rgba(var(--card-rgb),.5);border:1.5px solid var(--line)}
+.r2 .col.no,.d1 .col.no{background:rgba(var(--bad-rgb),.05);border-color:rgba(var(--bad-rgb),.28)}
+.r2 .col h4,.d1 .col h4{margin:0 0 10px;font:600 19px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--blue2)}
+.r2 .col.no h4,.d1 .col.no h4{color:var(--red)}
+.r2 .it,.d1 .it{padding:18px 0;border-top:1px solid var(--line)}
+.r2 .it:first-of-type,.d1 .it:first-of-type{border-top:0}
+.r2 .it .n{font:var(--b-w) 52px/1 var(--ff);letter-spacing:-.03em}
+.d1 .it .n{font:var(--b-w) 32px/1 var(--ff);letter-spacing:-.02em;color:var(--acc2)}
+.r2 .col.no .it .n,.d1 .col.no .it .n{color:var(--red)}
+.r2 .it p,.d1 .it p{margin:8px 0 0;font:500 22px/1.3 var(--ff);color:var(--ink)}
+.d1 .it small{display:block;margin-top:5px;font:400 18px/1.35 var(--ff);color:var(--muted)}
+.tip{margin-top:22px;display:flex;align-items:center;gap:24px;border-radius:24px;padding:22px 30px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.32),rgba(var(--acc-rgb),.1));border:1.5px solid rgba(var(--acc2-rgb),.4)}
+.tip .n{font:var(--b-w) 44px/1 var(--ff);white-space:nowrap}.tip p{margin:0;font:500 22px/1.35 var(--ff)}
+.tip p small{display:block;font:400 18px/1.35 var(--ff);color:var(--soft);margin-top:4px}
 
 /* R3 ranked list, number first */
 .r3 .list{margin-top:40px}
 .r3 .it{display:grid;grid-template-columns:200px 1fr;gap:30px;align-items:baseline;padding:20px 0;border-top:1px solid var(--line)}
-.r3 .it .n{font:700 54px/1 var(--ff);letter-spacing:-.03em}
+.r3 .it .n{font:var(--b-w) 54px/1 var(--ff);letter-spacing:-.03em}
 .r3 .it p{margin:0;font:400 27px/1.3 var(--ff);color:var(--ink)}
 .r3 .gap{height:22px}
 
 /* R4 the winner + the rest */
 .r4 .win{margin-top:40px;border-radius:32px;padding:44px 44px 40px;background:linear-gradient(140deg,rgba(var(--acc-rgb),.55),rgba(var(--acc-rgb),.35));border:1.5px solid rgba(var(--line-rgb),.45);position:relative;overflow:hidden}
 .r4 .win .k{color:var(--ink)}
-.r4 .win .n{font:700 180px/.95 var(--ff);letter-spacing:-.05em;margin-top:18px}
+.r4 .win .n{font:var(--b-w) 180px/.95 var(--ff);letter-spacing:-.05em;margin-top:18px}
 .r4 .win p{margin:14px 0 0;font:500 34px/1.25 var(--ff)}
 .r4 .rest{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
 .r4 .m{border:1.5px solid var(--line);border-radius:22px;padding:34px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px;background:rgba(var(--card-rgb),.4)}
 .r4 .m p{margin:0;font:400 23px/1.3 var(--ff);color:var(--soft)}
-.r4 .m b{font:700 32px/1 var(--ff);white-space:nowrap}
+.r4 .m b{font:var(--b-w) 32px/1 var(--ff);white-space:nowrap}
 
 /* R5 dot plot on a log scale */
 .r5 .plot{margin-top:48px}
@@ -180,79 +208,320 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
 .r5 .one{position:absolute;top:0;bottom:0;width:2px;background:rgba(var(--ink-rgb),.45)}
 .r5 .stem{position:absolute;top:calc(50% - 2px);height:4px;border-radius:2px}
 .r5 .dot{position:absolute;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;box-shadow:0 0 0 6px rgba(var(--acc-rgb),.2)}
-.r5 .v{font:700 28px/1 var(--ff);text-align:right}
+.r5 .v{font:var(--b-w) 28px/1 var(--ff);text-align:right}
 .r5 .ax{display:grid;grid-template-columns:380px 1fr 92px;gap:24px;margin-top:10px;font:500 17px/1 var(--ff);color:var(--muted)}
 .r5 .ax div{position:relative;height:20px}.r5 .ax span{position:absolute;transform:translateX(-50%)}
 
+/* ================================================================ NEW 0.5.1 REPORT TEMPLATES (12 layouts) */
+
+/* P1 Post review: airy proof post + integrated multiplier pill + open hairline-divided reasons */
+.p1 .post{margin-top:34px;padding:34px 38px}
+.p1 .ph .mult-pill{margin-left:auto;display:inline-flex;align-items:baseline;gap:8px;padding:10px 20px;border-radius:999px;background:linear-gradient(120deg,rgba(var(--acc-rgb),.4),rgba(var(--acc-rgb),.18));border:1.5px solid rgba(var(--acc2-rgb),.55)}
+.p1 .ph .mult-pill b{font:var(--b-w) 34px/1 var(--ff);color:var(--ink);letter-spacing:-.03em}
+.p1 .ph .mult-pill span{font:600 17px/1 var(--ff);color:var(--acc2);text-transform:uppercase;letter-spacing:.08em}
+.p1 .post p{margin:24px 0 0;font:400 33px/1.44 var(--ff)}
+.p1 .p1-why-lbl{margin-top:36px;font:var(--b-w) 16px/1 var(--ff);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.p1 .p1-reasons{margin-top:14px;display:flex;flex-direction:column}
+.p1 .p1-r{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center;padding:26px 0;border-top:1px solid var(--line)}
+.p1 .p1-r:last-child{border-bottom:1px solid var(--line)}
+.p1 .p1-r .tag{font:var(--b-w) 34px/1 var(--ff);color:var(--acc2);letter-spacing:-.02em;white-space:nowrap}
+.p1 .p1-r h4{margin:0;font:500 28px/1.25 var(--ff);color:var(--ink)}
+
+/* P2 Post review: giant editorial hook pull-quote + open numbered 3-beat breakdown */
+.p2 .hook-box{margin-top:32px;background:var(--post);border:1.5px solid var(--line);border-left:8px solid var(--acc);border-radius:28px;padding:38px 42px}
+.p2 .hook-box .hk-lbl{font:var(--b-w) 16px/1 var(--ff);letter-spacing:.22em;text-transform:uppercase;color:var(--acc2)}
+.p2 .hook-box blockquote{margin:18px 0 0;font:var(--b-w) 44px/1.22 var(--ff);letter-spacing:-.025em;color:var(--ink)}
+.p2 .hook-box .hk-pills{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}
+.p2 .hook-box .hk-p{font:600 19px/1 var(--ff);padding:10px 18px;border-radius:999px;background:rgba(var(--acc-rgb),.16);border:1px solid rgba(var(--acc2-rgb),.35);color:var(--soft)}
+.p2 .hook-box .hk-p b{color:var(--ink);font-weight:var(--b-w)}
+.p2 .p2-beats{margin-top:34px;display:flex;flex-direction:column}
+.p2 .p2-beat{display:grid;grid-template-columns:82px 1fr auto;gap:22px;align-items:center;padding:28px 0;border-top:1px solid var(--line)}
+.p2 .p2-beat:last-child{border-bottom:1px solid var(--line)}
+.p2 .p2-beat .bn{font:var(--b-w) 48px/1 var(--ff);letter-spacing:-.04em;background:linear-gradient(180deg,var(--grad-a) 25%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.p2 .p2-beat h4{margin:0;font:600 28px/1.25 var(--ff);color:var(--ink)}
+.p2 .p2-beat p{margin:6px 0 0;font:400 21px/1.35 var(--ff);color:var(--muted)}
+.p2 .p2-beat .bt{font:var(--b-w) 30px/1 var(--ff);color:var(--acc2);white-space:nowrap;padding-left:14px}
+
+/* P3 Post review: before/after vs author's median post + open metric list */
+.p3 .ba-head{display:grid;grid-template-columns:1fr 56px 1fr;align-items:center;gap:12px;margin-top:30px}
+.p3 .ba-card{border-radius:26px;padding:28px 30px;border:1.5px solid var(--line);background:var(--card)}
+.p3 .ba-card.after{background:linear-gradient(140deg,rgba(var(--acc-rgb),.46),rgba(var(--acc-rgb),.18));border-color:rgba(var(--acc2-rgb),.55)}
+.p3 .ba-card .lbl{font:var(--b-w) 16px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.p3 .ba-card.after .lbl{color:var(--ink)}
+.p3 .ba-card .n{font:var(--b-w) 84px/1 var(--ff);letter-spacing:-.04em;margin-top:12px}
+.p3 .ba-card p{margin:10px 0 0;font:500 21px/1.3 var(--ff);color:var(--soft)}
+.p3 .ba-arr{text-align:center;font:var(--b-w) 42px/1 var(--ff);color:var(--acc2)}
+.p3 .ba-rows{margin-top:28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.p3 .ba-row{display:grid;grid-template-columns:170px 1fr 1fr 145px;gap:16px;align-items:center;padding:20px 0;border-top:1px solid var(--line)}
+.p3 .ba-row:first-child{border-top:0}
+.p3 .ba-row.hd{padding:14px 0;font:var(--b-w) 15px/1 var(--ff);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.p3 .ba-row .k-c{font:600 21px/1.25 var(--ff);color:var(--soft)}
+.p3 .ba-row .u-c{font:500 22px/1.25 var(--ff);color:var(--muted)}
+.p3 .ba-row .p-c{font:var(--b-w) 24px/1.25 var(--ff);color:var(--ink)}
+.p3 .ba-row .d-c{font:var(--b-w) 21px/1 var(--ff);text-align:right;color:var(--acc2);white-space:nowrap}
+
+/* F1 Format recipe: open-canvas giant stat strip + open 3 oversized numbered steps + bold #1-accented proof shelf */
+.f1 .f1-strip{margin-top:30px;padding:24px 0 26px;border-top:1.5px solid var(--line);border-bottom:1.5px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center}
+.f1 .f1-hero-n{font:var(--b-w) 116px/.88 var(--ff);letter-spacing:-.055em;background:linear-gradient(180deg,var(--grad-a) 28%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.f1 .f1-hero-l{font:600 19px/1.2 var(--ff);color:var(--muted);margin-top:10px}
+.f1 .f1-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding-left:34px;border-left:1.5px solid var(--line)}
+.f1 .f1-kpi b{display:block;font:var(--b-w) 46px/1 var(--ff);letter-spacing:-.03em;color:var(--ink)}
+.f1 .f1-kpi span{display:block;font:500 18px/1.25 var(--ff);color:var(--muted);margin-top:8px}
+.f1 .f1-steps{margin-top:4px;display:flex;flex-direction:column}
+.f1 .f1-step{display:grid;grid-template-columns:84px 1fr;gap:22px;align-items:start;padding:24px 0;border-top:1px solid var(--line)}
+.f1 .f1-step:first-child{border-top:0}
+.f1 .f1-step:last-child{border-bottom:1px solid var(--line)}
+.f1 .f1-step .sn{font:var(--b-w) 52px/.92 var(--ff);letter-spacing:-.04em;background:linear-gradient(180deg,var(--grad-a) 25%,var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent;padding-top:2px}
+.f1 .f1-step .sh{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.f1 .f1-step .sk{font:var(--b-w) 16px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--acc2)}
+.f1 .f1-step .sp{font:600 16px/1 var(--ff);padding:6px 12px;border-radius:999px;background:rgba(var(--acc-rgb),.18);border:1px solid rgba(var(--acc2-rgb),.4);color:var(--ink)}
+.f1 .f1-step p{margin:10px 0 0;font:500 26px/1.34 var(--ff);color:var(--ink)}
+.f1 .f1-shelf-lbl{margin-top:28px;font:var(--b-w) 16px/1 var(--ff);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.f1 .f1-shelf{margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.f1 .f1-tile{background:var(--card);border:1.5px solid var(--line);border-radius:24px;padding:24px 24px 22px;min-height:224px;display:flex;flex-direction:column}
+.f1 .f1-tile.lead{background:linear-gradient(145deg,rgba(var(--acc-rgb),.52),rgba(var(--acc-rgb),.2));border-color:rgba(var(--acc2-rgb),.65)}
+.f1 .f1-tile .th{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.f1 .f1-tile .tr{font:var(--b-w) 44px/1 var(--ff);letter-spacing:-.03em;color:var(--acc2)}
+.f1 .f1-tile.lead .tr{color:var(--ink)}
+.f1 .f1-tile .tv{font:600 18px/1 var(--ff);color:var(--muted)}
+.f1 .f1-tile.lead .tv{color:var(--soft)}
+.f1 .f1-tile p{margin:16px 0 0;font:500 21px/1.34 var(--ff);color:var(--soft)}
+.f1 .f1-tile.lead p{color:var(--ink)}
+.f1 .f1-tile .tm{margin-top:auto;padding-top:14px;font:600 17px/1.2 var(--ff);color:var(--muted)}
+.f1 .f1-tile.lead .tm{color:var(--acc2)}
+
+/* F2 Format recipe: hero lift + 2x2 container + open ranked proof list */
+.f2 .f2-hero{margin-top:28px;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:center;border-radius:28px;padding:30px 34px;background:linear-gradient(140deg,rgba(var(--acc-rgb),.46),rgba(var(--acc-rgb),.18));border:1.5px solid rgba(var(--acc2-rgb),.48)}
+.f2 .f2-hero .n{font:var(--b-w) 118px/.92 var(--ff);letter-spacing:-.05em}
+.f2 .f2-hero .sub{font:500 21px/1.3 var(--ff);color:var(--soft);margin-top:8px}
+.f2 .f2-pills{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f2 .f2-pill{background:rgba(var(--card-rgb),.55);border:1.5px solid var(--line);border-radius:18px;padding:16px 20px}
+.f2 .f2-pill b{display:block;font:var(--b-w) 32px/1 var(--ff)}
+.f2 .f2-pill span{display:block;font:500 17px/1.25 var(--ff);color:var(--muted);margin-top:5px}
+.f2 .f2-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.f2 .f2-cell{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:20px 24px}
+.f2 .f2-cell .rk{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.18em;text-transform:uppercase;color:var(--acc2)}
+.f2 .f2-cell p{margin:8px 0 0;font:500 20px/1.32 var(--ff);color:var(--ink)}
+.f2 .f2-list{margin-top:22px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.f2 .f2-ex{display:grid;grid-template-columns:96px 1fr auto;gap:16px;align-items:center;padding:17px 0;border-top:1px solid var(--line)}
+.f2 .f2-ex:first-child{border-top:0}
+.f2 .f2-ex .tr{font:var(--b-w) 28px/1 var(--ff);color:var(--acc2)}
+.f2 .f2-ex p{margin:0;font:500 20px/1.3 var(--ff);color:var(--ink)}
+.f2 .f2-ex .tv{font:600 18px/1 var(--ff);color:var(--muted);white-space:nowrap}
+
+/* A1 Account teardown (no growth): profile + open hairline-divided formats + writing tip */
+.a1 .acct-grp{margin-top:28px;font:var(--b-w) 16px/1 var(--ff);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.a1 .acct-list{margin-top:10px;display:flex;flex-direction:column}
+.a1 .acct-row{display:grid;grid-template-columns:150px 1fr auto;gap:20px;align-items:center;padding:18px 0;border-top:1px solid var(--line)}
+.a1 .acct-row:last-child{border-bottom:1px solid var(--line)}
+.a1 .acct-row .n{font:var(--b-w) 48px/1 var(--ff);letter-spacing:-.03em}
+.a1 .acct-row h4{margin:0;font:600 26px/1.2 var(--ff);color:var(--ink)}
+.a1 .acct-row span{display:block;font:400 19px/1.3 var(--ff);color:var(--muted);margin-top:4px}
+.a1 .qtag{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.1em;text-transform:uppercase;padding:8px 14px;border-radius:999px;background:rgba(var(--acc-rgb),.18);color:var(--acc2);white-space:nowrap}
+.a1 .acct-row.dn .qtag{background:rgba(var(--bad-rgb),.14);color:var(--red)}
+
+/* A2 Account format bars + writing tip */
+.a2 .row{min-height:68px}
+
+/* D1 Draft check: draft box + lifts/drags + explicit ESTIMATE banner */
+.d1 .draft-box{margin-top:26px;background:var(--post);border:1.5px solid var(--line);border-radius:26px;padding:28px 32px}
+.d1 .draft-box .d-lbl{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--acc2)}
+.d1 .draft-box p{margin:12px 0 0;font:400 27px/1.4 var(--ff);color:var(--ink)}
+.d1 .draft-box .d-meta{margin-top:14px;font:500 18px/1.3 var(--ff);color:var(--muted)}
+.d1 .est-banner{margin-top:22px;border-radius:24px;padding:24px 30px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.36),rgba(var(--acc-rgb),.12));border:1.5px solid rgba(var(--acc2-rgb),.48);display:flex;align-items:center;justify-content:space-between;gap:22px}
+.d1 .est-banner .est-n{font:var(--b-w) 58px/1 var(--ff);letter-spacing:-.03em;white-space:nowrap}
+.d1 .est-banner .est-txt{min-width:0}
+.d1 .est-banner .est-pill{display:inline-block;font:var(--b-w) 14px/1 var(--ff);letter-spacing:.16em;text-transform:uppercase;padding:6px 12px;border-radius:999px;background:rgba(var(--warn-rgb),.2);border:1.5px solid rgba(var(--warn-rgb),.55);color:var(--warn)}
+.d1 .est-banner p{margin:10px 0 0;font:500 21px/1.35 var(--ff);color:var(--ink)}
+
+/* W1 Writing & voice: open proportional habit bars + 2-column sweet-spot & ask cards */
+.w1 .w1-card{margin-top:30px}
+.w1 .w1-hdr{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.w1 .w1-hdr span{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.w1 .w1-hdr b{font:600 15px/1 var(--ff);color:var(--acc2)}
+.w1 .w1-bar-row{padding:19px 0;border-top:1px solid var(--line)}
+.w1 .w1-bar-row:first-of-type{border-top:0}
+.w1 .w1-bar-row:last-child{border-bottom:1px solid var(--line)}
+.w1 .w1-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.w1 .w1-top b{font:600 24px/1.2 var(--ff);color:var(--ink)}
+.w1 .w1-top .wr{display:inline-flex;align-items:baseline;gap:12px;white-space:nowrap}
+.w1 .w1-top .wm{font:500 17px/1 var(--ff);color:var(--muted)}
+.w1 .w1-top .wn{font:var(--b-w) 32px/1 var(--ff);letter-spacing:-.02em;color:var(--acc2)}
+.w1 .w1-bar-row.dn .w1-top .wn{color:var(--red)}
+.w1 .w1-track{margin-top:12px;height:14px;border-radius:999px;background:rgba(var(--line-rgb),.12);overflow:hidden;position:relative}
+.w1 .w1-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.w1 .w1-bar-row.dn .w1-fill{background:linear-gradient(90deg,var(--bad-lo),var(--bad))}
+.w1 .w1-bottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+.w1 .w1-box{background:var(--card);border:1.5px solid var(--line);border-radius:26px;padding:26px 28px;display:flex;flex-direction:column}
+.w1 .w1-box.hi{background:linear-gradient(150deg,rgba(var(--acc-rgb),.34),rgba(var(--card-rgb),.65));border-color:rgba(var(--acc2-rgb),.5)}
+.w1 .w1-box .bk{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--acc2)}
+.w1 .w1-box .bn{font:var(--b-w) 62px/1 var(--ff);letter-spacing:-.04em;margin-top:14px}
+.w1 .w1-box .bl{font:600 23px/1.25 var(--ff);color:var(--ink);margin-top:8px}
+.w1 .w1-box p{margin:10px 0 0;font:400 19px/1.35 var(--ff);color:var(--soft)}
+.w1 .w1-chips{margin-top:auto;padding-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+.w1 .w1-ch{font:600 16px/1 var(--ff);padding:8px 12px;border-radius:999px;background:rgba(var(--line-rgb),.1);color:var(--muted)}
+.w1 .w1-ch.best{background:rgba(var(--acc-rgb),.26);color:var(--ink);border:1px solid rgba(var(--acc2-rgb),.45)}
+
+/* C1 Comment tactics: 2x2 cards + audience proof quote */
+.c1 .c1-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:34px}
+.c1 .c1-card{background:var(--card);border:1.5px solid var(--line);border-radius:26px;padding:28px 30px;min-height:220px;display:flex;flex-direction:column}
+.c1 .c1-card .ci{font:var(--b-w) 17px/1 var(--ff);letter-spacing:.18em;text-transform:uppercase;color:var(--acc2)}
+.c1 .c1-card .n{font:var(--b-w) 66px/1 var(--ff);letter-spacing:-.035em;margin-top:auto}
+.c1 .c1-card h4{margin:12px 0 0;font:600 24px/1.25 var(--ff);color:var(--ink)}
+.c1 .c1-card p{margin:6px 0 0;font:400 19px/1.35 var(--ff);color:var(--muted)}
+.c1 .c1-quote{margin-top:22px;background:var(--post);border:1.5px solid var(--line);border-left:6px solid var(--acc);border-radius:22px;padding:24px 30px}
+.c1 .c1-quote p{margin:0;font:500 25px/1.38 var(--ff);color:var(--ink)}
+.c1 .c1-quote span{display:block;margin-top:10px;font:500 18px/1.2 var(--ff);color:var(--muted)}
+
+/* X1 Compare two: side-by-side cards + VS divider + verdict */
+.x1 .x1-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:32px;position:relative}
+.x1 .x1-col{background:var(--card);border:1.5px solid var(--line);border-radius:28px;padding:28px 26px;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.x1 .x1-col.win{background:linear-gradient(160deg,rgba(var(--acc-rgb),.34),rgba(var(--card-rgb),.65));border-color:rgba(var(--acc2-rgb),.55)}
+.x1 .x1-col.lose{background:rgba(var(--bad-rgb),.05);border-color:rgba(var(--bad-rgb),.32)}
+.x1 .x1-col .x-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;min-width:0}
+.x1 .x1-col h3{margin:0;font:var(--b-w) 27px/1.2 var(--ff);color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.x1 .x1-col .xb{font:var(--b-w) 13px/1 var(--ff);letter-spacing:.1em;text-transform:uppercase;padding:7px 12px;border-radius:999px;background:rgba(var(--acc-rgb),.22);color:var(--acc2);white-space:nowrap;flex:none}
+.x1 .x1-col.lose .xb{background:rgba(var(--bad-rgb),.14);color:var(--red)}
+.x1 .x1-col .hero-n{font:var(--b-w) 88px/.95 var(--ff);letter-spacing:-.04em;margin-top:20px}
+.x1 .x1-col.lose .hero-n{color:var(--red)}
+.x1 .x1-col .hero-l{font:500 19px/1.25 var(--ff);color:var(--muted);margin-top:6px}
+.x1 .x1-rows{margin-top:22px;border-top:1px solid var(--line);min-width:0}
+.x1 .x1-r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:15px 0;border-bottom:1px solid var(--line);font:500 20px/1.25 var(--ff);min-width:0}
+.x1 .x1-r:last-child{border-bottom:0}
+.x1 .x1-r span{color:var(--muted);flex:none}
+.x1 .x1-r b{color:var(--ink);font-weight:var(--b-w);text-align:right;min-width:0;overflow-wrap:anywhere}
+
+/* R6 Topic check: verdict + 3 signals + 6h vs 6h bars + open proof list */
+.r6 .r6-verdict{margin-top:26px;border-radius:26px;padding:26px 32px;background:linear-gradient(90deg,rgba(var(--acc-rgb),.4),rgba(var(--acc-rgb),.14));border:1.5px solid rgba(var(--acc2-rgb),.5)}
+.r6 .r6-verdict.skip{background:rgba(var(--bad-rgb),.1);border-color:rgba(var(--bad-rgb),.45)}
+.r6 .r6-verdict.caution{background:rgba(var(--warn-rgb),.12);border-color:rgba(var(--warn-rgb),.48)}
+.r6 .r6-verdict .vl{font:var(--b-w) 16px/1 var(--ff);letter-spacing:.2em;text-transform:uppercase;color:var(--acc2)}
+.r6 .r6-verdict.skip .vl{color:var(--red)}
+.r6 .r6-verdict.caution .vl{color:var(--warn)}
+.r6 .r6-verdict p{margin:12px 0 0;font:600 30px/1.28 var(--ff);color:var(--ink)}
+.r6 .r6-sigs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.r6 .r6-sig{background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:22px 22px}
+.r6 .r6-sig .sk{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.r6 .r6-sig .sn{font:var(--b-w) 42px/1.05 var(--ff);letter-spacing:-.02em;margin-top:10px}
+.r6 .r6-sig.bad .sn{color:var(--red)}
+.r6 .r6-sig.warn .sn{color:var(--warn)}
+.r6 .r6-sig.good .sn{color:var(--acc2)}
+.r6 .r6-sig p{margin:8px 0 0;font:400 18px/1.3 var(--ff);color:var(--soft)}
+.r6 .r6-mom{margin-top:18px;background:var(--post);border:1.5px solid var(--line);border-radius:22px;padding:20px 26px}
+.r6 .r6-mom .mh{font:var(--b-w) 15px/1 var(--ff);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.r6 .r6-bar-r{display:grid;grid-template-columns:130px 1fr 175px;gap:14px;align-items:center;margin-top:10px}
+.r6 .r6-bar-r .bl{font:600 19px/1 var(--ff);color:var(--soft)}
+.r6 .r6-tr{height:28px;background:rgba(var(--line-rgb),.12);border-radius:8px;overflow:hidden}
+.r6 .r6-fill{height:100%;border-radius:8px;background:rgba(var(--line-rgb),.45)}
+.r6 .r6-fill.now{background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.r6 .r6-fill.fade{background:linear-gradient(90deg,var(--bad-lo),var(--bad))}
+.r6 .r6-bar-r .bv{font:var(--b-w) 20px/1 var(--ff);text-align:right;white-space:nowrap}
+.r6 .r6-proof{margin-top:20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.r6 .r6-row{display:grid;grid-template-columns:1fr auto auto auto;gap:18px;align-items:center;padding:15px 0;border-top:1px solid var(--line);font:500 20px/1.25 var(--ff)}
+.r6 .r6-row:first-child{border-top:0}
+.r6 .r6-row b{font-weight:var(--b-w);color:var(--ink)}
+.r6 .r6-row .m{color:var(--muted);font-size:18px}
+.r6 .r6-row .v{font:var(--b-w) 24px/1 var(--ff);color:var(--acc2);white-space:nowrap}
+.r6 .r6-row .fl{font:var(--b-w) 14px/1 var(--ff);letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;border-radius:999px;background:rgba(var(--bad-rgb),.16);color:var(--red);white-space:nowrap}
+
 /* ---------------------------------------------------------------- the other kept skins (same layouts, their own tokens) */
 .L.sk-redword{--ff:"Red Hat Display",sans-serif;--acc:#ff1f3d;--acc-rgb:255,31,61;--acc2:#ff5a6e;--acc2-rgb:255,90,110;--line-rgb:255,255,255;--card-rgb:24,20,22;
-  --bad:#9aa1ac;--bad-rgb:154,161,172;--bad-hi:#d4d8de;--bad-lo:#6b717b;--post:#141213;--grad-a:#ffffff;--grad-b:#ffb3bd;--soft:#d9d2d4;--muted:#9a9395;--h-w:400;--h-b:700;
+  --bad:#9aa1ac;--bad-rgb:154,161,172;--bad-hi:#d4d8de;--bad-lo:#6b717b;--warn:#f5b963;--warn-rgb:245,185,99;--good:#ff5a6e;--good-rgb:255,90,110;
+  --post:#141213;--grad-a:#ffffff;--grad-b:#ffb3bd;--soft:#d9d2d4;--muted:#9a9395;--h-w:400;--h-b:700;
   --bg:radial-gradient(60% 45% at 92% 95%,#b3102a 0%,#4a0711 35%,#0d0b0c 70%,#0b0a0b 100%);--glow:rgba(255,90,110,.08);--mark-bg:rgba(255,31,61,.3)}
 .L.sk-night{--ff:"Inter Tight",Inter,sans-serif;--acc:#6a3cff;--acc-rgb:106,60,255;--acc2:#c09cff;--acc2-rgb:192,156,255;--line-rgb:255,255,255;--card-rgb:32,33,40;
-  --bad:#ff7d7d;--bad-rgb:255,125,125;--bad-hi:#ffc0c0;--bad-lo:#c44;--post:#1b1c22;--grad-a:#ffffff;--grad-b:#b990ff;--soft:#d6d7de;--muted:#9fa1ac;--h-w:600;--h-b:800;
+  --bad:#ff7d7d;--bad-rgb:255,125,125;--bad-hi:#ffc0c0;--bad-lo:#c44;--warn:#f3c56b;--warn-rgb:243,197,107;--good:#5eead4;--good-rgb:94,234,212;
+  --post:#1b1c22;--grad-a:#ffffff;--grad-b:#b990ff;--soft:#d6d7de;--muted:#9fa1ac;--h-w:600;--h-b:800;
   --bg:radial-gradient(120% 80% at 50% 0%,#24252c 0%,#121318 55%,#0b0c10 100%);--glow:rgba(106,60,255,.12);--mark-bg:rgba(106,60,255,.6);--ico-filter:hue-rotate(28deg)}
 .L.sk-holo{--ff:Archivo,sans-serif;--acc:#7fc4ff;--acc-rgb:127,196,255;--acc2:#ffe59a;--acc2-rgb:255,229,154;--line-rgb:255,255,255;--card-rgb:31,35,48;
-  --bad:#ff8fa3;--bad-rgb:255,143,163;--bad-hi:#ffc6d0;--bad-lo:#c25670;--post:#1f2330;--grad-a:#ffb3e6;--grad-b:#9ad7ff;--soft:#d3d8e6;--muted:#9aa1b4;--h-w:500;--h-b:800;
+  --bad:#ff8fa3;--bad-rgb:255,143,163;--bad-hi:#ffc6d0;--bad-lo:#c25670;--warn:#ffe59a;--warn-rgb:255,229,154;--good:#b8ffc9;--good-rgb:184,255,201;
+  --post:#1f2330;--grad-a:#ffb3e6;--grad-b:#9ad7ff;--soft:#d3d8e6;--muted:#9aa1b4;--h-w:500;--h-b:800;
   --bg:radial-gradient(90% 60% at 50% 20%,#232736 0%,#161921 60%,#0f1117 100%);--glow:rgba(154,215,255,.08);--mark-bg:rgba(154,215,255,.22);--ico-filter:hue-rotate(-18deg) saturate(.8)}
 .L.sk-holo::after{content:"";position:absolute;inset:20px;border-radius:44px;padding:10px;pointer-events:none;
   background:conic-gradient(from 210deg,#ff9ad5,#9ad7ff,#b8ffc9,#ffe59a,#ffb3e6,#a8c4ff,#ff9ad5);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 .L.sk-holo .in{padding:96px 92px 88px}
 .L.sk-paper{--ff:"Inter Tight",Inter,sans-serif;--acc:#2b2b2b;--acc-rgb:20,20,22;--acc2:#0f0f10;--acc2-rgb:15,15,16;--line-rgb:0,0,0;--card-rgb:255,255,255;
-  --bad:#e2463c;--bad-rgb:226,70,60;--bad-hi:#f07a70;--bad-lo:#b52a21;--post:#ffffff;--grad-a:#0f0f10;--grad-b:#3a3a3d;--ink:#0f0f10;--ink-rgb:15,15,16;--soft:#2f3034;--muted:#5b5c62;--h-w:800;--h-b:900;
+  --bad:#e2463c;--bad-rgb:226,70,60;--bad-hi:#f07a70;--bad-lo:#b52a21;--warn:#a86800;--warn-rgb:168,104,0;--good:#0f7a4e;--good-rgb:15,122,78;
+  --post:#ffffff;--grad-a:#0f0f10;--grad-b:#3a3a3d;--ink:#0f0f10;--ink-rgb:15,15,16;--soft:#2f3034;--muted:#5b5c62;--h-w:800;--h-b:900;
   --bg:#f6f6f2;--glow:transparent;--mark-bg:#c4f05a;--mark-ink:#0f0f10;--ico-filter:hue-rotate(-140deg) saturate(1.1)}
 .L.sk-paper{background-image:linear-gradient(#e6e6e0 1.5px,transparent 1.5px),linear-gradient(90deg,#e6e6e0 1.5px,transparent 1.5px);background-size:72px 72px}
 .L.sk-paper .h b{background:linear-gradient(transparent 55%,#c4f05a 55%,#c4f05a 92%,transparent 92%);padding:0 6px}
 .L.sk-warm{--ff:"Inter Tight",Inter,sans-serif;--acc:#e8613c;--acc-rgb:232,97,60;--acc2:#d4512c;--acc2-rgb:212,81,44;--line-rgb:80,60,40;--card-rgb:255,253,249;
-  --bad:#8d8378;--bad-rgb:141,131,120;--bad-hi:#b8afa4;--bad-lo:#6b6258;--post:#fffdf9;--grad-a:#e8613c;--grad-b:#b8411f;--ink:#2a2622;--ink-rgb:42,38,34;--soft:#4a423a;--muted:#7d746a;--h-w:500;--h-b:600;
+  --bad:#8d8378;--bad-rgb:141,131,120;--bad-hi:#b8afa4;--bad-lo:#6b6258;--warn:#b5651d;--warn-rgb:181,101,29;--good:#2d7a57;--good-rgb:45,122,87;
+  --post:#fffdf9;--grad-a:#e8613c;--grad-b:#b8411f;--ink:#2a2622;--ink-rgb:42,38,34;--soft:#4a423a;--muted:#7d746a;--h-w:500;--h-b:600;
   --bg:#f4efe7;--glow:transparent;--mark-bg:rgba(232,97,60,.16);--mark-ink:#b8411f;--ico-filter:hue-rotate(160deg) saturate(1.2)}
 .L.sk-warm{background-image:radial-gradient(#d9d1c4 1.6px,transparent 1.6px);background-size:36px 36px}
-.L.sk-glass{--ff:"Inter Tight",Inter,sans-serif;--acc:#2f6bff;--acc-rgb:47,107,255;--acc2:#2f6bff;--acc2-rgb:47,107,255;--line-rgb:17,25,37;--card-rgb:255,255,255;
-  --bad:#d9453b;--bad-rgb:217,69,59;--bad-hi:#f08a82;--bad-lo:#a62a21;--post:rgba(255,255,255,.6);--grad-a:#111925;--grad-b:#2f6bff;--ink:#111925;--ink-rgb:17,25,37;--soft:#2a3648;--muted:#4f5d70;--h-w:600;--h-b:700;
+.L.sk-glass{--ff:"Inter Tight",Inter,sans-serif;--acc:#2f6bff;--acc-rgb:47,107,255;--acc2:#1f57e6;--acc2-rgb:31,87,230;--line-rgb:17,25,37;--card-rgb:255,255,255;
+  --bad:#d9453b;--bad-rgb:217,69,59;--bad-hi:#f08a82;--bad-lo:#a62a21;--warn:#a86800;--warn-rgb:168,104,0;--good:#0f7a4e;--good-rgb:15,122,78;
+  --post:rgba(255,255,255,.68);--grad-a:#111925;--grad-b:#2f6bff;--ink:#111925;--ink-rgb:17,25,37;--soft:#2a3648;--muted:#4f5d70;--h-w:600;--h-b:700;
   --bg:radial-gradient(90% 70% at 50% 35%,#eef3f8 0%,#d6e0ea 55%,#b9c7d6 100%);--glow:rgba(255,255,255,.5);--mark-bg:rgba(47,107,255,.16);--mark-ink:#1340c4}
-.L.sk-glass .t2 .c,.L.sk-glass .c,.L.sk-glass .strip,.L.sk-glass .post,.L.sk-glass .col,.L.sk-glass .tip,.L.sk-glass .m,.L.sk-glass .ch,.L.sk-glass .win,.L.sk-glass.t1 .r,.L.sk-glass.t3 .li,.L.sk-glass.r1 .chart,.L.sk-glass.r3 .list{backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3)}
-.L.sk-glass .post,.L.sk-glass .col,.L.sk-glass .win,.L.sk-glass.r1 .chart,.L.sk-glass.r3 .list{box-shadow:0 50px 100px -40px rgba(0,0,0,.8),0 0 0 1px rgba(var(--ink-rgb),.02)}
-.L.sk-glass .c,.L.sk-glass .strip,.L.sk-glass .tip,.L.sk-glass .m,.L.sk-glass .ch,.L.sk-glass.t1 .r,.L.sk-glass.t3 .li{box-shadow:0 30px 64px -26px rgba(0,0,0,.55),0 0 0 1px rgba(var(--ink-rgb),.02)}
-.L.sk-paper .c,.L.sk-paper .strip,.L.sk-paper .post,.L.sk-paper .col,.L.sk-paper .tip,.L.sk-paper .m,.L.sk-paper .ch,.L.sk-paper .win,.L.sk-paper.t1 .r,.L.sk-paper.t3 .li,.L.sk-paper.r1 .chart,.L.sk-paper.r3 .list,
-.L.sk-warm .c,.L.sk-warm .strip,.L.sk-warm .post,.L.sk-warm .col,.L.sk-warm .tip,.L.sk-warm .m,.L.sk-warm .ch,.L.sk-warm .win,.L.sk-warm.t1 .r,.L.sk-warm.t3 .li,.L.sk-warm.r1 .chart,.L.sk-warm.r3 .list{box-shadow:0 18px 40px -22px rgba(60,40,20,.32),0 2px 6px rgba(60,40,20,.06)}
+
+/* glass blur & shadows across genuine cards (lists stay open on canvas) */
+.L.sk-glass .c,.L.sk-glass .strip,.L.sk-glass .post,.L.sk-glass .col,.L.sk-glass .tip,.L.sk-glass .m,.L.sk-glass .ch,.L.sk-glass .win,
+.L.sk-glass .hook-box,.L.sk-glass .ba-card,.L.sk-glass .f1-tile,.L.sk-glass .f2-hero,.L.sk-glass .f2-cell,.L.sk-glass .draft-box,.L.sk-glass .est-banner,.L.sk-glass .w1-box,.L.sk-glass .c1-card,.L.sk-glass .c1-quote,.L.sk-glass .x1-col,.L.sk-glass .r6-verdict,.L.sk-glass .r6-sig,.L.sk-glass .r6-mom{backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3)}
+.L.sk-glass .post,.L.sk-glass .col,.L.sk-glass .win,.L.sk-glass .draft-box,.L.sk-glass .x1-col{box-shadow:0 36px 80px -36px rgba(0,0,0,.45),0 0 0 1px rgba(var(--ink-rgb),.04)}
+.L.sk-glass .c,.L.sk-glass .strip,.L.sk-glass .tip,.L.sk-glass .m,.L.sk-glass .ch,.L.sk-glass .f1-tile,.L.sk-glass .w1-box,.L.sk-glass .c1-card,.L.sk-glass .r6-sig{box-shadow:0 24px 50px -24px rgba(0,0,0,.35),0 0 0 1px rgba(var(--ink-rgb),.04)}
+
+/* paper & warm card elevation + clean surface fills (lists stay open on canvas) */
+.L.sk-paper .c,.L.sk-paper .strip,.L.sk-paper .post,.L.sk-paper .col,.L.sk-paper .tip,.L.sk-paper .m,.L.sk-paper .ch,.L.sk-paper .win,
+.L.sk-paper .hook-box,.L.sk-paper .ba-card,.L.sk-paper .f1-tile,.L.sk-paper .f2-hero,.L.sk-paper .f2-cell,.L.sk-paper .draft-box,.L.sk-paper .est-banner,.L.sk-paper .w1-box,.L.sk-paper .c1-card,.L.sk-paper .c1-quote,.L.sk-paper .x1-col,.L.sk-paper .r6-verdict,.L.sk-paper .r6-sig,.L.sk-paper .r6-mom,
+.L.sk-warm .c,.L.sk-warm .strip,.L.sk-warm .post,.L.sk-warm .col,.L.sk-warm .tip,.L.sk-warm .m,.L.sk-warm .ch,.L.sk-warm .win,
+.L.sk-warm .hook-box,.L.sk-warm .ba-card,.L.sk-warm .f1-tile,.L.sk-warm .f2-hero,.L.sk-warm .f2-cell,.L.sk-warm .draft-box,.L.sk-warm .est-banner,.L.sk-warm .w1-box,.L.sk-warm .c1-card,.L.sk-warm .c1-quote,.L.sk-warm .x1-col,.L.sk-warm .r6-verdict,.L.sk-warm .r6-sig,.L.sk-warm .r6-mom{box-shadow:0 18px 40px -22px rgba(60,40,20,.28),0 2px 6px rgba(60,40,20,.06)}
+
+.L.sk-paper .ba-card,.L.sk-paper .f1-tile,.L.sk-paper .f2-cell,.L.sk-paper .w1-box,.L.sk-paper .c1-card,.L.sk-paper .x1-col,.L.sk-paper .r6-sig,
+.L.sk-warm .ba-card,.L.sk-warm .f1-tile,.L.sk-warm .f2-cell,.L.sk-warm .w1-box,.L.sk-warm .c1-card,.L.sk-warm .x1-col,.L.sk-warm .r6-sig,
+.L.sk-glass .ba-card,.L.sk-glass .f1-tile,.L.sk-glass .f2-cell,.L.sk-glass .w1-box,.L.sk-glass .c1-card,.L.sk-glass .x1-col,.L.sk-glass .r6-sig{background:var(--post)}
+
 .L.sk-paper .win,.L.sk-warm .win,.L.sk-glass .win{color:var(--ink)}
-.L.sk-paper .r4 .win,.L.sk-paper .win{background:#0f0f10;border-color:#0f0f10;color:#fff}
-.L.sk-paper .win .n,.L.sk-paper .win p,.L.sk-paper .win .k{color:#fff}
-.L.sk-paper .win .n{background:none}
-.r1 .b.up,.r1 .b.dn{color:#fff}
-/* light skins: style lists and charts as cards (white/warm/frosted bg, border, shadows); t5/r5 stay clean without card back */
-.L.sk-paper.t1 .rows,.L.sk-warm.t1 .rows,.L.sk-glass.t1 .rows,.L.sk-holo.t1 .rows{margin-top:36px!important}
-.L.sk-paper.t1 .rows,.L.sk-warm.t1 .rows,.L.sk-glass.t1 .rows{display:flex;flex-direction:column;gap:14px}
-.L.sk-paper.t1 .r,.L.sk-warm.t1 .r,.L.sk-glass.t1 .r{background:var(--post);border:1.5px solid var(--line);border-radius:22px;padding:22px 30px;grid-template-columns:300px 1fr;gap:28px}
-.L.sk-paper.t3 .list,.L.sk-warm.t3 .list,.L.sk-glass.t3 .list{margin-top:42px;gap:16px}
-.L.sk-paper.t3 .li,.L.sk-warm.t3 .li,.L.sk-glass.t3 .li{background:var(--post);border:1.5px solid var(--line);border-radius:22px;padding:18px 24px}
-.L.sk-paper.t3 .li.x,.L.sk-warm.t3 .li.x,.L.sk-glass.t3 .li.x{border-color:rgba(var(--bad-rgb),.35)}
-.L.sk-paper.r1 .chart,.L.sk-warm.r1 .chart,.L.sk-glass.r1 .chart{margin-top:34px;background:var(--post);border:1.5px solid var(--line);border-radius:28px;padding:20px 34px 26px}
-.L.sk-paper.r1 .grp:first-child,.L.sk-warm.r1 .grp:first-child,.L.sk-glass.r1 .grp:first-child{margin-top:6px}
-.L.sk-paper.r1 .row,.L.sk-warm.r1 .row,.L.sk-glass.r1 .row,.L.sk-paper.r1 .axis,.L.sk-warm.r1 .axis,.L.sk-glass.r1 .axis{grid-template-columns:350px 1fr}
-.L.sk-paper.r3 .list,.L.sk-warm.r3 .list,.L.sk-glass.r3 .list{margin-top:34px;background:var(--post);border:1.5px solid var(--line);border-radius:28px;padding:10px 36px}
-.L.sk-paper.r3 .it:first-child,.L.sk-warm.r3 .it:first-child,.L.sk-glass.r3 .it:first-child{border-top:0}
-.L.sk-paper.r3 .it,.L.sk-warm.r3 .it,.L.sk-glass.r3 .it{padding:18px 0}
-.L.sk-paper.r3 .gap,.L.sk-warm.r3 .gap,.L.sk-glass.r3 .gap{height:14px}
-/* light skins: no halo behind the icon, only a light soft shadow (owner 2026-11-25) */
+.L.sk-paper .r4 .win{background:#0f0f10;border-color:#0f0f10;color:#fff}
+.L.sk-paper .r4 .win .n,.L.sk-paper .r4 .win p,.L.sk-paper .r4 .win .k{color:#fff}
+.L.sk-paper .r4 .win .n{background:none}
+.L.sk-paper .ba-card.after,.L.sk-paper .f2-hero,.L.sk-paper .w1-box.hi,.L.sk-paper .est-banner,.L.sk-paper .r6-verdict,.L.sk-paper .tip{background:#ffffff;border-color:#0f0f10}
+.L.sk-paper .f1-tile.lead{background:#0f0f10;border-color:#0f0f10;color:#fff}
+.L.sk-paper .f1-tile.lead .tr{color:#c4f05a}
+.L.sk-paper .f1-tile.lead p,.L.sk-paper .f1-tile.lead .tv{color:#eceee9}
+.L.sk-paper .f1-tile.lead .tm{color:#c4f05a}
+.L.sk-paper .f1-step .sp{background:#c4f05a;border-color:#0f0f10;color:#0f0f10}
+.L.sk-paper .r6-verdict.skip{background:#fff5f5;border-color:var(--bad)}
+.L.sk-paper .r6-verdict.caution{background:#fffbf0;border-color:var(--warn)}
+.L.sk-paper .f2-pill,.L.sk-paper .hk-p{background:#f6f6f2}
+.L.sk-paper .ph .mult-pill{background:#c4f05a;border-color:#0f0f10}
+.L.sk-paper .ph .mult-pill b,.L.sk-paper .ph .mult-pill span{color:#0f0f10}
+.L.sk-warm .ba-card.after,.L.sk-warm .f2-hero,.L.sk-warm .w1-box.hi,.L.sk-warm .est-banner,.L.sk-warm .r6-verdict,.L.sk-warm .tip{background:rgba(232,97,60,.12);border-color:rgba(232,97,60,.45)}
+.L.sk-warm .f1-tile.lead{background:linear-gradient(145deg,#e8613c,#c44724);border-color:#c44724;color:#fff}
+.L.sk-warm .f1-tile.lead .tr,.L.sk-warm .f1-tile.lead p,.L.sk-warm .f1-tile.lead .tv,.L.sk-warm .f1-tile.lead .tm{color:#fff}
+.L.sk-warm .f1-step .sp{background:rgba(232,97,60,.14);border-color:rgba(232,97,60,.4);color:#b8411f}
+.L.sk-warm .f2-pill,.L.sk-warm .hk-p{background:#fffdf9}
+.L.sk-glass .ba-card.after,.L.sk-glass .f2-hero,.L.sk-glass .w1-box.hi,.L.sk-glass .est-banner,.L.sk-glass .r6-verdict,.L.sk-glass .tip{background:rgba(47,107,255,.14);border-color:rgba(47,107,255,.42)}
+.L.sk-glass .f1-tile.lead{background:linear-gradient(145deg,#2f6bff,#1848c4);border-color:#1848c4;color:#fff}
+.L.sk-glass .f1-tile.lead .tr,.L.sk-glass .f1-tile.lead p,.L.sk-glass .f1-tile.lead .tv,.L.sk-glass .f1-tile.lead .tm{color:#fff}
+.L.sk-glass .f1-step .sp{background:rgba(47,107,255,.14);border-color:rgba(47,107,255,.38);color:#1340c4}
+.L.sk-glass .f2-pill,.L.sk-glass .hk-p{background:rgba(255,255,255,.75)}
+.L.sk-paper .x1-col.win{background:#ffffff;border:2px solid #0f0f10}
+.L.sk-warm .x1-col.win{background:#fffdf9;border:2px solid var(--acc)}
+.L.sk-glass .x1-col.win{background:rgba(255,255,255,.82);border:2px solid var(--acc)}
+.r1 .b.up,.r1 .b.dn,.a2 .b.up,.a2 .b.dn{color:#fff}
+
+/* light skins: open-canvas lists (no card boxes under lists), tighten t1 top spacing where icon is hidden */
+.L.sk-paper.t1 .rows,.L.sk-warm.t1 .rows,.L.sk-glass.t1 .rows,.L.sk-holo.t1 .rows{margin-top:42px!important}
+.L.sk-paper.t3 .list,.L.sk-warm.t3 .list,.L.sk-glass.t3 .list{margin-top:48px}
 .sk-paper .ico::before,.sk-warm .ico::before,.sk-glass .ico::before{display:none}
 .sk-paper .ico img,.sk-warm .ico img,.sk-glass .ico img{filter:var(--ico-filter) brightness(1.22) saturate(1.12) drop-shadow(0 14px 18px rgba(40,30,20,.16))}
 
 /* ---------------------------------------------------------------- added for the skill (post_card.py), same look */
 .L .n{white-space:nowrap}
 .L .n small{white-space:normal}
-.t2 .grid .c:last-child:nth-child(odd){grid-column:1/-1}
-.r1 .b.up span.o{position:absolute;left:calc(100% + 14px);color:var(--acc2)}
-.t1 .who>div:nth-child(2){min-width:0}
+.t2 .grid .c:last-child:nth-child(odd),.c1 .c1-grid .c1-card:last-child:nth-child(odd){grid-column:1/-1}
+.r1 .b.up span.o,.a2 .b.up span.o{position:absolute;left:calc(100% + 14px);color:var(--acc2)}
+.t1 .who>div:nth-child(2),.a1 .who>div:nth-child(2){min-width:0}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="bar"><span class="t">REA Viral · post cards · 1080 × 1350</span><div class="seg" id="kind"></div></div>
+  <div class="bar"><span class="t">REA Viral · post cards lab · 22 layouts × 7 styles · 1080 × 1350</span><div class="seg" id="kind"></div></div>
   <div class="bar" style="border:0;padding-top:12px"><div class="seg" id="skin"></div><div class="seg" id="content"></div></div>
-  <p class="note">Real runs: an account run (@nicravesh, growth mode) and a niche run (solo founders on X). Long text and Fewer
-    items are made-up stress data for the fit step (shrunk text is noted under a card; red = it still spills). Click a card for full
-    size. Make one from your own run: <code>python3 scripts/post_card.py &lt;run folder&gt; --layout t3 --skin cobalt</code> (references/post.md).</p>
+  <p class="note">Every REA Viral report type in one lab: Growth teardown (<code>t1–t5</code>), Niche report &amp; Topic check (<code>r1–r6</code>), Post review (<code>p1–p3</code>), Format recipe (<code>f1–f2</code>), Account without growth (<code>a1–a2</code>), Draft check (<code>d1</code>), Writing / voice (<code>w1</code>), Comment tactics (<code>c1</code>), and Compare two (<code>x1</code>). Switch to <b>Long text (fit test)</b> or <b>Fewer items</b> to stress-test auto-fit. Click any card for full 1080×1350 size. Render from a run: <code>python3 scripts/post_card.py &lt;run folder&gt; --layout p1 --skin cobalt</code>.</p>
   <div id="view"></div>
 </div>
 <div id="one"></div>
@@ -264,12 +533,40 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
   var SKINS = [['cobalt', 'Cobalt'], ['redword', 'Red Word'], ['night', 'Night Notes'], ['holo', 'Holo Card'], ['paper', 'Paper Pin'], ['warm', 'Warm Studio'], ['glass', 'Glass Studio']];
   var LAYOUTS = {
     teardown: [['t1', 'Scorecard'], ['t2', '2×2 numbers'], ['t3', 'Hero number + checklist'], ['t4', 'The proof post'], ['t5', 'Numbered editorial']],
-    report: [['r1', 'Diverging bars'], ['r2', 'Works | Doesn’t'], ['r3', 'Ranked, number first'], ['r4', 'The winner + the rest'], ['r5', 'Dot plot']]
+    report: [['r1', 'Diverging bars'], ['r2', 'Works | Doesn’t'], ['r3', 'Ranked, number first'], ['r4', 'The winner + the rest'], ['r5', 'Dot plot'], ['r6', 'Topic check']],
+    post: [['p1', 'Proof post + chips'], ['p2', 'Hook breakdown'], ['p3', 'Vs author median']],
+    format: [['f1', 'Recipe blueprint'], ['f2', 'Scorecard + examples']],
+    account: [['a1', 'Account scorecard'], ['a2', 'Format bars + tip']],
+    draft: [['d1', 'Draft check']],
+    writing: [['w1', 'Writing & voice']],
+    comments: [['c1', 'Comment tactics']],
+    compare: [['x1', 'Compare two']],
+    topic: [['r6', 'Topic check']]
   };
-  // one glass icon per layout, by meaning; Red Word has its own red set; Night and Holo tint the blue set (--ico-filter)
-  var ICON = { t1: 'key', t2: 'arrow-up', t3: 'arrow-up', t4: 'bubble', t5: 'king', r1: 'arrow-up', r2: 'key', r3: 'king', r4: 'arrow-up', r5: 'bubble' };
+  var NEW_GALLERY = [
+    ['post', 'p1', 'Post review · Proof post'],
+    ['post', 'p2', 'Post review · Hook breakdown'],
+    ['post', 'p3', 'Post review · Vs median'],
+    ['format', 'f1', 'Format recipe · Blueprint'],
+    ['format', 'f2', 'Format recipe · Scorecard'],
+    ['account', 'a1', 'Account (no growth) · Scorecard'],
+    ['account', 'a2', 'Account (no growth) · Format bars'],
+    ['draft', 'd1', 'Draft check · Lifts & drags'],
+    ['writing', 'w1', 'Writing & voice'],
+    ['comments', 'c1', 'Comment tactics'],
+    ['compare', 'x1', 'Compare two'],
+    ['topic', 'r6', 'Topic check (saturation + momentum)']
+  ];
+  var ICON = {
+    t1: 'key', t2: 'arrow-up', t3: 'arrow-up', t4: 'bubble', t5: 'king',
+    r1: 'arrow-up', r2: 'key', r3: 'king', r4: 'arrow-up', r5: 'bubble', r6: 'arrow-up',
+    p1: 'bubble', p2: 'key', p3: 'arrow-up',
+    f1: 'key', f2: 'king',
+    a1: 'key', a2: 'arrow-up',
+    d1: 'bubble', w1: 'key', c1: 'bubble', x1: 'king'
+  };
   var RED = { key: 'cursor', king: 'cursor', 'arrow-up': 'arrow-up', bubble: 'bubble' };
-  var NO_ICON = { holo: 1, paper: 1, warm: 1, glass: 1 };   // owner 2026-11-25: no icons on Holo or the light styles for now
+  var NO_ICON = { holo: 1, paper: 1, warm: 1, glass: 1 };
 
   // ------------------------------------------------------------------ the sample data of the gallery (real runs)
   var SAMPLE = {
@@ -282,14 +579,14 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
         { n: '0.5 → 9.8', unit: 'posts a week', line: 'They post almost every day', sub: 'Since Nov 2. November: 39 posts, 37.9K views', short: 'Posts almost every day', tag: '0.5 → 9.8 / wk',
           t5: { sub: 'Same kind of post, Kling vs Seedance, 10 times in 11 days', n: '9.8', unit: 'a week' } },
         { n: '68', unit: 'replies, 12.1K views', line: 'They ask one group a question', sub: 'And promise to reply to everyone', short: 'Asks one group a question', tag: '68 replies',
-          say: 'replies when they ask one group a question', t5: { sub: '“AI video creators, what’s your go-to? I’ll reply to everyone”', unit: 'replies' } },
+          t5: { sub: '“AI video creators, what’s your go-to? I’ll reply to everyone”', unit: 'replies' } },
         { n: '4 of 6', unit: 'tagged reposted', line: 'They tag the people in their videos', sub: 'And the tool, in the first reply', short: 'Tags the people in the video', tag: '4 of 6 reposted',
-          say: 'tagged people reposted their video', t5: { sub: 'Creators and the tool, in the first reply', unit: 'reposted' } },
+          t5: { sub: 'Creators and the tool, in the first reply', unit: 'reposted' } },
         { n: '77 min', unit: 'after the original', line: 'They jump on big news fast', sub: 'Their Durov quote got 7.3K views', short: 'Quotes big news fast', tag: '77 min',
-          say: 'to quote big news; it got 7.3K views', t5: { short: 'Jumps on big news fast', sub: 'Quoted @durov 77 minutes after the post', n: '7.3K', unit: 'views' } }
+          t5: { short: 'Jumps on big news fast', sub: 'Quoted @durov 77 minutes after the post', n: '7.3K', unit: 'views' } }
       ],
-      miss: { n: '0.72×', unit: '0 hits in 11 posts', line: 'Meme clips don’t work', sub: 'One-line caption, nobody tagged, nothing to answer', short: 'Meme clips with one line', tag: '0.72×',
-        say: 'Meme clips with a one-line caption don’t work: 0 hits in 11 posts.', t5: { sub: 'One-line caption, nothing to answer: 0 hits in 11 posts', unit: 'normal' } },
+      miss: { n: '0.7×', unit: '0 hits in 11 posts', line: 'Meme clips don’t work', sub: 'One-line caption, nobody tagged, nothing to answer', short: 'Meme clips with one line', tag: '0.7×',
+        t5: { sub: 'One-line caption, nothing to answer: 0 hits in 11 posts', unit: 'normal' } },
       hero: { n: '37.9K', line: 'views in November, from <b>1.4K</b> in October' },
       proof: { date: 'Nov 22', text: '<mark>AI video creators</mark>, what’s your go-to right now? Seedance 2.5, Kling 4.0, MiniMax H3… or something else? Drop your favorite + what you’re building with it. <mark>I’ll reply to everyone</mark>, let’s connect 🤝',
         stats: [['68', 'replies'], ['41', 'bookmarks'], ['12.1K', 'views']], caption: 'Name one crowd, ask one question, promise to answer: their best post.',
@@ -302,36 +599,217 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
       r3: { sub: '14 creators, 661 posts, Oct 24 – Nov 23. Ranked by how far each format beats its creator’s usual.' },
       r5: { sub: 'Where each format lands against its creator’s usual (the white line).' },
       works: [
-        { v: 2.71, n: '2.71×', label: 'Own revenue number in line 1' },
-        { v: 2.68, n: '2.68×', label: 'List post: a colon line, one item per line', r5: { label: 'List post (one item per line)' } },
-        { v: 1.62, n: '1.62×', label: 'Long post, story or guide (600+ characters)' },
-        { v: 1.20, n: '1.20×', label: 'Ship / launch demo, rising' }
+        { v: 2.71, n: '2.7×', label: 'Own revenue number in line 1' },
+        { v: 2.68, n: '2.7×', label: 'List post: a colon line, one item per line', r5: { label: 'List post (one item per line)' } },
+        { v: 1.62, n: '1.6×', label: 'Long post, story or guide (600+ characters)' },
+        { v: 1.20, n: '1.2×', label: 'Ship / launch demo, rising' }
       ],
       doesnt: [
-        { v: 0.93, n: '0.93×', label: 'Quote with a short take (the most used: 197 posts)', r1: { label: 'Quote with a short take (197 posts)' }, r4: { label: 'Quote with a short take' }, r5: { label: 'Quote with a short take (197 posts)' } },
-        { v: 0.92, n: '0.92×', label: 'One-liner' },
-        { v: 0.85, n: '0.85×', label: 'Short question' },
-        { v: 0.82, n: '0.82×', label: 'Video clip (not a launch)' }
+        { v: 0.93, n: '0.9×', label: 'Quote with a short take (the most used: 197 posts)', r1: { label: 'Quote with a short take (197 posts)' }, r4: { label: 'Quote with a short take' }, r5: { label: 'Quote with a short take (197 posts)' } },
+        { v: 0.92, n: '0.9×', label: 'One-liner' },
+        { v: 0.85, n: '0.9×', label: 'Short question' },
+        { v: 0.82, n: '0.8×', label: 'Video clip (not a launch)' }
       ],
-      tip: { n: '2.27×', label: 'Any post with a list in it (63 posts, 13 creators). Without one: 0.95×.', r4: { label: 'Has a list anywhere in it' } },
+      tip: { n: '2.3×', label: 'Any post with a list in it (63 posts, 13 creators). Without one: 0.95×.', r4: { label: 'Has a list anywhere in it' } },
       winner: 'Put your own revenue number in line 1', winner_k: '#1 format',
+      topic: {
+        kicker: 'Topic check · Still worth posting?',
+        title: '<b>Kling 4.0 vs Seedance 2.5</b> on X',
+        sampled: null,
+        verdict: { status: 'go', label: 'POST WITHIN HOURS', text: 'Rising, not taken yet — post within hours with your own visual' },
+        signals: [
+          { k: 'Saturation (48h)', n: 'LOW', sub: '0 large-account breakouts · 18 posts read', tone: 'good' },
+          { k: 'Momentum (6h)', n: 'RISING', sub: '11 posts (1.8/h) vs 5 prev (0.8/h)', tone: 'good' },
+          { k: 'Lateness', n: '1.5h', sub: 'since first 100K+ post · still early', tone: 'good' }
+        ],
+        bars: { prev_n: 5, prev_rate: '0.8/h', last_n: 11, last_rate: '1.8/h' },
+        proof_posts: [
+          { author: '@indie_lab', followers: '4.2K', views: '118K', age: '1.5h ago', flag: 'breakout' },
+          { author: '@motion_kai', followers: '8.9K', views: '46K', age: '3h ago', flag: '' },
+          { author: '@clip_forge', followers: '2.1K', views: '29K', age: '4.5h ago', flag: '' }
+        ],
+        foot: 'Sample: 18 posts in 48h (11 last 6h, 5 prev 6h) · topic_check.json'
+      },
       foot: '1× = each creator’s own usual · 14 creators · 661 posts', brand: 'Measured with <b>REA Viral</b>'
+    },
+    post: {
+      type: 'post', kicker: 'Post review', title: 'Why this post hit <b>14×</b> their usual',
+      fresh: null,
+      account: { name: 'KIKI', handle: '@nicravesh', initial: 'K', followers: '481', glyph: '𝕏' },
+      post: {
+        date: 'Nov 22', multiplier: '14×', usual_label: 'vs @nicravesh’s usual (median 860 views from 20 posts)',
+        text: '<mark>AI video creators, what’s your go-to right now?</mark> Seedance 2.5, Kling 4.0, MiniMax H3… or something else? Drop your favorite + what you’re building with it. I’ll reply to everyone, let’s connect 🤝',
+        hook: 'AI video creators, what’s your go-to right now?',
+        hook_tag: 'Named crowd + question · 47 chars',
+        stats: [['12.1K', 'views'], ['148', 'likes'], ['41', 'bookmarks'], ['68', 'replies']],
+        structure: [
+          { step: '01 · Hook', text: 'Names one crowd and asks a concrete question in line 1' },
+          { step: '02 · Options', text: 'Lists 3 current tools so readers can answer in two words' },
+          { step: '03 · Promise', text: 'Closes with “I’ll reply to everyone” to trigger comments' }
+        ]
+      },
+      why: [
+        { tag: '14×', line: 'Named crowd in line 1', sub: 'Only 4 of 47 posts opened on a crowd; 3 of 4 were top-5 hits' },
+        { tag: '68 replies', line: 'Promise to answer everyone', sub: 'Author replied to 22 of the first 25 comments read' },
+        { tag: '3 of 3', line: 'Format repeats cleanly', sub: 'All 3 crowd-call repeats beat the account’s usual' }
+      ],
+      compare: [
+        { label: 'Views', usual: '860', post: '12.1K', delta: '14×' },
+        { label: 'Replies', usual: '3', post: '68', delta: '23×' },
+        { label: 'Bookmarks', usual: '2', post: '41', delta: '21×' },
+        { label: 'First line', usual: '72 chars · link drop', post: '47 chars · crowd ask', delta: 'Shorter' }
+      ],
+      foot: '1× = @nicravesh’s usual (median of 20 settled posts) · post_probe.json', brand: 'Measured with <b>REA Viral</b>'
+    },
+    format: {
+      type: 'format', kicker: 'Format recipe', title: 'Copy this: <b>Split-screen tool test</b>',
+      badge: 'Scale it · Rising', small_sample: null,
+      stats: [
+        { n: '3.4×', label: 'median vs usual' },
+        { n: '75%', label: 'hit rate (2×+)' },
+        { n: '18%', label: 'share of posts' },
+        { n: 'Low', label: 'effort' }
+      ],
+      recipe: [
+        { k: 'Hook', v: 'Two tools side by side in frame 1 with model names in bold' },
+        { k: 'Structure', v: 'Same prompt on screen → raw output A → raw output B → verdict' },
+        { k: 'Look', v: 'Clean UI screen capture, no talking head, 1.8 cuts / 10 s' },
+        { k: 'Length', v: '22 s median (18–30 s sweet spot)' }
+      ],
+      posts: [
+        { ratio: '5.8×', views: '142K', date: 'Nov 19', line: 'Kling 4.0 vs Seedance 2.5 — same prompt, zero color grade', fresh: false },
+        { ratio: '4.1×', views: '98K', date: 'Nov 14', line: 'Same product shot through 3 AI video models in 20 seconds', fresh: false },
+        { ratio: '2.9×', views: '64K', date: 'Nov 24', line: 'Seedance 2.5 vs Veo 3 on handheld camera pans', fresh: true }
+      ],
+      dont_copy: 'Skip the creator’s personal tool stack — keep the side-by-side raw output test.',
+      foot: '1× = @studio_k’s usual · 12 posts in format · radar.json', brand: 'Measured with <b>REA Viral</b>'
+    },
+    account: {
+      type: 'account', kicker: 'Account teardown', title: 'What works on <b>@studio_k</b>',
+      a2: { sub: '84 posts on X, Aug 24 – Nov 24. Each format measured against @studio_k’s own usual (1×).' },
+      account: { name: 'Studio K', handle: '@studio_k', initial: 'S', followers: '24.8K', window: 'Aug 24 – Nov 24 · 84 posts', glyph: '𝕏' },
+      top: [
+        { v: 3.4, n: '3.4×', name: 'Split-screen tool test', meta: '18% of posts · 75% hit rate', quadrant: 'Scale it' },
+        { v: 2.3, n: '2.3×', name: 'Teardown thread', meta: '9% of posts · 63% hit rate', quadrant: 'Underused' },
+        { v: 1.5, n: '1.5×', name: 'Before / after workflow clip', meta: '21% of posts · 38% hit rate', quadrant: 'Scale it' }
+      ],
+      drop: [
+        { v: 0.7, n: '0.7×', name: 'Quick news repost', meta: '29% of posts · 4% hit rate', quadrant: 'Overused' },
+        { v: 0.5, n: '0.5×', name: 'Unedited screen dump', meta: '11% of posts · 0 hits', quadrant: 'Drop' }
+      ],
+      tip: { n: '1.9×', label: 'Writing tip: open with a concrete result number', sub: '19 posts at 1.9× vs 0.9× without (writing.json)' },
+      foot: '1× = @studio_k’s usual · 84 posts · analysis.json + radar.json', brand: 'Measured with <b>REA Viral</b>'
+    },
+    draft: {
+      type: 'draft', kicker: 'Draft check', title: 'Before you post this on <b>@studio_k</b>',
+      draft: {
+        text: '<mark>3 AI workflows cut my edit time by 64%</mark> — here is the exact timeline I ran on 12 client videos this month. Full stack in the thread below.',
+        meta: '141 chars · first line 38 chars · opens with number · 0 questions'
+      },
+      lifts: [
+        { tag: '1.9×', line: 'Opens with a result number', sub: 'Past posts with it: 1.9× vs 0.9× without (19 posts)' },
+        { tag: '1.5×', line: 'First line inside winning length', sub: '38 chars fits your 28–48 char winning band' }
+      ],
+      drags: [
+        { tag: '0.7×', line: 'No open question or ask', sub: 'Posts that ask readers one thing average 1.4×' },
+        { tag: '0.6×', line: '“Full stack below” without a list', sub: 'List posts lift 2.3×; plain teasers underperform' }
+      ],
+      estimate: {
+        badge: 'ESTIMATE · NOT A GUARANTEE',
+        range: '1.3× – 2.2×',
+        label: 'Estimated range vs @studio_k’s usual from 4 matched past signals (draft_check.py)'
+      },
+      foot: 'Checked against @studio_k’s 84 scored posts · writing.json', brand: 'Checked with <b>REA Viral</b>'
+    },
+    writing: {
+      type: 'writing', kicker: 'Writing & voice', title: 'How <b>@studio_k</b> writes for reach',
+      sub: '84 scored posts on X · each opening, length band, and ask measured against their own usual (1×).',
+      openings: [
+        { n: '1.9×', label: 'Opens with a result number ($, %, ×)', meta: '19 posts · lifts', up: true },
+        { n: '1.5×', label: 'Opens with a question', meta: '14 posts · lifts', up: true },
+        { n: '1.3×', label: 'Has a numbered or bulleted list', meta: '11 posts · lifts', up: true },
+        { n: '0.7×', label: 'Opens with “I” or “my”', meta: '22 posts · sinks', up: false }
+      ],
+      length_bands: [
+        { range: 'Under 120 chars', n: '0.8×', posts: '28 posts', best: false },
+        { range: '120 – 340 chars', n: '1.6×', posts: '29 posts · winning band', best: true },
+        { range: '340+ chars', n: '1.0×', posts: '27 posts', best: false }
+      ],
+      asks: {
+        share: '42%', share_lbl: 'posts ask',
+        lift: '1.4×', lift_lbl: 'with ask (vs 0.9×)',
+        note: '35 of 84 posts ask for a reply or bookmark — usually on the final line; links sit in the first self-reply.'
+      },
+      foot: '1× = @studio_k’s usual · 84 posts with text · writing.json', brand: 'Measured with <b>REA Viral</b>'
+    },
+    comments: {
+      type: 'comments', kicker: 'Comment tactics', title: 'How <b>@studio_k</b> runs comments',
+      sub: '680 comments read across 14 posts (replies included) · measured from comments.json.',
+      metrics: [
+        { k: 'Own comment', n: '86%', label: '12 of 14 posts have one', sub: 'First comment on 9 · within 10 min on 8' },
+        { k: 'Creator replies', n: '64%', label: 'Audience comments answered', sub: '142 of 222 top-level · median 14 min to reply' },
+        { k: 'Follow intent', n: '19', label: 'New followers say so', sub: 'Across 8 posts (“just followed”, “instant follow”)' },
+        { k: 'Echo prompts', n: '4 posts', label: '“Comment a word” used', sub: 'Top word “GUIDE” = 41% of comments on that post' }
+      ],
+      quote: { text: '“Instant follow — this breakdown saved me 3 hours on our launch reel.”', meta: 'Audience comment on p014 · 142 likes' },
+      foot: '680 comments read on 14 posts · comments.json', brand: 'Measured with <b>REA Viral</b>'
+    },
+    compare: {
+      type: 'compare', kicker: 'Compare two', title: '<b>Split-screen test</b> vs <b>News repost</b>',
+      sub: 'Same account (@studio_k, 84 posts). Both formats measured against the account’s own usual (1×).',
+      left: {
+        name: 'Split-screen tool test', badge: 'Scale it', hero_n: '3.4×', hero_label: 'median vs usual', win: true,
+        rows: [
+          { k: 'Volume', v: '15 posts (18%)' },
+          { k: 'Hit rate (2×+)', v: '75%' },
+          { k: 'Direction', v: '1.4× rising' },
+          { k: 'Effort', v: 'Low' },
+          { k: 'Best post', v: '5.8× · 142K views' }
+        ]
+      },
+      right: {
+        name: 'Quick news repost', badge: 'Overused', hero_n: '0.7×', hero_label: 'median vs usual', win: false,
+        rows: [
+          { k: 'Volume', v: '24 posts (29%)' },
+          { k: 'Hit rate (2×+)', v: '4%' },
+          { k: 'Direction', v: '0.7× fading' },
+          { k: 'Effort', v: 'Low' },
+          { k: 'Best post', v: '1.3× · 19K views' }
+        ]
+      },
+      verdict: { n: '4.9×', label: 'Higher median lift for the same low effort — shift posts from News reposts into Split-screen tests.' },
+      foot: '1× = @studio_k’s usual · Study view comparison · radar.json', brand: 'Measured with <b>REA Viral</b>'
+    },
+    topic: {
+      type: 'topic', kicker: 'Topic check · Still worth posting?', title: '<b>Kling 4.0 vs Seedance 2.5</b> on X',
+      sampled: null,
+      verdict: { status: 'go', label: 'POST WITHIN HOURS', text: 'Rising, not taken yet — post within hours with your own visual' },
+      signals: [
+        { k: 'Saturation (48h)', n: 'LOW', sub: '0 large-account breakouts · 18 posts read', tone: 'good' },
+        { k: 'Momentum (6h)', n: 'RISING', sub: '11 posts (1.8/h) vs 5 prev (0.8/h)', tone: 'good' },
+        { k: 'Lateness', n: '1.5h', sub: 'since first 100K+ post · still early', tone: 'good' }
+      ],
+      bars: { prev_n: 5, prev_rate: '0.8/h', last_n: 11, last_rate: '1.8/h' },
+      proof_posts: [
+        { author: '@indie_lab', followers: '4.2K', views: '118K', age: '1.5h ago', flag: 'breakout' },
+        { author: '@motion_kai', followers: '8.9K', views: '46K', age: '3h ago', flag: '' },
+        { author: '@clip_forge', followers: '2.1K', views: '29K', age: '4.5h ago', flag: '' }
+      ],
+      foot: 'Sample: 18 posts in 48h (11 last 6h, 5 prev 6h) · topic_check.json', brand: 'Measured with <b>REA Viral</b>'
     }
   };
 
   // ------------------------------------------------------------------ building one card from its data
-  // Every text in the data is HTML already (post_card.py escapes the run's words and adds only <b> and <mark>).
-  // Any item (and the card itself) may hold a per-layout override: {"line": "...", "t5": {"n": "9.8"}}.
   function at(o, id) { if (!o || !o[id]) return o; var r = {}, k; for (k in o) r[k] = o[k]; for (k in o[id]) r[k] = o[id][k]; return r; }
-  function lc(s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : ''; }
   function el(t, cls, html) { return html ? '<' + t + (cls ? ' class="' + cls + '"' : '') + '>' + html + '</' + t + '>' : ''; }
   function pad2(i) { return (i < 10 ? '0' : '') + i; }
-  function head(d) { return '<div class="k">' + d.kicker + '</div><h1 class="h">' + d.title + '</h1>'; }
+  function head(d, badgeHtml) {
+    return '<div class="krow"><div class="k">' + d.kicker + '</div>' + (badgeHtml || '') + '</div><h1 class="h">' + d.title + '</h1>';
+  }
   function foot(d) { return '<div class="foot"><span>' + (d.foot || '') + '</span><span>' + (d.brand || '') + '</span></div>'; }
   function shortOf(it) { return it.short || it.line; }
   function tagOf(it) { return it.tag || it.n; }
-  function sayOf(it) { return it.say || (it.unit ? it.unit + ': ' + lc(it.line) : it.line); }
-  function missSay(m) { return m.say || [m.line, m.unit].filter(Boolean).join(': '); }
+  function missSay(m) { return m.say || [m.line, m.unit].filter(Boolean).join(' · '); }
 
   var T = {
     t1: function (d, items, m) {
@@ -343,7 +821,9 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
     },
     t2: function (d, items, m) {
       return head(d) + el('p', 's', d.sub) + '<div class="grid">' + items.map(function (c, i) {
-        return '<div class="c"><div class="i">' + pad2(i + 1) + '</div><div class="n">' + c.n + '</div><p>' + sayOf(c) + '</p></div>'; }).join('') + '</div>' +
+        var body = c.say ? '<p>' + c.say + '</p>' : (el('div', 'u', c.unit) + '<p>' + c.line + '</p>');
+        return '<div class="c"><div class="i">' + pad2(i + 1) + '</div><div class="n">' + c.n + '</div>' + body + '</div>';
+      }).join('') + '</div>' +
         (m ? '<div class="strip"><div class="n">' + m.n + '</div><p>' + missSay(m) + '</p></div>' : '');
     },
     t3: function (d, items, m) {
@@ -368,25 +848,48 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
     }
   };
 
-  function scale(all) {   // the 1x line sits at 22 %; the lowest lift at 0 %, the highest at 100 %
+  function scale(all) {
     var vs = all.map(function (w) { return w.v; });
     var hi = Math.max(3, Math.ceil(Math.max.apply(null, vs)));
     var lo = Math.max(0.05, Math.min(0.75, Math.floor(Math.min.apply(null, vs) * 20) / 20 - 0.05));
     return { hi: hi, lo: lo,
-      pos: function (v) { v = Math.min(Math.max(v, lo), hi); return v >= 1 ? 22 + (v - 1) / (hi - 1) * 78 : 22 - (1 - v) / (1 - lo) * 22; },
+      pos: function (v) { v = Math.min(Math.max(v, lo), hi); return v >= 1 ? 32 + (v - 1) / (hi - 1) * 68 : 32 - (1 - v) / (1 - lo) * 32; },
       lg: function (v) { v = Math.min(Math.max(v, lo), hi); return Math.log(v / lo) / Math.log(hi / lo) * 100; } };
   }
+
+  function renderTopicR6(td) {
+    var v = td.verdict || {}, sigs = td.signals || [], b = td.bars || {}, ps = td.proof_posts || [];
+    var mx = Math.max(b.prev_n || 0, b.last_n || 0, 1);
+    var pPct = Math.max(6, Math.round(100 * (b.prev_n || 0) / mx));
+    var lPct = Math.max(6, Math.round(100 * (b.last_n || 0) / mx));
+    var isFade = (b.last_n || 0) < (b.prev_n || 0);
+    var badge = td.sampled ? '<span class="badge warn">' + td.sampled + '</span>' : '';
+    return head(td, badge) +
+      '<div class="r6-verdict ' + (v.status || 'go') + '"><div class="vl">' + (v.label || 'VERDICT') + '</div><p>' + (v.text || '') + '</p></div>' +
+      '<div class="r6-sigs">' + sigs.map(function (s) {
+        return '<div class="r6-sig ' + (s.tone || '') + '"><div class="sk">' + s.k + '</div><div class="sn">' + s.n + '</div><p>' + s.sub + '</p></div>';
+      }).join('') + '</div>' +
+      '<div class="r6-mom"><div class="mh">Momentum · posts per 6-hour window</div>' +
+        '<div class="r6-bar-r"><div class="bl">Prev 6h</div><div class="r6-tr"><div class="r6-fill" style="width:' + pPct + '%"></div></div><div class="bv">' + (b.prev_n || 0) + ' (' + (b.prev_rate || '0/h') + ')</div></div>' +
+        '<div class="r6-bar-r"><div class="bl">Last 6h</div><div class="r6-tr"><div class="r6-fill ' + (isFade ? 'fade' : 'now') + '" style="width:' + lPct + '%"></div></div><div class="bv">' + (b.last_n || 0) + ' (' + (b.last_rate || '0/h') + ')</div></div></div>' +
+      (ps.length ? '<div class="r6-proof">' + ps.slice(0, 3).map(function (p) {
+        return '<div class="r6-row"><div><b>' + p.author + '</b> <span class="m">' + (p.followers ? p.followers + ' fol' : '') + '</span></div><div class="v">' + p.views + '</div><div class="m">' + p.age + '</div>' + (p.flag ? '<span class="fl">' + p.flag + '</span>' : '<span></span>') + '</div>';
+      }).join('') + '</div>' : '');
+  }
+
   var R = {
     r1: function (d, W, D) {
       var s = scale(W.concat(D)), step = Math.max(1, Math.ceil((s.hi - 1) / 3)), ticks = [1], t;
       for (t = 1 + step; t <= s.hi; t += step) ticks.push(t);
       return head(d) + el('p', 's', d.sub) + '<div class="chart">' +
-        (W.length ? '<div class="grp">WORKS</div>' + W.map(function (w) { var wd = s.pos(w.v) - 22;
-          return '<div class="row"><div class="lab">' + w.label + '</div><div class="track"><div class="one"></div><div class="b up" style="width:' + wd + '%">' +
-            (wd >= 13 ? w.n : '<span class="o">' + w.n + '</span>') + '</div></div></div>'; }).join('') : '') +
-        (D.length ? '<div class="grp">DOESN’T</div>' + D.map(function (w) {
-          return '<div class="row"><div class="lab">' + w.label + '</div><div class="track"><div class="one"></div><div class="b dn" style="width:' + (22 - s.pos(w.v)) + '%"><span>' + w.n + '</span></div></div></div>'; }).join('') : '') +
-        '<div class="axis"><div></div><div>' + ticks.map(function (a) { return '<span style="left:' + s.pos(a) + '%">' + a + '×</span>'; }).join('') + '</div></div></div>';
+        '<div class="ch-head"><div class="ch-k">Format</div><div class="ch-ax"><span class="one-pill">1× usual</span></div></div>' +
+        '<div class="ch-body"><div class="one-line"></div>' +
+        (W.length ? '<div class="grp">▲ Works</div>' + W.map(function (w) { var wd = Math.max(3, s.pos(w.v) - 32);
+          return '<div class="row"><div class="lab">' + w.label + '</div><div class="track"><div class="b up" style="width:' + wd + '%">' +
+            (wd >= 15 ? w.n : '<span class="o">' + w.n + '</span>') + '</div></div></div>'; }).join('') : '') +
+        (D.length ? '<div class="grp dn">▼ Doesn’t</div>' + D.map(function (w) { var wd = Math.max(4, 32 - s.pos(w.v));
+          return '<div class="row"><div class="lab">' + w.label + '</div><div class="track"><div class="b dn" style="width:' + wd + '%"><span>' + w.n + '</span></div></div></div>'; }).join('') : '') +
+        '</div><div class="axis"><div></div><div>' + ticks.map(function (a) { return '<span style="left:' + s.pos(a) + '%">' + a + '×</span>'; }).join('') + '</div></div></div>';
     },
     r2: function (d, W, D) {
       function col(list, cls, h) { return list.length ? '<div class="col' + cls + '"><h4>' + h + '</h4>' + list.map(function (w) { return '<div class="it"><div class="n">' + w.n + '</div><p>' + w.label + '</p></div>'; }).join('') + '</div>' : ''; }
@@ -414,20 +917,232 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
           '<div class="stem" style="left:' + Math.min(x, one) + '%;width:' + Math.abs(x - one) + '%;background:' + c + '"></div><div class="dot" style="left:' + x + '%;background:' + c + '"></div></div>' +
           '<div class="v' + (up ? '' : ' bad') + '">' + w.n + '</div></div>'; }).join('') +
         '</div><div class="ax"><div></div><div>' + ticks.map(function (a) { return '<span style="left:' + s.lg(a) + '%">' + a + '×</span>'; }).join('') + '</div></div>';
+    },
+    r6: function (d) {
+      var td = d.topic ? d.topic : d;
+      if (d.topic && d.topic.foot) d.foot = d.topic.foot;
+      return renderTopicR6(td);
+    }
+  };
+
+  var P = {
+    p1: function (d) {
+      var p = d.post || {}, a = d.account || {}, why = (d.why || []).slice(0, 3);
+      var b = d.fresh ? '<span class="badge warn">' + d.fresh + '</span>' : '';
+      return head(d, b) +
+        '<div class="post"><div class="ph"><div class="av">' + (a.initial || '@') + '</div><div><b>' + (a.name || '') + '</b><span>' + (a.handle || '') + (p.date ? ' · ' + p.date : '') + '</span></div>' +
+        '<div class="mult-pill"><b>' + (p.multiplier || '') + '</b><span>usual</span></div></div><p>' + (p.text || '') + '</p>' +
+        ((p.stats || []).length ? '<div class="stats">' + p.stats.map(function (s) { return '<span><b>' + s[0] + '</b>' + s[1] + '</span>'; }).join('') + '</div>' : '') + '</div>' +
+        (why.length ? '<div class="p1-why-lbl">Why it worked</div><div class="p1-reasons">' + why.map(function (w) {
+          return '<div class="p1-r"><div class="tag">' + (w.tag || '') + '</div><h4>' + (w.line || '') + '</h4></div>';
+        }).join('') + '</div>' : '');
+    },
+    p2: function (d) {
+      var p = d.post || {}, steps = (p.structure || []).slice(0, 3), why = (d.why || []).slice(0, 3);
+      var b = d.fresh ? '<span class="badge warn">' + d.fresh + '</span>' : '<span class="badge">' + (p.multiplier || '') + ' vs usual</span>';
+      var pills = [];
+      if (p.hook_tag) pills.push('<span class="hk-p">' + p.hook_tag + '</span>');
+      if (p.stats && p.stats.length) pills.push('<span class="hk-p"><b>' + p.stats[0][0] + '</b> ' + p.stats[0][1] + '</span>');
+      var count = Math.max(steps.length, why.length, 0);
+      var beats = [];
+      for (var i = 0; i < Math.min(3, count); i++) {
+        var st = steps[i], wh = why[i];
+        var title = wh ? (wh.line || '') : (st ? String(st.step || '').replace(/^\d+\s*·\s*/, '') : '');
+        var desc = wh ? (wh.sub || '') : (st ? (st.text || '') : '');
+        var metric = wh ? (wh.tag || '') : '';
+        beats.push('<div class="p2-beat"><div class="bn">' + pad2(i + 1) + '</div><div><h4>' + title + '</h4>' + el('p', '', desc) + '</div>' + (metric ? '<div class="bt">' + metric + '</div>' : '<div></div>') + '</div>');
+      }
+      return head(d, b) +
+        '<div class="hook-box"><div class="hk-lbl">Opening hook</div><blockquote>“' + (p.hook || '') + '”</blockquote>' +
+        (pills.length ? '<div class="hk-pills">' + pills.join('') + '</div>' : '') + '</div>' +
+        (beats.length ? '<div class="p2-beats">' + beats.join('') + '</div>' : '');
+    },
+    p3: function (d) {
+      var p = d.post || {}, rows = (d.compare || []).slice(0, 4), why = (d.why || [])[0];
+      var b = d.fresh ? '<span class="badge warn">' + d.fresh + '</span>' : '';
+      var u0 = rows[0] ? rows[0].usual : '1×', p0 = rows[0] ? rows[0].post : (p.multiplier || '');
+      return head(d, b) +
+        '<div class="ba-head">' +
+          '<div class="ba-card"><div class="lbl">Author’s median post</div><div class="n">' + u0 + '</div><p>1× usual baseline</p></div>' +
+          '<div class="ba-arr">→</div>' +
+          '<div class="ba-card after"><div class="lbl">This post</div><div class="n">' + p0 + '</div><p>' + (p.multiplier || '') + ' usual' + (d.fresh ? ' · so far' : '') + '</p></div>' +
+        '</div>' +
+        (rows.length ? '<div class="ba-rows"><div class="ba-row hd"><div>Metric</div><div>Usual</div><div>This post</div><div style="text-align:right">Lift</div></div>' +
+          rows.map(function (r) {
+            return '<div class="ba-row"><div class="k-c">' + r.label + '</div><div class="u-c">' + r.usual + '</div><div class="p-c">' + r.post + '</div><div class="d-c">' + r.delta + '</div></div>';
+          }).join('') + '</div>' : '') +
+        (why ? '<div class="tip"><div class="n">' + why.tag + '</div><p>' + why.line + el('small', '', why.sub) + '</p></div>' : '');
+    }
+  };
+
+  var F = {
+    f1: function (d) {
+      var st = (d.stats || []).slice(0, 4), rc = (d.recipe || []).slice(0, 4), ps = (d.posts || []).slice(0, 3);
+      var h0 = st[0] || { n: '—', label: 'median vs usual' }, rest = st.slice(1, 4);
+      var b = d.small_sample ? '<span class="badge warn">' + d.small_sample + '</span>' : (d.badge ? '<span class="badge">' + d.badge + '</span>' : '');
+      // Combine Look + Length into step 03 with a crisp length pill so all 3 steps stay large, bold, and airy
+      var steps = [];
+      if (rc[0]) steps.push({ k: rc[0].k, v: rc[0].v, pill: '' });
+      if (rc[1]) steps.push({ k: rc[1].k, v: rc[1].v, pill: '' });
+      if (rc[2] || rc[3]) {
+        steps.push({
+          k: rc[2] && rc[3] ? (rc[2].k + ' & ' + rc[3].k) : (rc[2] || rc[3]).k,
+          v: (rc[2] || rc[3]).v,
+          pill: (rc[2] && rc[3]) ? rc[3].v : ''
+        });
+      }
+      return head(d, b) +
+        '<div class="f1-strip"><div><div class="f1-hero-n">' + h0.n + '</div><div class="f1-hero-l">' + h0.label + '</div></div>' +
+        (rest.length ? '<div class="f1-kpis" style="grid-template-columns:repeat(' + rest.length + ',1fr)">' + rest.map(function (s) {
+          return '<div class="f1-kpi"><b>' + s.n + '</b><span>' + s.label + '</span></div>';
+        }).join('') + '</div>' : '') + '</div>' +
+        (steps.length ? '<div class="f1-steps">' + steps.map(function (r, idx) {
+          return '<div class="f1-step"><div class="sn">' + pad2(idx + 1) + '</div><div><div class="sh"><span class="sk">' + r.k + '</span>' + (r.pill ? '<span class="sp">' + r.pill + '</span>' : '') + '</div><p>' + r.v + '</p></div></div>';
+        }).join('') + '</div>' : '') +
+        (ps.length ? '<div class="f1-shelf-lbl">Top proof posts</div><div class="f1-shelf" style="grid-template-columns:repeat(' + ps.length + ',1fr)">' + ps.map(function (p, idx) {
+          return '<div class="f1-tile' + (idx === 0 ? ' lead' : '') + '"><div class="th"><span class="tr">' + p.ratio + '</span><span class="tv">' + p.views + '</span></div><p>' + p.line + '</p><div class="tm">' + (idx === 0 ? '#1 best · ' : '') + p.date + (p.fresh ? ' · fresh' : '') + '</div></div>';
+        }).join('') + '</div>' : '');
+    },
+    f2: function (d) {
+      var st = (d.stats || []), rc = (d.recipe || []).slice(0, 4), ps = (d.posts || []).slice(0, 3);
+      var h0 = st[0] || { n: '—', label: 'median vs usual' }, rest = st.slice(1, 5);
+      var b = d.small_sample ? '<span class="badge warn">' + d.small_sample + '</span>' : (d.badge ? '<span class="badge">' + d.badge + '</span>' : '');
+      return head(d, b) +
+        '<div class="f2-hero"><div><div class="n">' + h0.n + '</div><div class="sub">' + h0.label + '</div></div>' +
+        '<div class="f2-pills">' + rest.map(function (s) { return '<div class="f2-pill"><b>' + s.n + '</b><span>' + s.label + '</span></div>'; }).join('') + '</div></div>' +
+        '<div class="f2-grid">' + rc.map(function (r) {
+          return '<div class="f2-cell"><div class="rk">' + r.k + '</div><p>' + r.v + '</p></div>';
+        }).join('') + '</div>' +
+        (ps.length ? '<div class="f2-list">' + ps.map(function (p) {
+          return '<div class="f2-ex"><div class="tr">' + p.ratio + '</div><p>' + p.line + '</p><div class="tv">' + p.views + ' · ' + p.date + (p.fresh ? ' · fresh' : '') + '</div></div>';
+        }).join('') + '</div>' : '');
+    }
+  };
+
+  var A = {
+    a1: function (d) {
+      var a = d.account || {}, top = (d.top || []).slice(0, 3), drop = (d.drop || []).slice(0, 2);
+      function row(f, dn) {
+        return '<div class="acct-row' + (dn ? ' dn' : '') + '"><div class="n' + (dn ? ' bad' : '') + '">' + f.n + '</div><div><h4>' + f.name + '</h4>' + el('span', '', f.meta) + '</div>' + (f.quadrant ? '<span class="qtag">' + f.quadrant + '</span>' : '') + '</div>';
+      }
+      return '<div class="who"><div class="av">' + (a.initial || '@') + '</div><div><b>' + (a.name || '') + '</b><span>' + (a.handle || '') + (a.window ? ' · ' + a.window : '') + '</span></div>' +
+        '<div class="fl"><b>' + (a.followers || '') + '</b><span>followers</span></div></div>' +
+        '<h1 class="h" style="margin-top:34px">' + d.title + '</h1>' +
+        (top.length ? '<div class="acct-grp">Top formats vs usual</div><div class="acct-list">' + top.map(function (f) { return row(f, false); }).join('') + '</div>' : '') +
+        (drop.length ? '<div class="acct-grp">Overused or drop</div><div class="acct-list">' + drop.map(function (f) { return row(f, true); }).join('') + '</div>' : '') +
+        (d.tip ? '<div class="tip"><div class="n">' + d.tip.n + '</div><p>' + d.tip.label + el('small', '', d.tip.sub) + '</p></div>' : '');
+    },
+    a2: function (d) {
+      var W = (d.top || []).slice(0, 4), D = (d.drop || []).slice(0, 3);
+      var s = scale(W.concat(D)), step = Math.max(1, Math.ceil((s.hi - 1) / 3)), ticks = [1], t;
+      for (t = 1 + step; t <= s.hi; t += step) ticks.push(t);
+      return head(d) + el('p', 's', d.sub) + '<div class="chart">' +
+        '<div class="ch-head"><div class="ch-k">Format</div><div class="ch-ax"><span class="one-pill">1× usual</span></div></div>' +
+        '<div class="ch-body"><div class="one-line"></div>' +
+        (W.length ? '<div class="grp">▲ Above usual</div>' + W.map(function (w) { var wd = Math.max(3, s.pos(w.v) - 32);
+          return '<div class="row"><div class="lab">' + w.name + el('small', '', w.quadrant) + '</div><div class="track"><div class="b up" style="width:' + wd + '%">' +
+            (wd >= 15 ? w.n : '<span class="o">' + w.n + '</span>') + '</div></div></div>'; }).join('') : '') +
+        (D.length ? '<div class="grp dn">▼ Overused / drop</div>' + D.map(function (w) { var wd = Math.max(4, 32 - s.pos(w.v));
+          return '<div class="row"><div class="lab">' + w.name + el('small', '', w.quadrant) + '</div><div class="track"><div class="b dn" style="width:' + wd + '%"><span>' + w.n + '</span></div></div></div>'; }).join('') : '') +
+        '</div><div class="axis"><div></div><div>' + ticks.map(function (a) { return '<span style="left:' + s.pos(a) + '%">' + a + '×</span>'; }).join('') + '</div></div></div>' +
+        (d.tip ? '<div class="tip"><div class="n">' + d.tip.n + '</div><p>' + d.tip.label + el('small', '', d.tip.sub) + '</p></div>' : '');
+    }
+  };
+
+  var D_BUILD = {
+    d1: function (d) {
+      var dr = d.draft || {}, L = (d.lifts || []).slice(0, 3), G = (d.drags || []).slice(0, 3), est = d.estimate || {};
+      function col(list, cls, h) {
+        return '<div class="col' + cls + '"><h4>' + h + '</h4>' +
+          (list.length ? list.map(function (x) { return '<div class="it"><div class="n">' + x.tag + '</div><p>' + x.line + '</p>' + el('small', '', x.sub) + '</div>'; }).join('')
+            : '<div class="it"><p style="color:var(--muted)">None flagged in this draft</p></div>') + '</div>';
+      }
+      return head(d, '<span class="badge warn">Estimate</span>') +
+        '<div class="draft-box"><div class="d-lbl">Draft checked</div><p>' + (dr.text || '') + '</p>' + el('div', 'd-meta', dr.meta) + '</div>' +
+        '<div class="cols">' + col(L, '', 'What lifts') + col(G, ' no', 'What drags') + '</div>' +
+        '<div class="est-banner"><div class="est-txt"><span class="est-pill">' + (est.badge || 'ESTIMATE') + '</span><p>' + (est.label || '') + '</p></div><div class="est-n">' + (est.range || '—') + '</div></div>';
+    }
+  };
+
+  var W_BUILD = {
+    w1: function (d) {
+      var ops = (d.openings || []).slice(0, 4), bands = (d.length_bands || []).slice(0, 3), ask = d.asks || null;
+      var b = d.small_sample ? '<span class="badge warn">' + d.small_sample + '</span>' : '';
+      function parseX(s) { var m = String(s || '').match(/[\d.]+/); return m ? parseFloat(m[0]) : 1; }
+      var maxV = Math.max.apply(null, [2].concat(ops.map(function (o) { return parseX(o.n); })));
+      var bestBand = bands.filter(function (bd) { return bd.best; })[0] || bands[0] || null;
+      var cols = (bestBand ? 1 : 0) + (ask ? 1 : 0);
+      return head(d, b) + el('p', 's', d.sub) +
+        (ops.length ? '<div class="w1-card"><div class="w1-hdr"><span>Habits vs own usual (1×)</span><b>Lifts / Sinks</b></div>' + ops.map(function (o) {
+          var v = parseX(o.n), pct = Math.max(12, Math.min(100, Math.round(100 * v / maxV)));
+          return '<div class="w1-bar-row' + (o.up === false ? ' dn' : '') + '"><div class="w1-top"><b>' + o.label + '</b><span class="wr"><span class="wm">' + (o.meta || '') + '</span><span class="wn">' + o.n + '</span></span></div>' +
+            '<div class="w1-track"><div class="w1-fill" style="width:' + pct + '%"></div></div></div>';
+        }).join('') + '</div>' : '') +
+        (cols ? '<div class="w1-bottom" style="grid-template-columns:repeat(' + cols + ',1fr)">' +
+          (bestBand ? '<div class="w1-box hi"><div class="bk">Sweet-spot length</div><div class="bn">' + bestBand.n + '</div><div class="bl">' + bestBand.range + '</div>' +
+            (bands.length > 1 ? '<div class="w1-chips">' + bands.map(function (bd) {
+              return '<span class="w1-ch' + (bd.best ? ' best' : '') + '">' + bd.range.replace(' chars', '') + ': ' + bd.n + '</span>';
+            }).join('') + '</div>' : el('p', '', bestBand.posts)) + '</div>' : '') +
+          (ask ? '<div class="w1-box"><div class="bk">The ask · ' + ask.share + ' ' + (ask.share_lbl || 'ask') + '</div><div class="bn">' + ask.lift + '</div><div class="bl">' + (ask.lift_lbl || 'with ask') + '</div>' + el('p', '', ask.note) + '</div>' : '') +
+        '</div>' : '');
+    }
+  };
+
+  var C_BUILD = {
+    c1: function (d) {
+      var ms = (d.metrics || []).slice(0, 4), q = d.quote || null;
+      return head(d) + el('p', 's', d.sub) +
+        '<div class="c1-grid">' + ms.map(function (m) {
+          return '<div class="c1-card"><div class="ci">' + m.k + '</div><div class="n">' + m.n + '</div><h4>' + m.label + '</h4>' + el('p', '', m.sub) + '</div>';
+        }).join('') + '</div>' +
+        (q ? '<div class="c1-quote"><p>' + q.text + '</p>' + el('span', '', q.meta) + '</div>' : '');
+    }
+  };
+
+  var X_BUILD = {
+    x1: function (d) {
+      function side(s) {
+        if (!s) return '';
+        var cls = s.win === true ? ' win' : (s.win === false ? ' lose' : '');
+        return '<div class="x1-col' + cls + '"><div class="x-head"><h3>' + s.name + '</h3>' + (s.badge ? '<span class="xb">' + s.badge + '</span>' : '') + '</div>' +
+          '<div class="hero-n">' + s.hero_n + '</div><div class="hero-l">' + (s.hero_label || '') + '</div>' +
+          '<div class="x1-rows">' + (s.rows || []).slice(0, 5).map(function (r) {
+            return '<div class="x1-r"><span>' + r.k + '</span><b>' + r.v + '</b></div>';
+          }).join('') + '</div></div>';
+      }
+      return head(d) + el('p', 's', d.sub) +
+        '<div class="x1-cols">' + side(d.left) + side(d.right) + '</div>' +
+        (d.verdict ? '<div class="tip"><div class="n">' + (d.verdict.n || '→') + '</div><p>' + (d.verdict.label || '') + '</p></div>' : '');
     }
   };
 
   function iconSrc(d) {
-    if (d.icon !== undefined) return d.icon;                 // a filled card carries its icon inside (or null)
+    if (d.icon !== undefined) return d.icon;
     var n = ICON[d.layout]; if (!n || NO_ICON[d.skin]) return null;
     return 'icons/' + (d.skin === 'redword' ? 'red-' + RED[n] : 'cobalt-' + n) + '.png';
   }
   function build(d0) {
     var id = d0.layout, d = at(d0, id), html;
-    if (d.type === 'report') {
+    if (id === 'r6' || d.type === 'topic') {
+      html = R.r6(d);
+    } else if (d.type === 'report') {
       var W = (d.works || []).map(function (w) { return at(w, id); }), D = (d.doesnt || []).map(function (w) { return at(w, id); });
       d.tip = at(d.tip, id);
       html = R[id](d, W, D);
+    } else if (d.type === 'post') {
+      html = P[id](d);
+    } else if (d.type === 'format') {
+      html = F[id](d);
+    } else if (d.type === 'account') {
+      html = A[id](d);
+    } else if (d.type === 'draft') {
+      html = D_BUILD[id](d);
+    } else if (d.type === 'writing') {
+      html = W_BUILD[id](d);
+    } else if (d.type === 'comments') {
+      html = C_BUILD[id](d);
+    } else if (d.type === 'compare') {
+      html = X_BUILD[id](d);
     } else {
       d.hero = at(d.hero, id); d.proof = at(d.proof, id);
       html = T[id](d, (d.items || []).map(function (it) { return at(it, id); }), at(d.miss, id));
@@ -439,8 +1154,6 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
   }
 
   // ------------------------------------------------------------------ fit: shrink until nothing spills
-  // A text wider than its box shrinks alone (to 56 %, a headline to 45 %; then a too-long word may break); content that reaches the foot zooms down as a whole
-  // (to 70 % at most). What still spills is a problem the card reports (window.__reaCard.problems).
   function ownText(n) { for (var c = n.firstChild; c; c = c.nextSibling) if (c.nodeType === 3 && c.nodeValue.trim()) return true; return false; }
   function texts(card) { return Array.prototype.filter.call(card.querySelectorAll('.in *'), function (n) { return !n.closest('.ico') && ownText(n); }); }
   function measure(card, list) {
@@ -461,7 +1174,7 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
     for (k = 0; k < 120; k++) {
       m = measure(card, list);
       var can = m.wide.filter(function (n) { return n.__f > n.__min; });
-      if (!can.length && m.wide.length && !card.__wrapped) {   // last resort: a word longer than its box (a long @handle) may break
+      if (!can.length && m.wide.length && !card.__wrapped) {
         card.__wrapped = true; m.wide.forEach(function (n) { n.style.overflowWrap = 'anywhere'; }); continue;
       }
       if (can.length) {
@@ -498,24 +1211,25 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
     });
     return;
   }
-  // ---- the gallery and design lab: every layout, one style or all seven, real runs or text that stresses the fit
+
+  // ---- the gallery and design lab: stress data for long text & fewer items across all 9 report types
   var MORE = {
-    long: {   // long names, long lines, wide numbers: the fit step must shrink, never spill
+    long: {
       teardown: {
         type: 'teardown', kicker: 'Teardown of a long handle', title: 'Why <b>@the_very_long_creator_handle</b> keeps growing so fast',
         t1: { title: 'Why it’s <b>growing</b> this quarter' },
         t2: { sub: '312 posts on Instagram, Aug 1 – Nov 24, each against the account’s own normal, with the reels and carousels counted together.' },
         account: { name: 'Alexandra Montgomery-Fitzgerald', handle: '@the_very_long_creator_handle', initial: 'A', followers: '1.2M', window: 'Aug 1 – Nov 24', glyph: 'Instagram' },
         items: [
-          { n: '12.4K → 98.1K', unit: 'median views a reel, before and after the change', line: 'They moved every reel to a three-second hook with a number on screen', sub: 'Since Sep 14. October: 61 posts, 4.1M views, 22 of them over twice the normal', short: 'Opens every reel on a number', tag: '12.4K → 98.1K / reel' },
+          { n: '12.4K → 98.1K', unit: 'median views a reel, before and after', line: 'They moved every reel to a three-second hook with a number on screen', sub: 'Since Sep 14. October: 61 posts, 4.1M views, 22 over twice normal', short: 'Opens every reel on a number', tag: '12.4K → 98.1K / reel' },
           { n: '1,284', unit: 'comments, 412K views', line: 'They ask one group of people a long open question with three options', sub: 'And promise to answer every single comment within the first two hours', short: 'Asks one named crowd a question', tag: '1,284 comments' },
           { n: '17 of 23', unit: 'tagged accounts shared it', line: 'They credit every brand and person in the first comment', sub: 'The brands repost; the people bring their own followers along', short: 'Credits everyone in the first comment', tag: '17 of 23 shared' },
-          { n: '1,440 min', unit: 'after the original, still the top reply', line: 'They answer the biggest posts of the week with a reaction reel', sub: 'Their reaction to the launch got 2.3M views against a normal of 98.1K', short: 'Reacts to big launches', tag: '1,440 min' }
+          { n: '1,440 min', unit: 'after the original, still top reply', line: 'They answer the biggest posts of the week with a reaction reel', sub: 'Their reaction to the launch got 2.3M views against a normal of 98.1K', short: 'Reacts to big launches', tag: '1,440 min' }
         ],
-        miss: { n: '0.41×', unit: '1 hit in 37 posts', line: 'Carousels of quotes with no face and no question don’t work', sub: 'No hook, nobody tagged, nothing to answer, posted at random hours', short: 'Quote carousels without a face', tag: '0.41×' },
+        miss: { n: '0.4×', unit: '1 hit in 37 posts', line: 'Carousels of quotes with no face and no question don’t work', sub: 'No hook, nobody tagged, nothing to answer, posted at random hours', short: 'Quote carousels without a face', tag: '0.4×' },
         hero: { n: '4.1M → 12.9M', line: 'views in November, from <b>4.1M</b> in October, on the same number of posts' },
         proof: { date: 'Nov 21', text: '<mark>Reel editors and motion designers</mark>, which tool are you actually paying for in 2026? After Effects, CapCut Pro, DaVinci, Premiere, or one of the new AI editors everyone keeps posting about? Tell me what you cut with and what you would never go back to. <mark>I answer every comment today</mark>, promise 🎬',
-          stats: [['1,284', 'comments'], ['9.4K', 'saves'], ['412K', 'views']], caption: 'Name one crowd, ask one question with options, promise to answer every comment: the best reel of the quarter.',
+          stats: [['1,284', 'comments'], ['9.4K', 'saves'], ['412K', 'views']], caption: 'Name one crowd, ask one question with options, promise to answer every comment.',
           chips: [{ n: '98.1K', text: 'median views a reel, up from 12.4K' }, { n: '17 of 23', text: 'tagged accounts shared it' }, { n: '1,440 min', text: 'after the original launch' }] },
         foot: '1× = the account’s normal · 312 posts on Instagram', brand: 'Made with <b>REA Viral</b>'
       },
@@ -525,23 +1239,190 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
         r3: { sub: '38 creators, 2,412 posts, Oct 17 – Nov 16. Ranked by how far each beats its creator’s usual.' },
         r5: { sub: 'Where each lands against its creator’s usual (the white line), on a log scale.' },
         works: [
-          { v: 17.15, n: '17.15×', label: 'Shape creatures on a ledge, rendered in a template app with a watermark' },
-          { v: 2.68, n: '2.68×', label: 'Before and after of the same clip, split screen, with the tool named on screen' },
-          { v: 1.46, n: '1.46×', label: 'A three-step tutorial that ends on the finished render' },
-          { v: 1.04, n: '1.04×', label: 'Speed ramp edit set to a trending sound' }
+          { v: 17.15, n: '17×', label: 'Shape creatures on a ledge, rendered in a template app with a watermark' },
+          { v: 2.68, n: '2.7×', label: 'Before and after of the same clip, split screen, with the tool named on screen' },
+          { v: 1.46, n: '1.5×', label: 'A three-step tutorial that ends on the finished render' },
+          { v: 1.04, n: '1×', label: 'Speed ramp edit set to a trending sound' }
         ],
         doesnt: [
           { v: 0.97, n: '0.97×', label: 'A talking head review of a new AI video model, with no footage of it' },
-          { v: 0.72, n: '0.72×', label: 'Wrestling aura edits with heavy flashes' },
-          { v: 0.55, n: '0.55×', label: 'Logo reveal templates' },
-          { v: 0.31, n: '0.31×', label: 'A slideshow of AI images with a voice-over read by a text-to-speech voice' }
+          { v: 0.72, n: '0.7×', label: 'Wrestling aura edits with heavy flashes' },
+          { v: 0.55, n: '0.6×', label: 'Logo reveal templates' },
+          { v: 0.31, n: '0.3×', label: 'A slideshow of AI images with a text-to-speech voice' }
         ],
-        tip: { n: '2.27×', label: 'Any Short whose first frame names the tool in big type (163 posts, 21 creators). Without it: 0.95×.', r4: { label: 'Names the tool on the first frame' } },
+        tip: { n: '2.3×', label: 'Any Short whose first frame names the tool in big type (163 posts, 21 creators). Without it: 0.95×.', r4: { label: 'Names the tool on the first frame' } },
         winner: 'Shape creatures on a ledge, rendered in a template app', winner_k: '#1 format',
+        topic: {
+          kicker: 'Topic check · Still worth posting?',
+          title: '<b>New open-weights video generation model release</b> on X',
+          sampled: 'Sample only · no time filter',
+          verdict: { status: 'skip', label: 'TAKEN · SKIP OR NEW ANGLE', text: 'Taken by @mega_ai_news (1.4M views, 9h ago) and fading — skip a recap, only post a live benchmark' },
+          signals: [
+            { k: 'Saturation (48h)', n: 'TAKEN', sub: '3 large-account breakouts (>= 100K fol) · 42 posts read', tone: 'bad' },
+            { k: 'Momentum (6h)', n: 'FADING', sub: '7 posts (1.2/h) vs 19 prev (3.2/h) · sample', tone: 'bad' },
+            { k: 'Lateness', n: '9h', sub: 'since first 100K+ post · past the 2–6h window', tone: 'bad' }
+          ],
+          bars: { prev_n: 19, prev_rate: '3.2/h', last_n: 7, last_rate: '1.2/h' },
+          proof_posts: [
+            { author: '@mega_ai_news', followers: '640K', views: '1.4M', age: '9h ago', flag: 'large + breakout' },
+            { author: '@founder_daily', followers: '210K', views: '520K', age: '7h ago', flag: 'large + breakout' },
+            { author: '@build_weekly', followers: '118K', views: '190K', age: '5h ago', flag: 'large + breakout' }
+          ],
+          foot: 'Sample only (no time filter): 42 posts in 48h · 7 last 6h, 19 prev 6h · topic_check.json'
+        },
         foot: '1× = each creator’s own usual · 38 creators · 2,412 posts', brand: 'Measured with <b>REA Viral</b>'
-      }
+      },
+      post: {
+        type: 'post', kicker: 'Post review', title: 'Why this fresh breakout hit <b>511×</b> their usual so far',
+        fresh: 'Still growing · 19h old',
+        account: { name: 'Alexandra Montgomery-Fitzgerald', handle: '@the_very_long_creator_handle', initial: 'A', followers: '4.1K', glyph: '𝕏' },
+        post: {
+          date: 'Nov 25', multiplier: '511×', usual_label: 'so far vs usual (median 6,010 views from 20 settled posts)',
+          text: '<mark>I tested 7 local video models on one Mac Studio for 48 hours straight.</mark> Only two survived real client motion graphics without melting text. Here are the exact render times, VRAM peaks, and side-by-side frames.',
+          hook: 'I tested 7 local video models on one Mac Studio for 48 hours straight.',
+          hook_tag: 'Time span + number · 69 chars',
+          stats: [['3.1M', 'views'], ['44.2K', 'likes'], ['19.8K', 'bookmarks'], ['1,420', 'replies']],
+          structure: [
+            { step: '01 · Hook', text: 'Concrete effort + test scope (“7 models, 48 hours”) in line 1' },
+            { step: '02 · Filter', text: 'Immediately narrows to “only two survived” to open a curiosity gap' },
+            { step: '03 · Proof', text: 'Promises hard numbers (render times, VRAM, raw frames) in thread' }
+          ]
+        },
+        why: [
+          { tag: '511× so far', line: 'Time-span + concrete test in line 1', sub: 'Their benchmark posts average 8.4× across 6 settled posts' },
+          { tag: '19.8K saves', line: 'Reference data people bookmark', sub: 'Bookmark-per-like ratio is 3.8× their account median' },
+          { tag: 'Still growing', line: 'Under 3 days old (19h)', sub: 'Ratio is a floor; views and bookmarks are still climbing' }
+        ],
+        compare: [
+          { label: 'Views', usual: '6K', post: '3.1M', delta: '511× so far' },
+          { label: 'Likes', usual: '140', post: '44.2K', delta: '316×' },
+          { label: 'Bookmarks', usual: '22', post: '19.8K', delta: '900×' },
+          { label: 'Opening line', usual: '95 chars · opinion', post: '69 chars · benchmark', delta: 'Concrete test' }
+        ],
+        foot: '1× = usual (20 settled posts) · post under 3 days old, still growing · post_probe.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      format: {
+        type: 'format', kicker: 'Format recipe', title: 'Copy this: <b>48-hour benchmark teardown with raw frames</b>',
+        badge: 'Underused · Rising', small_sample: 'Few posts (4 scored) · early lead',
+        stats: [
+          { n: '12×', label: 'median vs usual' },
+          { n: '100%', label: 'hit rate (2×+)' },
+          { n: '5%', label: 'share of posts' },
+          { n: 'High', label: 'effort' }
+        ],
+        recipe: [
+          { k: 'Hook', v: 'State the exact test count, hardware, and time spent in sentence 1' },
+          { k: 'Structure', v: 'Elimination claim (“only 2 survived”) → 4-quadrant raw output → benchmark table' },
+          { k: 'Look', v: 'Uncompressed split-screen grid with crisp monospace specs overlay' },
+          { k: 'Length', v: '45 s video or 5-part visual thread (2.2 cuts / 10 s)' }
+        ],
+        posts: [
+          { ratio: '511×', views: '3.1M', date: 'Nov 25', line: 'I tested 7 local video models on one Mac Studio for 48 hours straight', fresh: true },
+          { ratio: '14×', views: '88K', date: 'Nov 11', line: 'Benchmarked 5 upscalers on noisy 4K footage — exact times + crops', fresh: false },
+          { ratio: '9.4×', views: '56K', date: 'Oct 29', line: 'Ran 6 subtitle tools on accented English audio: accuracy table inside', fresh: false }
+        ],
+        dont_copy: 'Do not fake test hours — the proof is real hardware numbers and unedited output crops.',
+        foot: '1× = usual · 4 scored posts (small sample — treat as lead) · radar.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      account: {
+        type: 'account', kicker: 'Account teardown', title: 'What works on <b>@the_very_long_creator_handle</b>',
+        a2: { sub: '312 posts on Instagram, Aug 1 – Nov 24. Each format measured against the account’s own usual (1×).' },
+        account: { name: 'Alexandra Montgomery-Fitzgerald', handle: '@the_very_long_creator_handle', initial: 'A', followers: '1.2M', window: 'Aug 1 – Nov 24 · 312 posts', glyph: 'Instagram' },
+        top: [
+          { v: 12.4, n: '12×', name: '48-hour benchmark teardown with raw frames', meta: '5% of posts · 100% hit rate · 4 posts (lead)', quadrant: 'Underused' },
+          { v: 3.1, n: '3.1×', name: 'Three-step tutorial ending on finished render', meta: '24% of posts · 68% hit rate · Rising', quadrant: 'Scale it' },
+          { v: 1.7, n: '1.7×', name: 'Before / after split-screen breakdown', meta: '19% of posts · 42% hit rate', quadrant: 'Scale it' }
+        ],
+        drop: [
+          { v: 0.65, n: '0.7×', name: 'Talking-head AI model commentary without footage', meta: '31% of posts · 3% hit rate · Fading', quadrant: 'Overused' },
+          { v: 0.41, n: '0.4×', name: 'Quote carousels without a face or proof', meta: '12% of posts · 1 hit in 37 posts', quadrant: 'Drop' }
+        ],
+        tip: { n: '2.1×', label: 'Writing tip: open with a concrete time span or test count', sub: '41 posts at 2.1× vs 0.85× without (writing.json)' },
+        foot: '1× = account’s usual · 312 posts · analysis.json + radar.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      draft: {
+        type: 'draft', kicker: 'Draft check', title: 'Before you post this on <b>@the_very_long_creator_handle</b>',
+        draft: {
+          text: '<mark>Stop using generic templates for client reels — here is the 3-step benchmark we ran across 40 campaigns.</mark> Every single clip was tested head to head with full retention curves attached below. Link to our tool: https://example.com',
+          meta: '234 chars · first line 103 chars · negation + number · contains external link'
+        },
+        lifts: [
+          { tag: '2.1×', line: 'Opens with negation + number', sub: 'Both features lift on your past 312 scored posts' },
+          { tag: '1.6×', line: 'Total length in winning band', sub: '234 chars sits inside your 160–320 char sweet spot' }
+        ],
+        drags: [
+          { tag: '0.5×', line: 'External link inside the main post', sub: 'Posts with a main-body URL drop to 0.5×; move link to first reply' },
+          { tag: '0.8×', line: 'First line is 103 chars (long)', sub: 'Your winning first-line band is 32–64 chars — trim 40 chars' }
+        ],
+        estimate: {
+          badge: 'ESTIMATE · SIGNAL-BASED ONLY',
+          range: '0.9× – 1.7×',
+          label: 'Estimated range vs usual (moves to 1.6× – 2.5× if you move the link to the first reply)'
+        },
+        foot: 'Estimate from 312 past posts · signals, never a guarantee · draft_check.py', brand: 'Checked with <b>REA Viral</b>'
+      },
+      writing: {
+        type: 'writing', kicker: 'Writing & voice', title: 'How <b>@the_very_long_creator_handle</b> writes for reach',
+        sub: '312 scored posts on Instagram · openings, length bands, and asks measured against the account’s own usual (1×).',
+        openings: [
+          { n: '2.1×', label: 'Opens with a concrete time span or test count', meta: '41 posts · lifts', up: true },
+          { n: '1.8×', label: 'Opens with a negation (“Stop”, “Never”, “Don’t”)', meta: '29 posts · lifts', up: true },
+          { n: '1.5×', label: 'Has a numbered or bulleted list', meta: '54 posts · lifts', up: true },
+          { n: '0.5×', label: 'Contains an external URL in the main caption', meta: '36 posts · sinks', up: false }
+        ],
+        length_bands: [
+          { range: 'Under 160 chars', n: '0.9×', posts: '104 posts', best: false },
+          { range: '160 – 320 chars', n: '1.6×', posts: '105 posts · winning band', best: true },
+          { range: '320+ chars', n: '0.8×', posts: '103 posts', best: false }
+        ],
+        asks: {
+          share: '58%', share_lbl: 'posts ask',
+          lift: '1.5×', lift_lbl: 'with ask (vs 0.8×)',
+          note: '181 of 312 posts ask readers to save or comment a keyword; links placed in the first self-reply hold 1.4×.'
+        },
+        foot: '1× = account’s usual · 312 scored posts · writing.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      comments: {
+        type: 'comments', kicker: 'Comment tactics', title: 'How <b>@the_very_long_creator_handle</b> runs comments',
+        sub: '2,410 comments read across 28 posts (replies included) · measured from comments.json.',
+        metrics: [
+          { k: 'Own comment', n: '93%', label: '26 of 28 posts have one', sub: 'First comment on 21 · within 10 min on 19' },
+          { k: 'Creator replies', n: '71%', label: 'Audience comments answered', sub: '412 of 580 top-level · median 8 min to reply' },
+          { k: 'Follow intent', n: '64', label: 'New followers say so', sub: 'Across 19 posts (“instant follow”, “earned my follow”)' },
+          { k: 'Echo prompts', n: '11 posts', label: '“Comment a word” prompts', sub: 'Top word “WORKFLOW” = 53% of comments on post' }
+        ],
+        quote: { text: '“I rarely comment on reels, but your side-by-side VRAM numbers earned an instant follow.”', meta: 'Audience comment on ig_9921 · 318 likes' },
+        foot: '2,410 comments read across 28 posts · comments.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      compare: {
+        type: 'compare', kicker: 'Compare two accounts', title: '<b>@studio_k</b> vs <b>@the_very_long_creator_handle</b>',
+        sub: 'Two accounts side by side in the same niche (AI video workflows), each measured against its own usual.',
+        left: {
+          name: '@studio_k', badge: 'Higher hit rate', hero_n: '31%', hero_label: 'hit rate (2×+ usual)', win: true,
+          rows: [
+            { k: 'Followers', v: '24.8K' },
+            { k: 'Posts / week', v: '6.4 / wk' },
+            { k: 'Best format', v: 'Split-screen · 3.4×' },
+            { k: 'Weakest format', v: 'News repost · 0.7×' },
+            { k: 'Top writing habit', v: 'Result number · 1.9×' }
+          ]
+        },
+        right: {
+          name: '@the_very_long_creator_handle', badge: 'Higher peak', hero_n: '19%', hero_label: 'hit rate (2×+ usual)', win: false,
+          rows: [
+            { k: 'Followers', v: '1.2M' },
+            { k: 'Posts / week', v: '9.8 / wk' },
+            { k: 'Best format', v: 'Benchmark · 12×' },
+            { k: 'Weakest format', v: 'Quote carousel · 0.4×' },
+            { k: 'Top writing habit', v: 'Time span · 2.1×' }
+          ]
+        },
+        verdict: { n: '1.6×', label: '@studio_k hits twice usual 1.6× more often per post, while @the_very_long_creator_handle relies on rare benchmark spikes.' },
+        foot: 'Measured from two run folders · analysis.json + radar.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      topic: null // wired below to MORE.long.report.topic
     },
-    few: {    // the least a card holds: 3 items and no miss; 2 works, 1 doesn't, no tip
+    few: {
       teardown: {
         type: 'teardown', kicker: 'Teardown', title: 'Why <b>@sam</b> is growing', t1: { title: 'Why it’s <b>growing</b>' },
         t2: { sub: '24 posts on Threads, Oct 25 – Nov 24, each against the account’s own normal.' },
@@ -560,51 +1441,206 @@ mark{background:var(--mark-bg);color:var(--mark-ink);border-radius:6px;padding:0
         type: 'report', kicker: 'Save this', title: 'What works for <b>indie game devs</b> on TikTok right now',
         r1: { sub: 'Each post against its creator’s own usual. Right of the line = above it.' },
         r3: { sub: '9 creators, 180 posts, Oct 24 – Nov 23.' }, r5: { sub: 'Where each lands against its creator’s usual (the white line).' },
-        works: [{ v: 2.1, n: '2.10×', label: 'Devlog with a bug that became a feature' }, { v: 1.3, n: '1.30×', label: 'Before and after of one scene' }],
-        doesnt: [{ v: 0.8, n: '0.80×', label: 'Trailer cut' }],
+        works: [{ v: 2.1, n: '2.1×', label: 'Devlog with a bug that became a feature' }, { v: 1.3, n: '1.3×', label: 'Before and after of one scene' }],
+        doesnt: [{ v: 0.8, n: '0.8×', label: 'Trailer cut' }],
+        topic: {
+          kicker: 'Topic check · Still worth posting?',
+          title: '<b>Tiny Godot shader trick</b> on X',
+          sampled: null,
+          verdict: { status: 'caution', label: 'EARLY · SMALL SAMPLE', text: 'Not taken yet (small sample: 3 posts in 12h) — room to be first with your own visual' },
+          signals: [
+            { k: 'Saturation (48h)', n: 'LOW', sub: '0 breakouts · 5 posts read', tone: 'good' },
+            { k: 'Momentum (6h)', n: 'FEW POSTS', sub: '2 posts (0.3/h) vs 1 prev (0.2/h)', tone: 'warn' },
+            { k: 'Lateness', n: 'NONE YET', sub: 'no 100K+ post in last 48h', tone: 'good' }
+          ],
+          bars: { prev_n: 1, prev_rate: '0.2/h', last_n: 2, last_rate: '0.3/h' },
+          proof_posts: [
+            { author: '@pixel_rio', followers: '1.8K', views: '14K', age: '2h ago', flag: '' },
+            { author: '@shader_dev', followers: '6.1K', views: '9.2K', age: '5h ago', flag: '' }
+          ],
+          foot: 'Small sample: 5 posts in 48h (2 last 6h, 1 prev 6h) · topic_check.json'
+        },
         foot: '1× = each creator’s own usual · 9 creators · 180 posts', brand: 'Measured with <b>REA Viral</b>'
-      }
+      },
+      post: {
+        type: 'post', kicker: 'Post review', title: 'Why this post hit <b>3.2×</b> their usual',
+        fresh: null,
+        account: { name: 'Sam', handle: '@sam', initial: 'S', followers: '2.4K', glyph: 'Threads' },
+        post: {
+          date: 'Nov 20', multiplier: '3.2×', usual_label: 'vs @sam’s usual (median 5.6K views)',
+          text: '<mark>What is one thing you stopped doing this year that made your work better?</mark> I’ll go first: meetings before noon.',
+          hook: 'What is one thing you stopped doing this year that made your work better?',
+          hook_tag: 'Open question · 73 chars',
+          stats: [['18K', 'views'], ['212', 'replies']],
+          structure: [
+            { step: '01 · Ask', text: 'Single direct question anyone can answer' },
+            { step: '02 · Seed', text: 'Answers first in 5 words to set the format' }
+          ]
+        },
+        why: [
+          { tag: '212 replies', line: 'Seeded their own answer', sub: 'Highest reply count in 24 posts read' },
+          { tag: '3.2×', line: 'Short question opening', sub: 'Small sample (4 question posts — lead only)' }
+        ],
+        compare: [
+          { label: 'Views', usual: '5.6K', post: '18K', delta: '3.2×' },
+          { label: 'Replies', usual: '18', post: '212', delta: '12×' }
+        ],
+        foot: '1× = @sam’s usual · 24 posts on Threads · post_probe.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      format: {
+        type: 'format', kicker: 'Format recipe', title: 'Copy this: <b>One-question thread</b>',
+        badge: 'Scale it', small_sample: 'Few posts (4 scored) · lead',
+        stats: [
+          { n: '2.4×', label: 'median vs usual' },
+          { n: '50%', label: 'hit rate' },
+          { n: '17%', label: 'share of posts' },
+          { n: 'Low', label: 'effort' }
+        ],
+        recipe: [
+          { k: 'Hook', v: 'One concrete question under 80 characters' },
+          { k: 'Structure', v: 'Question → “I’ll go first:” + short answer' }
+        ],
+        posts: [
+          { ratio: '3.2×', views: '18K', date: 'Nov 20', line: 'What is one thing you stopped doing this year?', fresh: false },
+          { ratio: '2.1×', views: '12K', date: 'Nov 12', line: 'Which free tool replaced a paid app for you?', fresh: false }
+        ],
+        foot: '1× = @sam’s usual · 4 posts (small sample) · radar.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      account: {
+        type: 'account', kicker: 'Account teardown', title: 'What works on <b>@sam</b>',
+        a2: { sub: '24 posts on Threads, Oct 25 – Nov 24. Small sample noted where under 6 posts.' },
+        account: { name: 'Sam', handle: '@sam', initial: 'S', followers: '2.4K', window: 'Oct 25 – Nov 24 · 24 posts', glyph: 'Threads' },
+        top: [
+          { v: 2.4, n: '2.4×', name: 'One-question thread', meta: '17% of posts · 4 posts (lead)', quadrant: 'Scale it' },
+          { v: 1.4, n: '1.4×', name: 'Short build update', meta: '33% of posts · 8 posts', quadrant: 'Scale it' }
+        ],
+        drop: [
+          { v: 0.7, n: '0.7×', name: 'Bare link share', meta: '25% of posts · 0 hits', quadrant: 'Overused' }
+        ],
+        tip: { n: '1.5×', label: 'Writing lead: posts with a question sit at 1.5×', sub: 'Only 5 posts — treat as an early lead' },
+        foot: '1× = @sam’s usual · 24 posts on Threads', brand: 'Measured with <b>REA Viral</b>'
+      },
+      draft: {
+        type: 'draft', kicker: 'Draft check', title: 'Before you post this on <b>@sam</b>',
+        draft: { text: '<mark>What is one habit that doubled your output?</mark> Mine: shipping before lunch.', meta: '74 chars · 1 question · no links' },
+        lifts: [{ tag: '1.5×', line: 'Opens with a question', sub: 'Lead (5 past posts on @sam)' }],
+        drags: [],
+        estimate: { badge: 'ESTIMATE · SMALL SAMPLE', range: '1.1× – 1.8×', label: 'Rough estimate from 1 lead signal on 24 posts (draft_check.py)' },
+        foot: 'Small sample: 24 posts on Threads · estimate only', brand: 'Checked with <b>REA Viral</b>'
+      },
+      writing: {
+        type: 'writing', kicker: 'Writing & voice', title: 'How <b>@sam</b> writes',
+        sub: '24 scored posts on Threads · small sample (leads under 6 posts labelled).',
+        small_sample: 'Small sample · 24 posts',
+        openings: [
+          { n: '1.5×', label: 'Opens with a question', meta: '5 posts · lead', up: true },
+          { n: '0.7×', label: 'Includes a bare link', meta: '6 posts · sinks', up: false }
+        ],
+        length_bands: [
+          { range: 'Under 90 chars', n: '1.3×', posts: '12 posts · lead', best: true },
+          { range: '90+ chars', n: '0.9×', posts: '12 posts', best: false }
+        ],
+        asks: { share: '33%', share_lbl: 'posts ask', lift: '1.4×', lift_lbl: 'with ask', note: '8 of 24 posts ask a question at the start.' },
+        foot: '1× = @sam’s usual · 24 posts · writing.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      comments: {
+        type: 'comments', kicker: 'Comment tactics', title: 'How <b>@sam</b> runs comments',
+        sub: '94 comments read across 6 posts (small sample).',
+        metrics: [
+          { k: 'Own comment', n: '50%', label: '3 of 6 posts', sub: 'First comment on 2' },
+          { k: 'Creator replies', n: '82%', label: 'Replies answered', sub: '41 of 50 · median 11 min' }
+        ],
+        quote: { text: '“Stealing the no-meetings-before-noon rule immediately.”', meta: 'Audience reply · 24 likes' },
+        foot: '94 comments read on 6 posts · comments.json', brand: 'Measured with <b>REA Viral</b>'
+      },
+      compare: {
+        type: 'compare', kicker: 'Compare two', title: '<b>Question thread</b> vs <b>Link share</b>',
+        sub: 'Same account (@sam, 24 posts on Threads).',
+        left: { name: 'Question thread', badge: 'Scale it', hero_n: '2.4×', hero_label: 'median (4 posts · lead)', win: true,
+          rows: [{ k: 'Volume', v: '4 posts (17%)' }, { k: 'Hit rate', v: '50%' }, { k: 'Effort', v: 'Low' }] },
+        right: { name: 'Bare link share', badge: 'Overused', hero_n: '0.7×', hero_label: 'median (6 posts)', win: false,
+          rows: [{ k: 'Volume', v: '6 posts (25%)' }, { k: 'Hit rate', v: '0%' }, { k: 'Effort', v: 'Low' }] },
+        verdict: { n: '3.4×', label: 'Question threads beat bare link shares by 3.4× (small sample: 4 vs 6 posts).' },
+        foot: '1× = @sam’s usual · 24 posts on Threads', brand: 'Measured with <b>REA Viral</b>'
+      },
+      topic: null
     }
   };
+  MORE.long.topic = Object.assign({ type: 'topic', brand: 'Measured with <b>REA Viral</b>' }, MORE.long.report.topic);
+  MORE.few.topic = Object.assign({ type: 'topic', brand: 'Measured with <b>REA Viral</b>' }, MORE.few.report.topic);
+
   var CONTENT = [['sample', 'Real runs'], ['long', 'Long text (fit test)'], ['few', 'Fewer items']];
+  var KIND_TABS = [
+    ['all-new', 'All new (12)'],
+    ['teardown', 'Teardown (t1–t5)'],
+    ['report', 'Niche (r1–r6)'],
+    ['post', 'Post (p1–p3)'],
+    ['format', 'Format (f1–f2)'],
+    ['account', 'Account (a1–a2)'],
+    ['draft', 'Draft (d1)'],
+    ['writing', 'Writing (w1)'],
+    ['comments', 'Comments (c1)'],
+    ['compare', 'Compare (x1)'],
+    ['topic', 'Topic (r6)']
+  ];
   function sampleOf(c, k) { return c === 'sample' ? SAMPLE[k] : MORE[c][k]; }
-  var H = location.hash;
-  var kind = /report/.test(H) ? 'report' : 'teardown', only = (H.match(/l=(\w+)/) || [])[1];
-  var skin = (H.match(/skin=(\w+)/) || [])[1] || 'cobalt', content = (H.match(/c=(\w+)/) || [])[1] || 'sample';
+
+  var H = location.hash || '';
+  var kindMatch = H.match(/^#([a-z-]+)/);
+  var kind = (kindMatch && (kindMatch[1] === 'all-new' || LAYOUTS[kindMatch[1]])) ? kindMatch[1] : 'all-new';
+  var only = (H.match(/l=(\w+)/) || [])[1] || null;
+  var skin = (H.match(/skin=(\w+)/) || [])[1] || 'cobalt';
+  var content = (H.match(/c=(\w+)/) || [])[1] || 'sample';
   if (!MORE[content]) content = 'sample';
-  function hash() { try { history.replaceState(null, '', '#' + kind + '&skin=' + skin + (content !== 'sample' ? '&c=' + content : '') + (only ? '&l=' + only : '')); } catch (e) { /* file:// in some browsers */ } }
+
+  function hash() { try { history.replaceState(null, '', '#' + kind + '&skin=' + skin + (content !== 'sample' ? '&c=' + content : '') + (only ? '&l=' + only : '')); } catch (e) {} }
   function seg(id, list, cur, set) {
     var el = document.getElementById(id); el.textContent = '';
-    list.forEach(function (k) { var b = document.createElement('button'); b.textContent = k[1]; b.setAttribute('aria-pressed', k[0] === cur);
-      b.onclick = function () { set(k[0]); hash(); render(); }; el.appendChild(b); });
+    list.forEach(function (k) {
+      var b = document.createElement('button'); b.textContent = k[1]; b.setAttribute('aria-pressed', k[0] === cur);
+      b.onclick = function () { set(k[0]); hash(); render(); }; el.appendChild(b);
+    });
   }
   function render() {
-    seg('kind', [['teardown', 'Account teardown'], ['report', 'Niche report']], kind, function (k) { kind = k; only = null; });
+    seg('kind', KIND_TABS, kind, function (k) { kind = k; only = null; });
     seg('skin', SKINS.map(function (k) { return [k[0], k[1] + (k[0] === 'cobalt' ? ' (default)' : '')]; }).concat([['all', 'All styles']]), skin, function (k) { skin = k; });
     seg('content', CONTENT, content, function (k) { content = k; });
     var v = document.getElementById('view'); v.textContent = '';
     var skins = skin === 'all' ? SKINS.map(function (k) { return k[0]; }) : [skin];
-    var lays = LAYOUTS[kind].filter(function (l) { return !only || l[0] === only; });
-    var per = only ? (skin === 'all' ? 4 : 1) : 5;
-    var W = per === 1 ? 1080 : Math.min(400, Math.floor((v.clientWidth - 24 * (per - 1)) / per)), s = W / 1080, made = [];
+    var entries;
+    if (kind === 'all-new') {
+      entries = NEW_GALLERY.filter(function (e) { return !only || e[1] === only; });
+    } else {
+      entries = LAYOUTS[kind].filter(function (l) { return !only || l[0] === only; }).map(function (l) { return [kind, l[0], l[1]]; });
+    }
+    var per = only ? (skin === 'all' ? 4 : 1) : (entries.length <= 3 ? Math.max(entries.length, 3) : 4);
+    var W = per === 1 ? 1080 : Math.min(420, Math.floor((v.clientWidth - 24 * (per - 1)) / per)), s = W / 1080, made = [];
     skins.forEach(function (sk) {
-      if (skin === 'all') { var hd = document.createElement('div'); hd.className = 'row-h';
-        hd.textContent = SKINS.filter(function (k) { return k[0] === sk; })[0][1] + (sk === 'cobalt' ? ' · default' : '') + (NO_ICON[sk] ? ' · no icons' : ''); v.appendChild(hd); }
-      lays.forEach(function (l, i) {
-        var d = {}, k, src = sampleOf(content, kind); for (k in src) d[k] = src[k];
-        d.layout = l[0]; d.skin = sk;
+      if (skin === 'all') {
+        var hd = document.createElement('div'); hd.className = 'row-h';
+        hd.textContent = SKINS.filter(function (k) { return k[0] === sk; })[0][1] + (sk === 'cobalt' ? ' · default' : '') + (NO_ICON[sk] ? ' · no icons' : '');
+        v.appendChild(hd);
+      }
+      entries.forEach(function (e, i) {
+        var ek = e[0], lid = e[1], lname = e[2];
+        var d = {}, k, src = sampleOf(content, ek);
+        for (k in src) d[k] = src[k];
+        d.layout = lid; d.skin = sk;
         var c = build(d), fig = document.createElement('figure'), box = document.createElement('div'), cap = document.createElement('figcaption');
         box.className = 'box'; box.style.width = W + 'px'; box.style.height = Math.round(1350 * s) + 'px'; fig.style.width = W + 'px';
-        c.style.transform = 'scale(' + s + ')'; box.appendChild(c); cap.textContent = (i + 1) + ' · ' + l[1] + ' · ' + l[0] + (skin === 'all' ? ' · ' + sk : '');
+        c.style.transform = 'scale(' + s + ')'; box.appendChild(c);
+        cap.textContent = (i + 1) + ' · ' + lname + ' · ' + lid + (skin === 'all' ? ' · ' + sk : '');
         fig.appendChild(box); fig.appendChild(cap); v.appendChild(fig); made.push([c, cap]);
         fig.style.cursor = only ? 'zoom-out' : 'zoom-in';
-        fig.onclick = function () { if (only) { only = null; } else { only = l[0]; if (skin === 'all') skin = sk; } hash(); render(); };
+        fig.onclick = function () { if (only) { only = null; } else { only = lid; if (skin === 'all') skin = sk; } hash(); render(); };
       });
     });
     fontsReady().then(function () {
-      made.forEach(function (x) { var r = fit(x[0]);
+      made.forEach(function (x) {
+        var r = fit(x[0]);
         if (!r.ok) { x[1].className = 'bad'; x[1].textContent += ' · ' + r.problems.join('; '); }
-        else if (r.zoom < 1 || r.shrunk.length) x[1].textContent += ' · fitted' + (r.zoom < 1 ? ' ' + Math.round(r.zoom * 100) + ' %' : '') + (r.shrunk.length ? ', ' + r.shrunk.length + ' shrunk' : ''); });
+        else if (r.zoom < 1 || r.shrunk.length) x[1].textContent += ' · fitted' + (r.zoom < 1 ? ' ' + Math.round(r.zoom * 100) + ' %' : '') + (r.shrunk.length ? ', ' + r.shrunk.length + ' shrunk' : '');
+      });
       document.body.setAttribute('data-ready', kind);
     });
   }

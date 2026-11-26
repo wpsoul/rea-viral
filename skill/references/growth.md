@@ -10,7 +10,8 @@ what can I copy": the growth mechanisms with their evidence, not only the format
 
 **Out**: `GROWTH.md` (why it grows: 3 to 5 numbered mechanisms, each one plain sentence, one example post and 1 or 2
 real numbers; what doesn't move: 1 or 2, with the reason; copy this: 3 takeaways; a ready-to-paste reply draft and its
-follow-up line), a "Why it grows" block in the Account report (`report.html`) and `growth.json` (every number).
+follow-up line), a "Why it grows" block in the Account report (`report.html`), `growth.json` (every number), and
+`post-card.png` (a 1080 × 1350 reply-ready card rendered with `post_card.py`, default `t1` in `cobalt`).
 
 ## Step 1: the account run
 
@@ -59,7 +60,8 @@ views 1000x the followers or more (`analysis.json#suspect_reach`) are left out o
 ## Step 4: your reading (findings.json "growth")
 
 Write the sentences; the script fills the numbers. Each number is a placeholder `{key}` or `{key:fmt}` naming a key of
-growth.json (`fmt`: `n` 12.1K, the default; `full` 12,061; `pct` 63%; `x` 0.58x; `date` Nov 2; `min` 77; `raw`):
+growth.json (`fmt`: `n` 12.1K, the default; `full` 12,061; `pct` 63%; `x` 0.58x or 511x — whole integers at 10x and above,
+decimals below 10x; `date` Nov 2; `min` 77; `raw`):
 
 ```json
 "growth": {
@@ -90,7 +92,7 @@ growth.json (`fmt`: `n` 12.1K, the default; `full` 12,061; `pct` 63%; `x` 0.58x;
   the page and GROWTH.md add a note beside every claim that cites them; in the reply, say "in a 2-hour window" when
   the number is a sample.
 
-## Step 5: the reply draft and the hand-over
+## Step 5: the reply draft, the post card, and the hand-over
 
 Run `growth.py <run>` again. It fills your sentences, builds the reply draft and checks it:
 
@@ -101,18 +103,31 @@ Ran your account through REA Viral (free open-source skill for AI agents). Here'
 2. ...
 N. <doesnt_move[0].reply>   (what doesn't work, said in its own words)
 
-Try it on yours: install REA Viral and tell your agent "REA Viral: why is @<their handle> growing".
+Try it on your own account: install REA Viral and tell your agent "REA Viral: why is @handle growing".
 ```
 
-English, 600 to 1,200 characters, the first and the last line exactly as above, no link inside. The link goes in a
-separate follow-up line: `github.com/wpsoul/rea-viral`. A draft that fails says why (`NOT READY: ...`, exit 1): fix the
-reply lines and run it again. Then `findings.json` (headline, mechanisms, `did_not_work`, plays: `handover.md`) and
-`build_report.py <run>`: the Account report gains the "Why it grows" block (the mechanisms, what doesn't move, copy
-this, the reply with a Copy button, and the measured parts), `ACCOUNT.md` a line, and `GROWTH.md` is written again.
+English, 600 to 1,200 characters, the first and the last line exactly as above (keeping the generic `@handle`, never the
+analysed creator's handle), no link inside. The link goes in a separate follow-up line: `github.com/wpsoul/rea-viral`. A
+draft that fails says why (`NOT READY: ...`, exit 1): fix the reply lines and run it again.
 
-Tell the user: the path of `GROWTH.md` and `report.html`, the mechanisms in one line each, the reply draft and its
-follow-up line, what was a sample or not read, and the cost (`ledger.py <run> total`). GROWTH.md ends with the phrase
-that runs it again. To also turn the teardown into a 1080 × 1350 post picture (`post-card.png`), see `post.md`.
+Next, **always render the reply-ready post card** (`post-card.png`, default `t1` in `cobalt`; pick another teardown
+layout `t1`–`t5` only when the run clearly fits it better, e.g. `t4` when one proof post carries the whole story):
+
+```
+python3 SKILL_DIR/scripts/post_card.py <run> --layout t1 --skin cobalt
+```
+
+First run drafts `<run>/card.json` from `growth.json`; polish the drafted lines into plain humanized sentences (never
+typed raw numbers in number slots, exact quotes, no gendered pronouns), then re-run `post_card.py <run> --layout t1
+--skin cobalt` so `post-card.png` is ready to attach directly to the reply draft (`post.md`).
+
+Then finish `findings.json` (headline, mechanisms, `did_not_work`, plays: `handover.md`) and `build_report.py <run>`:
+the Account report gains the "Why it grows" block (the mechanisms, what doesn't move, copy this, the reply with a Copy
+button, and the measured parts), `ACCOUNT.md` a line, and `GROWTH.md` is written again.
+
+Tell the user: the paths of `GROWTH.md`, `report.html`, and `post-card.png` (ready to attach to the reply), the
+mechanisms in one line each, the reply draft and its follow-up line, what was a sample or not read, and the cost
+(`ledger.py <run> total`). `GROWTH.md` ends with the phrase that runs it again.
 
 ## When something goes wrong
 
@@ -124,6 +139,6 @@ that runs it again. To also turn the teardown into a 1080 × 1350 post picture (
 | `NOT READY: the reply is ... characters` | Shorten or add to the `reply` lines, not the first or last line |
 | The reposters of a post cannot be read (a network that shows none) | Leave the post out of `growth_read`; the repost graph says "not read" |
 | Only the newest replies can be read | That is one window: `windows: 1`; every reply number is "a sample" |
-| A post in the top is under 3 days old | Its numbers are still growing: the note says so; never rank it as a hit |
+| A post in the top is under 3 days old | It is scored (`status: "fresh"`) and kept out of baselines and flops so immature counts don't skew medians; mark it `"fresh / still growing"` (and `"Still growing · so far"` on cards) |
 | No follower history | "Follower growth cannot be measured"; offer Watch (`watch.md`) |
 | The account posts in another language | The crowd and question word lists are English (`data/growth-words.json`): say the crowd calls may be missed |

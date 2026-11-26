@@ -173,14 +173,16 @@ def _not_working(folder, tr, radar, wr):
 
 def page_data(folder, light=False):
     import build_report
+    import topic_check
     niche = read_json(os.path.join(folder, "niche.json"))
     tr = _load(folder, "trends.json")
     if tr is None:
         die("no trends.json: run trends.py (or radar.py) first", 1)
     radar = upgrade_radar(_load(folder, "radar.json"))
     wr = _load(folder, "writing.json")
+    tc = _load(folder, "topic_check.json")
     problems = [p for p in (_stale(folder, tr, "trends.json", "trends.py"), _stale(folder, radar, "radar.json", "radar.py"),
-                            _stale(folder, wr, "writing.json", "text_probe.py")) if p]
+                            _stale(folder, wr, "writing.json", "text_probe.py"), topic_check.stale(folder)) if p]
     if problems:
         die("\n".join(problems), 1)
     findings = _load(folder, "findings.json") or {}
@@ -193,7 +195,9 @@ def page_data(folder, light=False):
         posts.append({"id": p["post_id"], "url": p["url"], "account": p["account"], "creator": p["creator"],
                       "at": p["published_at"], "views": p["views"], "ratio": p["ratio"], "ratio_so_far": p["ratio_so_far"],
                       "vpf": p["views_per_follower"], "baseline": p["baseline"], "baseline_n": p["baseline_n"],
-                      "status": p["status"], "basis": p["basis"], "format": p.get("format"), "rank": p.get("rank"),
+                      "status": p["status"], "fresh": bool(p.get("fresh") or p["status"] == "fresh"),
+                      "fresh_label": p.get("fresh_label"),
+                      "basis": p["basis"], "format": p.get("format"), "rank": p.get("rank"),
                       "lead": p.get("lead"), "cover": page_kit.existing(folder, p.get("cover_file")),
                       "caption": (p.get("caption") or "")[:200]})
     formats = []
@@ -236,7 +240,7 @@ def page_data(folder, light=False):
                                                   "read_at", "window", "caps", "spend_ceiling_usd", "user")),
         "sources": niche.get("sources") or [],
         "trends": {k: tr.get(k) for k in ("status", "status_note", "counts", "window", "rules", "creators", "ranked",
-                                          "leads_weaker_basis", "too_new")},
+                                          "leads_weaker_basis", "too_new", "warnings", "suspect_reach")},
         "radar": {k: (radar or {}).get(k) for k in ("status", "status_note", "rules", "axes", "creators_scored", "unformatted")},
         "formats": formats,
         "recipes": _recipes(folder, radar),
@@ -246,6 +250,7 @@ def page_data(folder, light=False):
         "hooks": _hooks_view(folder),
         "watchlist": trends_mod.watchlist(tr, radar),
         "findings": findings,
+        "topic_check": tc,
         "not_working": nw,
         "limits": page_kit.dedupe_limits(page_kit.run_limits("niche", folder), findings),
         "cost": _cost(folder),
@@ -352,6 +357,11 @@ def niche_md(d):
         ". ".join(x for x in dnw if x).replace("|", "/")))
     wl = d.get("watchlist") or []
     L.append("| Who to watch? | %s | watchlist.csv |" % ("; ".join("@%s (%s)" % (r["handle"], r["why"]) for r in wl[:4]) or "nobody stood out"))
+    tc = d.get("topic_check")
+    if tc:
+        L.append("| Topic check (still worth posting?) | %s (saturation %s, momentum %s, lateness %s) | topic_check.json, TOPIC.md |" % (
+            (tc.get("verdict") or "").replace("|", "/"), (tc.get("saturation") or {}).get("level"),
+            (tc.get("momentum") or {}).get("level"), (tc.get("lateness") or {}).get("band")))
     L.append("| What was not read? | %s | findings.json#not_read and this run's own lines below |" % (
         "; ".join([x["what"] for x in fi.get("not_read") or []] + [x["what"] for x in d.get("limits") or []]) or "nothing listed"))
     L.append("| A voice sheet? | None in a niche run: hooks.md holds the niche's hooks across creators. For one creator's voice "
@@ -371,8 +381,17 @@ def niche_md(d):
     L += ["### The top trends (MEASURED by trends.py)", "", "| # | Post | Creator | Views | Its creator's usual | Ratio |",
           "|---|---|---|---|---|---|"]
     for p in [by[i] for i in (t.get("ranked") or [])[:15] if i in by]:
-        L.append("| %s | [%s](%s) | @%s | %s | %s (from %s posts) | %s |" % (p["rank"], p["id"], p["url"], p["account"], p["views"],
-                                                                         p["baseline"], p["baseline_n"], _x(p["ratio"])))
+        L.append("| %s | [%s](%s) | @%s | %s | %s (from %s posts) | %s%s |" % (
+            p["rank"], p["id"], p["url"], p["account"], p["views"],
+            p["baseline"], p["baseline_n"], _x(p["ratio"]),
+            " (fresh / still growing)" if p.get("fresh") else ""))
+    if t.get("suspect_reach"):
+        sr = t["suspect_reach"]
+        L.append("")
+        L.append("- [MEASURED] Outlier warning (%s): %d post(s) had views >= 1000x the creator's followers (top: %s). "
+                 "Check before calling them a finding (trends.json#suspect_reach)." % (
+                     sr.get("rule") or "", sr.get("count") or 0,
+                     ", ".join("@%s %s (%s views)" % (x.get("account"), x.get("post_id"), x.get("views")) for x in (sr.get("posts") or [])[:3])))
     L.append("")
     L += ["### What did not work (MEASURED by the scripts; SEEN from the watched flops)", ""]
     if nw.get("note"):
@@ -415,6 +434,24 @@ def niche_md(d):
         for r in wl:
             L.append("- @%s (%s): %s. `%s`" % (r["handle"], r["network"], r["why"], r["watch_command"]))
         L.append("")
+    if tc:
+        sat, mom, late = tc.get("saturation") or {}, tc.get("momentum") or {}, tc.get("lateness") or {}
+        sz = tc.get("sample_sizes") or {}
+        L += ["### Topic check (MEASURED by topic_check.py)", "",
+              "- [MEASURED] **%s** (topic_check.json#verdict)." % tc.get("verdict"),
+              "- [MEASURED] Saturation (last %sh): %s (%s posts, %s breakouts, %s by large accounts). "
+              "Momentum: %s (last 6h %s = %s/h vs prev 6h %s = %s/h). Lateness: %s%s (topic_check.json)." % (
+                  sat.get("window_hours", 48), sat.get("level"), sat.get("posts_in_window"), sat.get("breakouts_count"),
+                  len(sat.get("large_account_breakouts") or []), mom.get("level"),
+                  (mom.get("last_6h") or {}).get("posts"), (mom.get("last_6h") or {}).get("per_hour"),
+                  (mom.get("prev_6h") or {}).get("posts"), (mom.get("prev_6h") or {}).get("per_hour"),
+                  late.get("band"),
+                  (" (%sh since @%s)" % (late["hours_since_first_big"], (late.get("first_big_post") or {}).get("author")))
+                  if late.get("hours_since_first_big") is not None else ""),
+              "- Sample sizes: total %s · last 6h %s · prev 6h %s · 48h %s%s." % (
+                  sz.get("total_read"), sz.get("last_6h"), sz.get("prev_6h"), sz.get("last_48h"),
+                  " (sample only)" if tc.get("sampled") else ""),
+              ""]
     for sec, title in (("formats", "The formats, the agent's reading"), ("hooks", "The hooks, the agent's reading"),
                        ("creators", "The creators, the agent's reading"), ("mechanisms", "Other findings")):
         if fi.get(sec):
@@ -480,6 +517,36 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
   var list = el('div', {style: 'margin-top:10px'});
   (F.formats || []).concat(F.mechanisms || []).forEach(function(m){ list.appendChild(claim(m)); });
   p.appendChild(list); s.appendChild(p);
+})();
+
+/* ---------- topic check (when topic_check.json is present) */
+(function(){
+  var TC = D.topic_check;
+  if (!TC) return;
+  var SAT = TC.saturation || {}, MOM = TC.momentum || {}, LATE = TC.lateness || {}, SZ = TC.sample_sizes || {};
+  function fmtH(h){ if (h == null) return '—'; if (h < 1) return Math.max(1, Math.round(h * 60)) + ' min'; return (h < 10 ? h.toFixed(1).replace(/\.0$/, '') : Math.round(h)) + 'h'; }
+  var s = section('topic-check', 'Topic check: is this still worth posting?', 'Saturation (last ' + (SAT.window_hours || 48) + 'h) + momentum (last 6h vs prev 6h) + lateness.');
+  var p = el('div', {cls: 'panel'}); s.appendChild(p);
+  p.appendChild(el('div', {cls: 'answer'}, chip('MEASURED'), TC.verdict || '—'));
+  if (TC.sampled && TC.sample_note) p.appendChild(el('div', {cls: 'status'}, el('strong', {text: 'Sample only. '}), TC.sample_note));
+  p.appendChild(el('div', {cls: 'stats', style: 'margin-top:12px'},
+    stat(String(SAT.level || '—').toUpperCase(), 'saturation · ' + (SAT.breakouts_count || 0) + ' breakouts (' + ((SAT.large_account_breakouts || []).length) + ' large)'),
+    stat(String(MOM.level || '—').replace(/_/g, ' ').toUpperCase(), 'last 6h: ' + ((MOM.last_6h || {}).posts || 0) + ' (' + ((MOM.last_6h || {}).per_hour || 0) + '/h) vs prev 6h: ' + ((MOM.prev_6h || {}).posts || 0) + ' (' + ((MOM.prev_6h || {}).per_hour || 0) + '/h)'),
+    stat(LATE.hours_since_first_big != null ? fmtH(LATE.hours_since_first_big) : 'none yet', 'since first ' + num(LATE.big_views_threshold || 100000) + '+ post'),
+    stat(String(SZ.last_48h || 0), 'posts read in 48h' + (TC.sampled ? ' (sample)' : ''))));
+  var rows = SAT.top_posts || [];
+  if (rows.length){
+    var t = el('table', {style: 'margin-top:10px'}, el('tr', null, el('th', {text: 'Post'}), el('th', {text: 'Author'}), el('th', {cls: 'num', text: 'Followers'}), el('th', {cls: 'num', text: 'Views'}), el('th', {cls: 'num', text: 'Age'}), el('th', {text: 'Flags'})));
+    rows.slice(0, 5).forEach(function(r){
+      var fl = []; if (r.large_account) fl.push('large account'); if (r.breakout) fl.push('breakout');
+      t.appendChild(el('tr', null, el('td', null, r.url ? el('a', {href: r.url, text: r.post_id}) : r.post_id), el('td', {text: '@' + (r.author || '—')}),
+        el('td', {cls: 'num', text: num(r.author_followers)}), el('td', {cls: 'num'}, el('strong', {text: num(r.views)})),
+        el('td', {cls: 'num', text: fmtH(r.hours_ago)}), el('td', {cls: 'small', text: fl.join(', ') || '—'})));
+    });
+    p.appendChild(t);
+  }
+  p.appendChild(el('div', {cls: 'small muted', style: 'margin-top:8px'}, chip('MEASURED'), 'From topic_check.json. ' + (LATE.benchmark_note || '')));
+  drawn.topic_check = 1;
 })();
 
 /* ---------- the radar */
@@ -581,18 +648,25 @@ var N = D.niche || {}, T = D.trends || {}, R = D.radar || {}, F = D.findings || 
     var t = el('table', null, el('tr', null, el('th', {cls: 'num', text: '#'}), el('th', {text: 'Post'}), el('th', {text: 'Creator'}), el('th', {text: 'Date'}), el('th', {cls: 'num', text: 'Views'}), el('th', {cls: 'num', text: 'Its usual'}), el('th', {cls: 'num', text: 'Ratio'}), el('th', {text: 'Format'})));
     ids.forEach(function(id){ var q = POSTS[id]; if (!q) return;
       t.appendChild(el('tr', null, el('td', {cls: 'num', text: q.rank}), el('td', null, postLink(id)), el('td', {text: '@' + q.account}), el('td', {text: date(q.at)}),
-        el('td', {cls: 'num', text: num(q.views)}), el('td', {cls: 'num', text: num(q.baseline) + ' (' + q.baseline_n + ')'}), el('td', {cls: 'num'}, el('strong', {text: xr(q.ratio)})), el('td', {cls: 'small', text: q.format || '—'})));
+        el('td', {cls: 'num', text: num(q.views)}), el('td', {cls: 'num', text: num(q.baseline) + ' (' + q.baseline_n + ')'}), el('td', {cls: 'num'}, el('strong', {text: xr(q.ratio)}), q.fresh ? el('span', {cls: 'small muted', text: ' fresh'}) : null), el('td', {cls: 'small', text: q.format || '—'})));
       drawn.trends++; });
     p.appendChild(t);
-    p.appendChild(el('div', {cls: 'small muted', style: 'margin-top:6px'}, chip('MEASURED'), 'Its usual = the median of the creator\'s other settled posts (how many in brackets). trends.csv holds every post.'));
+    p.appendChild(el('div', {cls: 'small muted', style: 'margin-top:6px'}, chip('MEASURED'), 'Its usual = the median of the creator\'s other settled posts (how many in brackets). Fresh posts under settling time are scored and marked fresh / still growing. trends.csv holds every post.'));
+  }
+  if (T.suspect_reach && (T.suspect_reach.posts || []).length){
+    var sr = T.suspect_reach;
+    p.appendChild(el('div', {cls: 'status'}, chip('MEASURED'), el('strong', {text: 'Check these outliers. '}),
+      sr.count + ' post' + (sr.count === 1 ? '' : 's') + ' had views 1000× the creator\'s followers or more (' +
+      sr.posts.slice(0, 3).map(function(x){ return '@' + x.account + ' ' + x.post_id + ' (' + num(x.views) + ' views on ' + num(x.followers) + ')'; }).join(', ') +
+      '). Open before calling them a finding (trends.json#suspect_reach).'));
   }
   var weak = (T.leads_weaker_basis || []).map(function(id){ return POSTS[id]; }).filter(Boolean);
   if (weak.length) p.appendChild(el('div', {cls: 'small', style: 'margin-top:10px'}, chip('MEASURED'), el('strong', {text: 'Weaker basis. '}),
     weak.length + ' posts from creators with too few posts read for their own usual, measured as views per follower and never counted toward a format: ',
     weak.slice(0, 6).map(function(q, i){ return [i ? ', ' : '', postLink(q.id), ' @' + q.account + ' ' + (q.vpf != null ? q.vpf.toFixed(2) + ' views per follower' : '') + (q.lead ? ' (a lead)' : '')]; })));
-  var young = (T.too_new || []).map(function(id){ return POSTS[id]; }).filter(function(q){ return q && q.ratio_so_far != null; });
-  if (young.length) p.appendChild(el('div', {cls: 'small', style: 'margin-top:8px'}, chip('MEASURED'), el('strong', {text: 'Too new to score. '}),
-    'Still gathering views; the ratio so far is a floor: ', young.slice(0, 6).map(function(q, i){ return [i ? ', ' : '', postLink(q.id), ' @' + q.account + ' ' + xr(q.ratio_so_far) + ' so far']; })));
+  var young = (T.too_new || []).map(function(id){ return POSTS[id]; }).filter(function(q){ return q && (q.ratio != null || q.ratio_so_far != null); });
+  if (young.length) p.appendChild(el('div', {cls: 'small', style: 'margin-top:8px'}, chip('MEASURED'), el('strong', {text: 'Fresh / still growing. '}),
+    'Under settling time, included in scoring as a floor while views keep coming in: ', young.slice(0, 6).map(function(q, i){ return [i ? ', ' : '', postLink(q.id), ' @' + q.account + ' ' + xr(q.ratio != null ? q.ratio : q.ratio_so_far) + ' so far']; })));
 })();
 
 /* ---------- hooks */
@@ -690,7 +764,7 @@ def build(folder, light_only=False):
 
 
 LIGHT_POST_KEYS = ("id", "url", "account", "creator", "at", "views", "ratio", "ratio_so_far", "vpf", "baseline",
-                   "baseline_n", "status", "basis", "format", "rank", "lead", "cover")
+                   "baseline_n", "status", "fresh", "basis", "format", "rank", "lead", "cover")
 
 
 def light_niche(d):

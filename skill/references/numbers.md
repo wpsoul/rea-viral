@@ -7,9 +7,9 @@ Watch counts. It is MEASURED; cite it as `analysis.json#<key>`.
 
 | Status | Meaning |
 |---|---|
-| `scored` | In the window, at least 7 days old, has the metric, has a baseline |
-| `no_baseline` | Fewer than 5 dated posts before it, or the earlier posts' median is 0 |
-| `too_new` | Younger than the network's settling time at `read_at`: its numbers are still growing. Left out of scores and baselines. 7 days; 3 days on X and Threads, where a post gets most of its views in its first day or two (INFERRED from how those feeds work; `--min-age-days N` changes it, and `settings.min_age_days` records it) |
+| `scored` | In the window, settled (at least 7 days old; 3 days on X and Threads), has the metric, has a baseline |
+| `fresh` | Younger than the network's settling time at `read_at` (7 days; 3 days on X and Threads; `--min-age-days N` changes it). **Still scored** against the prior settled baseline (`fresh: true`, `fresh_label: "fresh / still growing"`) and included in hits, outliers and format lifts so a fresh breakout is never dropped, while kept **out of baselines and flops** so immature counts never pollute medians. Gets partial measured follower attribution (`hours_covered`) when `>= 6h` of follower history covers it with no gap. (`counts.too_new` mirrors `counts.fresh` for backwards compatibility.) |
+| `no_baseline` | Fewer than 5 dated settled posts before it, or the earlier posts' median is 0 |
 | `no_date` | No `published_at`: left out of baselines and the timeline |
 | `no_metric` | The metric (views) is unknown |
 | `warmup` | Before the window: feeds the first baselines only |
@@ -107,8 +107,11 @@ Every post of every creator folder, each against **its own creator's usual**:
 - **The weaker basis**: a creator with fewer settled posts read has its posts measured as views per follower, labelled
   weaker, ranked apart (`leads_weaker_basis`; 2× its followers or more is a lead), and never counted toward a format
   or a hook of the niche.
-- **Too new**: younger than the settling time (7 days; 3 on X and Threads). Not scored and not in any usual; its ratio
-  so far is shown as a floor (views only grow).
+- **Fresh posts**: younger than the settling time (7 days; 3 on X and Threads). Scored against the creator's settled
+  baseline (`status: "fresh"`, `fresh: true`, `fresh_label: "fresh / still growing"`, both `ratio` and `ratio_so_far`
+  populated) and included in `ranked` and format lifts, while kept out of every creator's usual and out of flops.
+- **Suspect reach**: a post with views `>= 1000×` its creator's followers is listed in `trends.json#suspect_reach` and
+  warned in `NICHE.md` and the Niche report — open it before calling it a finding.
 - Only the window's posts are scored; older read posts only feed the usual (`baseline_only`).
 - **Statuses**: `ok`; `too_few_creators` (under 3 creators with their own usual); `too_few_posts` (under 20 scored
   posts in the window); `empty`. In the last three no format or hook of the niche is called.
@@ -129,9 +132,18 @@ its rank among the creator's scored posts, and:
   With one creator's posts most of these are leads: under 6 posts on a side is marked so.
 - **repeats**: the other posts of its format (your `formats.json`), how many were scored, how many sat above the
   creator's usual (1× or more) and how many at 2× or more, and their median.
+- **fresh & suspect reach**: a post younger than the settling time is still scored with `status: "fresh"`, `fresh: true`
+  and `fresh_label: "fresh / still growing"` (never treated as a flop). Posts with `views >= 1000× followers` are flagged
+  in `post_probe.json#suspect_reach` and `warnings`.
 
 ## Growth mode (growth.py)
 
 Why an account grows: posting cadence and its change point, where the views come from, crowd calls, tags and
 reposts, replies to others, speed on big posts and what the weakest format lacks. Every measure and its key in
 `growth.json`: `growth.md`, step 3.
+
+## Topic check (topic_check.py)
+
+Saturation (48h posts & large-account 100K+ breakouts), 6h vs prior-6h momentum (`rising`, `flat`, `fading`,
+`not_enough_data`), lateness (hours since first 100K+ post), `sampled` honesty flag, and plain 1-line verdict. Every
+measure and threshold: `niche.md`, "Topic check".

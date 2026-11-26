@@ -60,7 +60,7 @@ def _status_of(p, read_at, min_age):
     return "settled"
 
 
-def creator_numbers(posts, acc, lo, hi, rules=RULES, read_at=None):
+def creator_numbers(posts, acc, lo, hi, rules=RULES, read_at=None, require_settled_creator=False):
     """Score one creator's posts against that creator's own usual (leave-one-out median). Mutates the post dicts and
     returns the creator's summary. Used by trends.py (many creators) and post_probe.py (one post)."""
     read_at = read_at or account_read_at(acc)
@@ -77,47 +77,51 @@ def creator_numbers(posts, acc, lo, hi, rules=RULES, read_at=None):
     # must not set the bar for this month's posts (learned on a real run, 2026-11-16).
     since = lo - dt.timedelta(days=rules.get("baseline_days_before_window", 30))
     settled = [p for p in posts if p["state"] == "settled" and p["published_at"] >= since]
+    creator_has_own = (len(settled) > rules["min_baseline_posts"]) if require_settled_creator else True
     for p in posts:
         p["baseline"] = p["baseline_n"] = p["ratio"] = p["ratio_so_far"] = None
         p["basis"] = None
+        p["fresh"] = p["state"] == "too_new"
+        p["fresh_label"] = "fresh / still growing" if p["fresh"] else None
         p["views_per_follower"] = (p["views"] / float(followers)) if (followers and p.get("views") is not None) else None
         others = [q["value"] for q in settled if q is not p]
         if p["state"] in ("no_date", "no_metric"):
             p["status"] = p["state"]
             continue
-        if len(others) >= rules["min_baseline_posts"]:
+        if creator_has_own and len(others) >= rules["min_baseline_posts"]:
             b = median(others)
             p["baseline"], p["baseline_n"] = b, len(others)
             if b and b > 0:
                 p["basis"] = "own"
                 r = p["value"] / float(b)
-                if p["state"] == "too_new":
+                p["ratio"] = r
+                if p["fresh"]:
                     p["ratio_so_far"] = r
-                else:
-                    p["ratio"] = r
         if p["basis"] is None and p["views_per_follower"] is not None:
             p["basis"] = "followers"
         if not p["in_window"]:
             p["status"] = "baseline_only"
-        elif p["state"] == "too_new":
-            p["status"] = "too_new"
         elif p["basis"] == "own":
-            p["status"] = "scored"
+            p["status"] = "fresh" if p["fresh"] else "scored"
         elif p["basis"] == "followers":
             p["status"] = "weaker_basis"
+        elif p["fresh"]:
+            p["status"] = "too_new"
         else:
             p["status"] = "no_baseline"
-    scored = [p for p in posts if p["status"] == "scored"]
+    scored = [p for p in posts if p["status"] in ("scored", "fresh")]
     hits = [p for p in scored if p["ratio"] >= rules["hit_ratio"]]
     best = max(scored, key=lambda p: p["ratio"]) if scored else None
     usual = median([p["value"] for p in settled]) if settled else None
     basis = "own" if len(settled) > rules["min_baseline_posts"] else ("followers" if followers else None)
     return {
         "metric": metric, "posts_read": len(posts), "dated": len(dated), "settled": len(settled),
-        "in_window": sum(1 for p in posts if p["in_window"]), "scored": len(scored), "hits": len(hits),
+        "in_window": sum(1 for p in posts if p["in_window"]), "scored": len(scored),
+        "fresh": sum(1 for p in posts if p["status"] == "fresh"), "hits": len(hits),
         "hit_rate": rnd(len(hits) / float(len(scored)), 3) if scored else None,
         "usual": usual, "usual_from_posts": len(settled), "basis": basis,
-        "best": {"post_id": best["post_id"], "ratio": rnd(best["ratio"], 3), "url": best["url"]} if best else None,
+        "best": {"post_id": best["post_id"], "ratio": rnd(best["ratio"], 3), "url": best["url"],
+                 "fresh": bool(best.get("fresh"))} if best else None,
         "followers": followers, "followers_exact": acc.get("followers_exact"),
         "span": {"from": day(min(p["published_at"] for p in dated)) if dated else None,
                  "to": day(max(p["published_at"] for p in dated)) if dated else None},
@@ -176,7 +180,7 @@ def run(folder, opts=None):
     for d in niche_creator_dirs(folder):
         acc = read_json(os.path.join(folder, d, "account.json"))
         ps = load_posts(os.path.join(folder, d))
-        summary = creator_numbers(ps, acc, lo, hi, rules)
+        summary = creator_numbers(ps, acc, lo, hi, rules, require_settled_creator=True)
         rl = replies_left_out(os.path.join(folder, d))
         summary["replies_left_out"] = rl["other"] + rl["self"]
         cid = d.split("/", 1)[1]
@@ -191,6 +195,7 @@ def run(folder, opts=None):
                 "type": p["type"], "duration_s": p["duration_s"], "views": p["views"], "likes": p["likes"],
                 "comments": p["comments"], "shares": share_like(p), "saves": save_like(p), "metric": p["metric"],
                 "in_window": p["in_window"], "status": p["status"], "basis": p["basis"],
+                "fresh": bool(p.get("fresh")), "fresh_label": p.get("fresh_label"),
                 "baseline": rnd(p["baseline"], 1), "baseline_n": p["baseline_n"], "ratio": rnd(p["ratio"], 3),
                 "ratio_so_far": rnd(p["ratio_so_far"], 3), "views_per_follower": rnd(p["views_per_follower"], 4),
                 "hit": bool(p["ratio"] is not None and p["ratio"] >= rules["hit_ratio"]),
@@ -199,15 +204,37 @@ def run(folder, opts=None):
                 "caption": (p["caption"] or "")[:400], "cover_file": (d + "/" + p["cover_file"]) if p["cover_file"] else None,
                 "cover_url": p["cover_url"] or None,
             })
-    scored = sorted([p for p in posts if p["status"] == "scored"], key=lambda p: (-p["ratio"], p["post_id"]))
+    scored = sorted([p for p in posts if p["status"] in ("scored", "fresh")], key=lambda p: (-p["ratio"], p["post_id"]))
     for i, p in enumerate(scored, 1):
         p["rank"] = i
     weak = sorted([p for p in posts if p["status"] == "weaker_basis"], key=lambda p: -(p["views_per_follower"] or 0))
     for p in weak:
         p["lead"] = bool(p["views_per_follower"] is not None and p["views_per_follower"] >= rules["reach_lead"])
-    young = sorted([p for p in posts if p["status"] == "too_new"], key=lambda p: -(p["ratio_so_far"] or 0))
+    young = sorted([p for p in posts if p.get("fresh")], key=lambda p: -(p["ratio"] or p["ratio_so_far"] or 0))
     scored_creators = sorted(set(p["creator"] for p in scored))
     picks = deep_read_picks(scored, rules)
+    warnings = [w["where"] + ": " + w["problem"] for w in rep.warnings]
+    followers_by = dict((c["id"], c.get("followers")) for c in creators)
+    sus = sorted([p for p in posts if p.get("views_per_follower") is not None and p["views_per_follower"] >= analyze.SUSPECT_REACH],
+                 key=lambda p: -p["views_per_follower"])
+    suspect_reach = None
+    if sus:
+        top = sus[0]
+        suspect_reach = {
+            "rule": "views >= %d x the creator's followers" % analyze.SUSPECT_REACH,
+            "count": len(sus),
+            "posts": [{"post_id": p["post_id"], "account": p["account"], "creator": p["creator"],
+                       "views": p["views"], "followers": followers_by.get(p["creator"]),
+                       "views_per_follower": rnd(p["views_per_follower"], 0), "published_at": p["published_at"],
+                       "in_window": bool(p.get("in_window"))} for p in sus[:20]],
+        }
+        warnings.append(
+            "check the outliers: %d post%s ha%s views %d x the creator's follower count or more (top: %s views on %s "
+            "followers, @%s %s). The account may be reset or renamed, the clip a repost, or views bought; open them "
+            "before calling them a finding (trends.json#suspect_reach)" % (
+                len(sus), "" if len(sus) == 1 else "s", "s" if len(sus) == 1 else "ve", analyze.SUSPECT_REACH,
+                "{:,}".format(int(top["views"])), "{:,}".format(int(followers_by.get(top["creator"]) or 0)),
+                top["account"], top["post_id"]))
     # Seeds (0.4.1): each seed checked before the reading (niche.md, step 2): found, not_found or inactive. Only creators
     # with posts in the window count as the niche's creators; the 3-creator rule counts creators scored on their own usual.
     seeds = {"found": [], "not_found": [], "inactive": [], "unchecked": []}
@@ -224,11 +251,13 @@ def run(folder, opts=None):
         "read_at": iso(read_at),
         "window": {"from": day(lo), "to": day(hi)},
         "rules": rules,
+        "warnings": warnings,
         "counts": {
             "creators": len(creators), "creators_active": len(active), "creators_scored": len(scored_creators),
             "creators_weaker_basis": sum(1 for c in creators if c["scored"] == 0 and c["basis"] == "followers"),
             "posts_read": len(posts), "in_window": sum(1 for p in posts if p["in_window"]),
-            "scored": len(scored), "hits": sum(1 for p in scored if p["hit"]),
+            "scored": len(scored), "fresh": sum(1 for p in posts if p["status"] == "fresh"),
+            "hits": sum(1 for p in scored if p["hit"]),
             "too_new": len(young), "weaker_basis": len(weak),
             "no_baseline": sum(1 for p in posts if p["status"] == "no_baseline"),
             "no_date": sum(1 for p in posts if p["status"] == "no_date"),
@@ -242,6 +271,8 @@ def run(folder, opts=None):
         "deep_read": picks,
         "posts": sorted(posts, key=lambda p: (p.get("rank") or 10 ** 6, p["creator"], p["published_at"] or "")),
     }
+    if suspect_reach:
+        out["suspect_reach"] = suspect_reach
     if not posts:
         out["status"], out["status_note"] = "empty", "No post was read: nothing to score."
     elif len(scored_creators) < rules["min_creators"]:
@@ -280,8 +311,9 @@ def deep_read_picks(scored, rules, n_top=8, n_ord=3, n_flop=2, per_creator=2):
                 break
         return out
     import math as _m
-    ordinary = spread(sorted([p for p in scored if 0.75 <= p["ratio"] <= 1.33], key=lambda p: abs(_m.log(p["ratio"]))), n_ord)
-    flops = spread(sorted([p for p in scored if p["ratio"] < 0.75], key=lambda p: p["ratio"]), n_flop)
+    settled = [p for p in scored if not p.get("fresh") and p.get("status") == "scored"]
+    ordinary = spread(sorted([p for p in settled if 0.75 <= p["ratio"] <= 1.33], key=lambda p: abs(_m.log(p["ratio"]))), n_ord)
+    flops = spread(sorted([p for p in settled if p["ratio"] < 0.75], key=lambda p: p["ratio"]), n_flop)
     return {"trends": top, "ordinary": ordinary, "flops": flops}
 
 
@@ -341,7 +373,7 @@ def planner_rows(tr, formats_by_post=None, names=None):
             recent.setdefault(p["creator"], []).append((p["published_at"] or "", p["views"]))
     followers = dict((c["id"], c["followers"]) for c in tr["creators"])
     rows = []
-    for p in [q for q in tr["posts"] if q["status"] == "scored"][:tr["rules"]["planner_rows_max"]]:
+    for p in [q for q in tr["posts"] if q["status"] in ("scored", "fresh")][:tr["rules"]["planner_rows_max"]]:
         first = ((p.get("caption") or "").strip().split("\n") or [""])[0]
         row = {"url": p["url"], "text": (p.get("caption") or "")[:2000], "author": "@" + p["account"],
                "posted_at": p["published_at"], "has_video": p["type"] == "video"}
@@ -359,8 +391,9 @@ def planner_rows(tr, formats_by_post=None, names=None):
         f = p.get("format")
         if f:
             row["pattern"] = (names or {}).get(f) or f
-        row["why"] = "%sx its creator's usual (the median of %d other posts)" % (
-            ("%.2f" % p["ratio"]).rstrip("0").rstrip("."), p["baseline_n"] or 0)
+        row["why"] = "%sx its creator's usual (the median of %d other posts)%s" % (
+            ("%.2f" % p["ratio"]).rstrip("0").rstrip("."), p["baseline_n"] or 0,
+            " (fresh / still growing)" if p.get("fresh") else "")
         if first:
             row["hook"] = first[:200]
         rows.append(row)
@@ -400,20 +433,23 @@ def main(argv):
         radar = read_json(rp)
     write_outputs(folder, tr, radar)
     c = tr["counts"]
-    print("trends.json: status %s; %d creators (%d with their own usual), %d posts read, %d in the window, %d scored, "
-          "%d at 2x their own creator's usual or more; %d too new, %d on the weaker basis" % (
-              tr["status"], c["creators"], c["creators_scored"], c["posts_read"], c["in_window"], c["scored"], c["hits"],
-              c["too_new"], c["weaker_basis"]))
+    print("trends.json: status %s; %d creators (%d with their own usual), %d posts read, %d in the window, %d scored "
+          "(%d fresh / still growing), %d at 2x their own creator's usual or more; %d on the weaker basis" % (
+              tr["status"], c["creators"], c["creators_scored"], c["posts_read"], c["in_window"], c["scored"],
+              c.get("fresh") or 0, c["hits"], c["weaker_basis"]))
     if tr.get("status_note"):
         print("  " + tr["status_note"])
     by = dict((p["post_id"], p) for p in tr["posts"])
     for pid in tr["ranked"][:10]:
         p = by[pid]
-        print("  #%-3d %-24s @%-20s %6sx  (usual %s from %d posts)" % (
-            p["rank"], pid[:24], p["account"][:20], ("%.2f" % p["ratio"]), p["baseline"], p["baseline_n"] or 0))
+        print("  #%-3d %-24s @%-20s %6sx  (usual %s from %d posts)%s" % (
+            p["rank"], pid[:24], p["account"][:20], ("%.2f" % p["ratio"]), p["baseline"], p["baseline_n"] or 0,
+            " [fresh / still growing]" if p.get("fresh") else ""))
     for c in tr["creators"]:
         print("  creator %-28s %3d read, %2d scored, %d hits, usual %s (%s)" % (
             c["id"][:28], c["posts_read"], c["scored"], c["hits"], rnd(c["usual"], 0), c["basis"] or "no basis"))
+    for w in (tr.get("warnings") or [])[:8]:
+        print("warning: " + w)
     return 0
 
 

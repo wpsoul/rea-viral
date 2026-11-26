@@ -357,6 +357,8 @@ class Detection(unittest.TestCase):
         self.assertEqual(growth.fmt_value(12061, "full"), "12,061")
         self.assertEqual(growth.fmt_value(0.6312, "pct"), "63%")
         self.assertEqual(growth.fmt_value(0.58, "x"), "0.58x")
+        self.assertEqual(growth.fmt_value(510.88, "x"), "511x")
+        self.assertEqual(growth.fmt_value(10.4, "x"), "10x")
         self.assertEqual(growth.fmt_value("2026-11-02", "date"), "Nov 2")
         g = {"a": {"b": [{"post_id": "p1", "views": 5}]}, "m": {"2026-11": {"posts": 3}}}
         self.assertEqual(growth.fill("{a.b.p1.views} and {m.2026-11.posts:full}", g)[0], "5 and 3")
@@ -470,14 +472,14 @@ class TheNumbers(unittest.TestCase):
         self.assertTrue(v["ready"], v["problems"] + v["checks"])
         self.assertTrue(600 <= v["reply_chars"] <= 1200, v["reply_chars"])
         self.assertTrue(v["reply"].startswith(growth.REPLY_FIRST))
-        self.assertTrue(v["reply"].endswith('tell your agent "REA Viral: why is @fixture_grow growing".'))
+        self.assertTrue(v["reply"].endswith('tell your agent "REA Viral: why is @handle growing".'))
         self.assertIn("\n1. Volume: from Oct 19 you went from 0.5 to 8 posts a week", v["reply"])
         self.assertIn("\n5. Doesn't move: one-line meme clips", v["reply"])
         self.assertIn("your top one got 9K views and 60 replies", v["reply"])
         self.assertNotIn("github", v["reply"])
         self.assertIn(v["reply"], md)
         self.assertIn("The follow-up line, a separate reply: github.com/wpsoul/rea-viral", md)
-        self.assertTrue(md.rstrip().endswith('"REA Viral: why is @fixture_grow growing"'))
+        self.assertTrue(md.rstrip().endswith('"REA Viral: why is @handle growing"'))
         self.assertIn("Note: replies to others: a sample: one window read", md)   # a claim citing a sample says so
         self.assertIn("Under 3 days old", md)
 

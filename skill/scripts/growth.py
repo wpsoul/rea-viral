@@ -60,7 +60,7 @@ SETTINGS = {
 }
 REPLY_FIRST = ("Ran your account through REA Viral (free open-source skill for AI agents). Here's what's actually "
                "driving your growth:")
-REPLY_LAST = 'Try it on yours: install REA Viral and tell your agent "REA Viral: why is @{handle} growing".'
+REPLY_LAST = 'Try it on your own account: install REA Viral and tell your agent "REA Viral: why is @handle growing".'
 FOLLOW_UP = "github.com/wpsoul/rea-viral"
 REPLY_CHARS = (600, 1200)   # owner 2026-11-24: plain sentences that say what each number means need the room
 LINK_RE = re.compile(r"https?://|www\.|github\.com|\b[\w-]+\.(?:com|io|ai|dev|app|xyz|org|net|co)\b/?", re.I)
@@ -285,7 +285,7 @@ def measure(folder, top_share=None):
     posts.sort(key=lambda p: (p["published_at"], p["post_id"]))
     an_post = dict((x["post_id"], x) for x in an.get("posts") or [])
     min_age = (an.get("settings") or {}).get("min_age_days")
-    too_new = set(i for i, x in an_post.items() if x.get("status") == "too_new")
+    too_new = set(i for i, x in an_post.items() if x.get("fresh") or x.get("status") in ("too_new", "fresh"))
     suspect = set(x["post_id"] for x in ((an.get("suspect_reach") or {}).get("posts") or []))
     lo = lo or (posts[0]["published_at"] if posts else read_at)
     inw = [p for p in posts if lo <= p["published_at"] <= (hi or read_at) and p["post_id"] not in suspect]
@@ -737,7 +737,10 @@ def fmt_value(v, f):
     if f == "pct":
         return "%d%%" % round(100 * float(v))
     if f == "x":
-        return ("%.2f" % float(v)).rstrip("0").rstrip(".") + "x"
+        x = float(v)
+        if round(abs(x), 1) >= 10:
+            return "%dx" % round(x)
+        return ("%.2f" % x).rstrip("0").rstrip(".") + "x"
     if f == "full":
         return "{:,}".format(int(round(float(v)))) if float(v) == int(float(v)) or abs(float(v)) >= 100 else str(v)
     if f == "min":
@@ -823,7 +826,7 @@ def view(folder, g=None):
             n += 1
             r = x["reply"]
             lines.append("%d. %s" % (n, r))   # as written: the line itself says what does not work (no forced label)
-        lines += ["", REPLY_LAST.format(handle=handle)]
+        lines += ["", REPLY_LAST]
         reply = "\n".join(lines)
         n_chars = len(reply)
         if n_chars < REPLY_CHARS[0]:
@@ -834,8 +837,8 @@ def view(folder, g=None):
                 n_chars, REPLY_CHARS[1], (longest["title"] or longest["reply"][:30]), len(longest["reply"])))
         if not reply.startswith(REPLY_FIRST):
             checks.append("the reply must start with: " + REPLY_FIRST)
-        if not reply.endswith(REPLY_LAST.format(handle=handle)):
-            checks.append("the reply must end with: " + REPLY_LAST.format(handle=handle))
+        if not reply.endswith(REPLY_LAST):
+            checks.append("the reply must end with: " + REPLY_LAST)
         for x in why + dm:
             if LINK_RE.search(x["reply"]):
                 checks.append("no link in the reply (the link is the follow-up line): %r" % x["reply"][:60])
@@ -1061,7 +1064,7 @@ def growth_md(v):
         for x in g["limits"]:
             L.append("- %s: %s." % (x["what"], x["why"].rstrip(".")))
         L.append("")
-    L.append('Ask again, on this account or any other: "REA Viral: why is @%s growing"' % h)
+    L.append('Try it on your own account or any other: "REA Viral: why is @handle growing"')
     L.append("")
     return "\n".join(L)
 

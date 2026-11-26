@@ -121,7 +121,9 @@ class Planted(unittest.TestCase):
         P = dict((p["post_id"], p) for p in an["posts"])
         self.assertEqual(an["settings"]["min_age_days"], 3)
         for pid in self.k["too_new"]:
-            self.assertEqual(P[pid]["status"], "too_new")
+            self.assertEqual(P[pid]["status"], "fresh")
+            self.assertTrue(P[pid]["fresh"])
+            self.assertEqual(P[pid]["fresh_label"], "fresh / still growing")
 
     def test_first_lines_and_voice_sheet(self):
         best = self.w["first_lines"]["best"]

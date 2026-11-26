@@ -49,7 +49,9 @@ python3 SKILL_DIR/scripts/readers/ytdlp_reader.py posts <run> "https://www.youtu
 ```
 
 Then always `python3 SKILL_DIR/scripts/validate.py <run>`: it names every wrong cell. Go on only at 0 errors. A source
-whose rows have no dates cannot be used for baselines: read the posts again with one that has them.
+whose rows have no dates cannot be used for baselines: read the posts again with one that has them. On X, if cursor
+pagination stops empty after page 2 despite older posts existing, fall back to `end_time` date windows with
+`scripts/readers/x_windows.py` (`connections.md`, "Paginated X readers stopping early").
 
 ## Step 3: The numbers
 
@@ -57,11 +59,13 @@ whose rows have no dates cannot be used for baselines: read the posts again with
 python3 SKILL_DIR/scripts/analyze.py <run>
 ```
 
-Each post against the median of the 20 posts before it (an account that grew tenfold is not judged by its early
-numbers; posts under 7 days old are left out, 3 days on X and Threads), hits (2× or more), flops, rates, length and
-weekday buckets, the timeline with measured changes, which posts brought followers at the best level the data allows,
-and `deep_read`: the top 8 outliers, 4 ordinary posts and 2 flops to watch. Definitions: `numbers.md`. Read `status`
-first: `private`, `empty`, `no_dates` or `too_few_posts` change what you may say.
+Each post against the median of the 20 settled posts before it (an account that grew tenfold is not judged by its early
+numbers; posts under 7 days old — 3 days on X and Threads — are kept out of baselines and flops so immature counts do
+not skew medians, while still scored and marked `"fresh / still growing"` so fresh breakouts are never hidden), hits
+(2× or more), flops, rates, length and weekday buckets, the timeline with measured changes, which posts brought
+followers at the best level the data allows, and `deep_read`: the top 8 outliers, 4 ordinary posts and 2 flops to watch.
+Definitions: `numbers.md`. Read `status` first: `private`, `empty`, `no_dates` or `too_few_posts` change what you may
+say.
 
 ## Step 4: Watch the videos
 
@@ -100,8 +104,9 @@ recipe skeleton `formats/<id>.md` to fill from the deep read (`radar.md`). With 
 ## Step 7b: Growth mode (when asked why it grows)
 
 "REA Viral: why is @handle growing" (or "REA Viral growth @handle", "why is @handle growing (REA Viral)",
-`/rea-viral growth @handle`) adds, here: the growth reads, `growth.py`, your reading in `findings.json` `growth` and
-the reply draft (`growth.md`). The other steps stay as they are.
+`/rea-viral growth @handle`) adds, here: the growth reads, `growth.py`, your reading in `findings.json` `growth`, the
+reply draft, and the reply-ready `post-card.png` (`post_card.py <run> --layout t1 --skin cobalt`; `growth.md`). The
+other steps stay as they are.
 
 ## Step 8: What worked, what did not, and the plays
 

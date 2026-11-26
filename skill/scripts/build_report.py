@@ -150,10 +150,11 @@ def page_data(folder, light=False):
             "id": p["post_id"], "url": p["url"], "at": p["published_at"], "type": p["type"], "views": p["views"],
             "likes": p["likes"], "comments": p["comments"], "shares": p["shares"], "saves": p["saves"],
             "ratio": p["ratio"], "hit": p["hit"], "status": p["status"], "in_window": p["in_window"],
+            "fresh": bool(p.get("fresh") or p.get("status") == "fresh"), "fresh_label": p.get("fresh_label"),
             "cover": existing(folder, p.get("cover_file")), "caption": (p.get("caption") or "")[:220], "duration": p.get("duration_s"),
             "baseline": p.get("baseline"), "vpf": p.get("views_per_follower"),
             "f": {k: f.get(k) for k in ("level", "evidence", "gain_72h", "excess_72h", "share_of_gain", "score", "label",
-                                         "signals", "raw", "reason")},
+                                         "signals", "raw", "reason", "fresh", "hours_covered")},
         })
     vids = videos(folder)
     nw = not_working(an, radar, wr, vids)
@@ -258,7 +259,7 @@ def not_working(an, radar, wr, vids):
                 "evidence": "MEASURED", "from": "radar.json#formats.%s" % f["id"]})
         formats.sort(key=lambda x: x["lift"])
         if not formats:
-            fnote = "No format sits under the account's usual or weakens."
+            fnote = "No format sits under the account's usual or fades."
     out["formats"], out["formats_note"] = formats, fnote
     by = {}
     for i in flops_all:
@@ -452,8 +453,9 @@ def account_md(d):
     c = an.get("counts") or {}
     L.append("| Question | Short answer | Read |")
     L.append("|---|---|---|")
-    L.append("| How many posts were read? | %s posts, %s in the window, %s scored against a baseline | analysis.json#counts |" % (
-        c.get("posts_total"), c.get("in_window"), c.get("scored")))
+    L.append("| How many posts were read? | %s posts, %s in the window, %s scored against a baseline%s | analysis.json#counts |" % (
+        c.get("posts_total"), c.get("in_window"), c.get("scored"),
+        (" (%d fresh / still growing)" % c["fresh"]) if c.get("fresh") else ""))
     outl = an.get("outliers") or []
     L.append("| Which posts beat the account's usual? | %d at 2x or more: %s | posts_scored.csv |" % (
         len(outl), (", ".join(outl[:5]) + (", …" if len(outl) > 5 else "")) or "none"))
@@ -1003,7 +1005,7 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
   var mine = el('div'); (F.did_not_work || []).forEach(function(c){ mine.appendChild(claim(c)); drawn.not_working++; });
   if ((F.did_not_work || []).length) p.appendChild(mine);
   p.appendChild(el('h3', {text: 'Formats under its usual or fading', style: 'margin-top:12px'}));
-  if (!(NW.formats || []).length) p.appendChild(el('div', {cls: 'empty', text: NW.formats_note || 'No format sits under the account\'s usual or weakens.'}));
+  if (!(NW.formats || []).length) p.appendChild(el('div', {cls: 'empty', text: NW.formats_note || 'No format sits under the account\'s usual or fades.'}));
   (NW.formats || []).forEach(function(f){
     p.appendChild(el('div', {cls: 'fmt'},
       el('div', {cls: 'row'}, el('a', {href: '#fmt-' + f.id, text: f.name}), el('span', {cls: 'q ' + f.quadrant, text: QN[f.quadrant]}), f.few_posts ? el('span', {cls: 'pill', text: 'few posts: not a finding on its own'}) : null),
@@ -1073,8 +1075,8 @@ function section(id, title, sub){ var s = el('section', {id: id}); s.appendChild
     svg.appendChild(sv('line', {x1: x, x2: x, y1: T, y2: H - B, stroke: 'var(--inferred)', 'stroke-dasharray': '2 4', opacity: 0.7}));
     var t = sv('title', {text: m.at + ': ' + m.text + ' [' + m.evidence + ']'}); var hit = sv('rect', {x: x - 4, y: T, width: 8, height: H - T - B, fill: 'transparent'}); hit.appendChild(t); svg.appendChild(hit); });
   pts.forEach(function(q){
-    var c = sv('circle', {cx: X(Date.parse(q.at)).toFixed(1), cy: Y(q.ratio).toFixed(1), r: q.hit ? 4.6 : 3, fill: q.hit ? 'var(--accent)' : (q.ratio <= 0.5 ? 'var(--drop)' : 'var(--faint)'), opacity: q.hit ? 0.95 : 0.7, 'data-post': q.id});
-    c.appendChild(sv('title', {text: q.id + ' · ' + date(q.at) + ' · ' + num(q.views) + ' views · ' + xr(q.ratio)}));
+    var c = sv('circle', {cx: X(Date.parse(q.at)).toFixed(1), cy: Y(q.ratio).toFixed(1), r: q.hit ? 4.6 : 3, fill: q.hit ? 'var(--accent)' : (q.ratio <= 0.5 ? 'var(--drop)' : 'var(--faint)'), opacity: q.hit ? 0.95 : 0.7, stroke: q.fresh ? 'var(--inferred)' : null, 'stroke-width': q.fresh ? 1.5 : null, 'data-post': q.id});
+    c.appendChild(sv('title', {text: q.id + ' · ' + date(q.at) + ' · ' + num(q.views) + ' views · ' + xr(q.ratio) + (q.fresh ? ' · fresh / still growing' : '')}));
     svg.appendChild(c); drawn.timeline++;
   });
   p.appendChild(svg);
@@ -1250,7 +1252,7 @@ function thumb(id, ratio){
     (fo.usual_daily_gain != null ? ' Usual gain ' + num(fo.usual_daily_gain) + ' a day.' : '') + (fo.gaps && fo.gaps.length ? ' ' + fo.gaps.length + ' gaps in the counts (never filled).' : '')));
   if (meas.length){
     var t = el('table', null, el('tr', null, el('th', {text: 'Post'}), el('th', {text: 'Date'}), el('th', {cls: 'num', text: 'Views'}), el('th', {cls: 'num', text: 'Gain in 72 h'}), el('th', {cls: 'num', text: 'Above usual'}), el('th', {text: 'Level'})));
-    meas.forEach(function(q){ t.appendChild(el('tr', null, el('td', null, postLink(q.id)), el('td', {text: date(q.at)}), el('td', {cls: 'num', text: num(q.views)}), el('td', {cls: 'num', text: num(q.f.gain_72h)}), el('td', {cls: 'num', text: num(q.f.excess_72h)}), el('td', null, chip('MEASURED'), q.f.level))); });
+    meas.forEach(function(q){ t.appendChild(el('tr', null, el('td', null, postLink(q.id), q.fresh ? el('span', {cls: 'small muted', text: ' (fresh / still growing)'}) : null), el('td', {text: date(q.at)}), el('td', {cls: 'num', text: num(q.views)}), el('td', {cls: 'num', text: num(q.f.gain_72h)}), el('td', {cls: 'num', text: num(q.f.excess_72h)}), el('td', null, chip('MEASURED'), q.f.level + (q.f.fresh && q.f.hours_covered ? ' (' + q.f.hours_covered + ' h so far)' : '')))); });
     p.appendChild(t);
     p.appendChild(el('div', {cls: 'small muted', style: 'margin-top:6px', text: 'The gain in the 72 hours after each post, split between posts that ran at the same time by their views. "Above usual" takes off the account\'s usual daily pace.'}));
   }
@@ -1404,6 +1406,9 @@ def build(folder, light_only=False):
     if kind == "niche":
         import report_niche
         return report_niche.build(folder, light_only)
+    if kind == "topic":
+        import topic_check
+        return topic_check.build_report(folder, light_only)
     if kind == "post":
         import report_post
         return report_post.build(folder, light_only)
@@ -1430,7 +1435,7 @@ def build(folder, light_only=False):
     return d
 
 
-LIGHT_POST_KEYS = ("id", "url", "at", "type", "views", "ratio", "hit", "status", "in_window", "baseline", "cover")
+LIGHT_POST_KEYS = ("id", "url", "at", "type", "views", "ratio", "hit", "status", "fresh", "in_window", "baseline", "cover")
 
 
 def light_account(d):
@@ -1545,6 +1550,9 @@ def main(argv):
         print("The Niche report: report.html and NICHE.md written (%d creators with posts in the window, %d posts, %d formats, %d of them formats "
               "of the niche, %d on the watchlist)" % (d["trends"]["counts"].get("creators_active", d["trends"]["counts"]["creators"]), len(d["posts"]), len(d["formats"]),
                                                      sum(1 for f in d["formats"] if f.get("niche_format")), len(d["watchlist"])))
+    elif kind == "topic":
+        tc = d.get("topic_check") or {}
+        print("The Topic check report: report.html and TOPIC.md written (%s)" % (tc.get("verdict") or "done"))
     elif kind == "post":
         print("The Post report: report.html and POST.md written (the post run's short page)")
     else:

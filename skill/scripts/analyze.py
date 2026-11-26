@@ -103,13 +103,19 @@ def score(posts, acc, opts, metric):
         p["value"] = p.get(metric)
         p["baseline"] = None
         p["ratio"] = None
+        p["fresh"] = False
+        p["fresh_label"] = None
         own_read = p.get("read_at") or read_at
         if p["published_at"] is None:
             p["status"] = "no_date"
-        elif own_read - p["published_at"] < min_age:
-            p["status"] = "too_new"
         elif p["value"] is None:
             p["status"] = "no_metric"
+        elif own_read - p["published_at"] < min_age:
+            # Fresh posts (under settling time) stay out of other posts' baselines so immature counts never drag down
+            # the usual, but ARE scored against prior settled posts and marked "fresh / still growing" (0.5.1).
+            p["fresh"] = True
+            p["fresh_label"] = "fresh / still growing"
+            p["status"] = "fresh_candidate"
         else:
             p["status"] = "eligible"
     eligible = sorted([p for p in posts if p["status"] == "eligible"], key=lambda p: (p["published_at"], p["post_id"]))
@@ -128,6 +134,24 @@ def score(posts, acc, opts, metric):
         if b and b > 0:
             p["ratio"] = p["value"] / float(b)
             p["status"] = "scored"
+        else:
+            p["status"] = "no_baseline"
+            p["baseline_note"] = "the earlier posts' median is 0"
+    for p in sorted([p for p in posts if p["status"] == "fresh_candidate"], key=lambda p: (p["published_at"], p["post_id"])):
+        if not p["in_window"]:
+            p["status"] = "warmup"
+            continue
+        prior = [q for q in eligible if q["published_at"] < p["published_at"]][-opts["baseline_posts"]:]
+        if len(prior) < opts["min_prior_posts"]:
+            p["status"] = "no_baseline"
+            p["baseline_n"] = len(prior)
+            continue
+        b = median([q["value"] for q in prior])
+        p["baseline"] = b
+        p["baseline_n"] = len(prior)
+        if b and b > 0:
+            p["ratio"] = p["value"] / float(b)
+            p["status"] = "fresh"
         else:
             p["status"] = "no_baseline"
             p["baseline_note"] = "the earlier posts' median is 0"
@@ -264,16 +288,32 @@ def attribution(posts, readings, opts):
                 if it["gap"] and it["a"]["at"] < e and it["b"]["at"] > s:
                     covered = False
                     break
-        if not covered:
+        partial = False
+        hours_cov = None
+        if not covered and p.get("fresh") and s >= first and last > s:
+            e_cov = min(e, last)
+            hours_cov = (e_cov - s).total_seconds() / 3600.0
+            if hours_cov >= 6.0:
+                partial = True
+                for it in intervals:
+                    if it["gap"] and it["a"]["at"] < e_cov and it["b"]["at"] > s:
+                        partial = False
+                        break
+        if not covered and not partial:
             continue
         d = per.get(p["post_id"], {"gain": 0.0, "excess": 0.0, "watch_only": False})
-        out[p["post_id"]] = {
+        rec = {
             "level": "watched" if d["watch_only"] else "measured",
             "evidence": "MEASURED",
             "gain_72h": rnd(d["gain"], 0),
             "excess_72h": rnd(d["excess"], 0),
             "share_of_gain": rnd(d["gain"] / res["total_gain"], 4) if res["total_gain"] else None,
         }
+        if partial:
+            rec["fresh"] = True
+            rec["fresh_label"] = "fresh / still growing"
+            rec["hours_covered"] = rnd(hours_cov, 1)
+        out[p["post_id"]] = rec
     return res, out
 
 
@@ -347,7 +387,7 @@ def timeline(posts, lo, hi, opts):
                 types[p["type"]] = types.get(p["type"], 0) + 1
             months.append({
                 "month": key, "posts": len(ps), "types": types,
-                "median_views": median([p["views"] for p in ps if p["status"] != "too_new"]),
+                "median_views": median([p["views"] for p in ps if p["views"] is not None]),
                 "median_ratio": rnd(median([p["ratio"] for p in ps if p["ratio"] is not None]), 3),
                 "hits": sum(1 for p in ps if p["ratio"] is not None and p["ratio"] >= opts["hit_ratio"]),
             })
@@ -414,12 +454,14 @@ def deep_read_picks(scored, opts):
     by = sorted(scored, key=lambda p: -p["ratio"])
     outl = [p for p in by if p["ratio"] >= opts["hit_ratio"]][:n_out]
     taken = set(p["post_id"] for p in outl)
-    flops_c = [p for p in sorted(scored, key=lambda p: p["ratio"]) if p["ratio"] <= opts["flop_ratio"] and p["post_id"] not in taken]
+    # Only settled posts can be called flops or ordinary; fresh posts are still growing.
+    settled = [p for p in scored if not p.get("fresh") and p.get("status") == "scored"]
+    flops_c = [p for p in sorted(settled, key=lambda p: p["ratio"]) if p["ratio"] <= opts["flop_ratio"] and p["post_id"] not in taken]
     if not flops_c:
-        flops_c = [p for p in sorted(scored, key=lambda p: p["ratio"]) if p["ratio"] < 0.75 and p["post_id"] not in taken]
+        flops_c = [p for p in sorted(settled, key=lambda p: p["ratio"]) if p["ratio"] < 0.75 and p["post_id"] not in taken]
     flops = flops_c[:n_flop]
     taken |= set(p["post_id"] for p in flops)
-    ordc = [p for p in scored if 0.75 <= p["ratio"] <= 1.33 and p["post_id"] not in taken]
+    ordc = [p for p in settled if 0.75 <= p["ratio"] <= 1.33 and p["post_id"] not in taken]
     ordc.sort(key=lambda p: p["published_at"])
     ordinary = []
     if ordc and n_ord:
@@ -507,18 +549,22 @@ def run(folder, metric=None, opts=None):
             "creator's hit, or the views bought; open them before calling them a finding (analysis.json#suspect_reach)" % (
                 len(sus), "" if len(sus) == 1 else "s", "s" if len(sus) == 1 else "ve", SUSPECT_REACH,
                 "{:,}".format(int(top["views"])), "{:,}".format(int(top["followers_at_post"]["value"] or 0)), top["post_id"]))
-    scored = [p for p in posts if p["status"] == "scored"]
+    scored = [p for p in posts if p["status"] in ("scored", "fresh")]
+    settled_scored = [p for p in posts if p["status"] == "scored"]
     med_rates = {k: median([p["rates"][k] for p in scored if p["rates"][k] is not None]) for k in RATE_KEYS}
     out["rates"] = {"median_" + k + "_rate": rnd(v, 5) for k, v in med_rates.items()}
     inw_dated = [p for p in posts if p["in_window"]]
+    fresh_posts = [p for p in posts if p.get("fresh")]
     out["counts"] = {
         "posts_total": len(posts),
         "in_window": len(inw_dated),
         "scored": len(scored),
+        "fresh": sum(1 for p in posts if p["status"] == "fresh"),
         "hits": sum(1 for p in scored if p["ratio"] >= o["hit_ratio"]),
     }
-    for st in ("no_date", "too_new", "no_metric", "no_baseline", "warmup"):
+    for st in ("no_date", "no_metric", "no_baseline", "warmup"):
         out["counts"][st] = sum(1 for p in posts if p["status"] == st)
+    out["counts"]["too_new"] = len(fresh_posts)
     # Replies are not posts: left out of every number (references/data-shape.md, "Replies"), and counted.
     rl = replies_left_out(folder)
     out["counts"]["replies_left_out"] = rl["other"] + rl["self"]
@@ -561,7 +607,7 @@ def run(folder, metric=None, opts=None):
     idx = dict((p["post_id"], i) for i, p in enumerate(eligible))
     levels = {"measured": 0, "watched": 0, "estimated": 0, "none": 0}
     for p in posts:
-        if p["status"] not in ("scored", "no_baseline"):
+        if p["status"] not in ("scored", "fresh", "no_baseline"):
             p["followers"] = {"level": "none", "reason": p["status"]}
             levels["none"] += 1
             continue
@@ -575,6 +621,9 @@ def run(folder, metric=None, opts=None):
             p["followers"] = {"level": "estimated", "evidence": "INFERRED", "score": est["score"], "label": est["label"],
                               "signals": est["signals"], "raw": est["raw"], "signals_known": est["signals_known"],
                               "basis": "signals that go with follows (references/numbers.md); never a count"}
+            if p.get("fresh"):
+                p["followers"]["fresh"] = True
+                p["followers"]["fresh_label"] = "fresh / still growing"
             levels["estimated"] += 1
         else:
             p["followers"] = {"level": "none", "reason": "no signal known"}
@@ -589,7 +638,7 @@ def run(folder, metric=None, opts=None):
 
     out["timeline"] = timeline(posts, lo, hi, o) if posts else {"months": [], "weeks": [], "marks": [], "rhythm": {}}
     hits = sorted([p for p in scored if p["ratio"] >= o["hit_ratio"]], key=lambda p: -p["ratio"])
-    flops = sorted([p for p in scored if p["ratio"] <= o["flop_ratio"]], key=lambda p: p["ratio"])
+    flops = sorted([p for p in settled_scored if p["ratio"] <= o["flop_ratio"]], key=lambda p: p["ratio"])
     out["outliers"] = [p["post_id"] for p in hits]
     out["flops"] = [p["post_id"] for p in flops]
     out["deep_read"] = deep_read_picks(scored, o) if scored else {"outliers": [], "ordinary": [], "flops": []}
@@ -604,7 +653,7 @@ def run(folder, metric=None, opts=None):
             rs = [p["ratio"] for p in ps]
             rows_b.append({"bucket": label, "posts": len(ps), "median_ratio": rnd(median(rs), 3),
                            "hits": sum(1 for r in rs if r >= o["hit_ratio"]),
-                           "flops": sum(1 for r in rs if r <= o["flop_ratio"])})
+                           "flops": sum(1 for p in ps if not p.get("fresh") and p["ratio"] <= o["flop_ratio"])})
         return rows_b
     edges = [(0, 10, "under 10 s"), (10, 15, "10-15 s"), (15, 30, "15-30 s"), (30, 60, "30-60 s"), (60, 1e9, "60 s and over")]
     out["by_length"] = bucket_rows([(lab, [p for p in scored if p["duration_s"] is not None and a <= p["duration_s"] < b])
@@ -617,7 +666,7 @@ def run(folder, metric=None, opts=None):
         by_type.setdefault(p["type"], []).append(p)
     out["by_type"] = bucket_rows(sorted(by_type.items()))
     out["excluded"] = [{"post_id": p["post_id"], "reason": p["status"]} for p in posts
-                       if p["status"] in ("no_date", "too_new", "no_metric")]
+                       if p["status"] in ("no_date", "no_metric")]
 
     rows = []
     for p in sorted(posts, key=lambda p: (p["published_at"] is None, p["published_at"] or read_at, p["post_id"])):
@@ -627,6 +676,7 @@ def run(folder, metric=None, opts=None):
             "duration_s": p["duration_s"], "views": p["views"], "likes": p["likes"], "comments": p["comments"],
             "shares": p["shares"], "saves": p["saves"], "reposts": p.get("reposts"), "quotes": p.get("quotes"),
             "bookmarks": p.get("bookmarks"), "in_window": p["in_window"], "status": p["status"],
+            "fresh": bool(p.get("fresh")), "fresh_label": p.get("fresh_label"),
             "baseline": rnd(p["baseline"], 1) if p["baseline"] is not None else None,
             "baseline_n": p.get("baseline_n"),
             "ratio": rnd(p["ratio"], 3), "hit": bool(p["ratio"] is not None and p["ratio"] >= o["hit_ratio"]),

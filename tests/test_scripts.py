@@ -115,10 +115,15 @@ class Numbers(unittest.TestCase):
         P = posts_by_id(self.an)
         self.assertEqual(self.an["status"], "ok")
         for pid in self.known["too_new"]:
-            self.assertEqual(P[pid]["status"], "too_new")
+            self.assertEqual(P[pid]["status"], "fresh")
+            self.assertTrue(P[pid]["fresh"])
+            self.assertEqual(P[pid]["fresh_label"], "fresh / still growing")
+            self.assertIsNotNone(P[pid]["ratio"])
+            self.assertNotIn(pid, self.an["flops"])
         for pid in self.known["warmup"]:
             self.assertIn(P[pid]["status"], ("warmup",))
-        self.assertEqual(self.an["counts"]["scored"], 120)
+        self.assertEqual(self.an["counts"]["fresh"], len(self.known["too_new"]))
+        self.assertEqual(self.an["counts"]["scored"], 120 + len(self.known["too_new"]))
 
     def test_format_corners_and_lift(self):
         got = dict((f["id"], f["quadrant"]) for f in self.radar["formats"])
@@ -466,7 +471,7 @@ class HandOverFiles(unittest.TestCase):
         self.assertTrue(r["summary"].startswith("It grows on one repeatable list format"))
         self.assertIn("What did not work: A quarter of the posts are diaries", r["summary"])
         self.assertEqual(r["read"], {"posts": 142, "creators": 1})
-        self.assertEqual(r["skill"], {"name": "rea-viral", "version": "0.5.0"})
+        self.assertEqual(r["skill"], {"name": "rea-viral", "version": "0.5.1"})
         self.assertEqual(r["cost_usd"], 0)
         self.assertEqual(jload(self.d, "report_record.json")["file"]["size"], os.path.getsize(os.path.join(self.d, "report.html")))
         self.assertEqual(self.rec["formats"], {"file": "radar_rows.json", "rows": 1})
@@ -575,7 +580,7 @@ class Brief(unittest.TestCase):
         self.assertIn("Flops", titles)
         flops = [x for x in n if x["title"] == "Flops"][0]
         self.assertEqual(flops["stat"], "5 at 0.5\u00d7 or under")
-        self.assertTrue(flops["note"].startswith("5 of 120 scored posts"))
+        self.assertTrue(flops["note"].startswith("5 of 122 scored posts"))
         self.assertEqual([p["title"] for p in self.b["plays"]], ["Run your own three-mistakes series", "Ask for one word"])
 
     def test_not_worked_never_reads_as_a_success(self):

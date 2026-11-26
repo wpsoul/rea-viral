@@ -18,7 +18,7 @@ first.
 |---|---|---|
 | **An account** (the main way): a handle or a profile link | What worked and what did not, and why it grows | The **Account report**: its formats (its Format map) and the ones that sit under its usual or fade, its flops and what the watched ones show, how it writes (a voice sheet) and what sinks in its words, how it runs its comments, which posts brought followers (measured from counts, or estimated and never written as a count), the plays |
 | **A post**: one link | Why this one worked against its own creator's usual | The **Post report**: the post beside its creator's usual (from how many posts), what in it sits under that usual, its words taken apart, whether the creator repeats the format and whether it lifts each time, its recipe |
-| **A niche**: a few words or tags, a list of accounts, or "what works now in X" | Which video formats and hooks work now across many creators | The **Niche report**: the formats of the niche (each by how many creators use it and how far it lifts them, rising or fading), which fade, a gallery of the formats with the posts that prove each, the posts that beat their own creator's usual, the hooks the winning posts open with, who to watch, a recipe per format |
+| **A niche**: a few words or tags, a list of accounts, or "what works now in X" (or "is `<topic>` still worth posting?") | Which video formats and hooks work now across many creators, or whether a rising topic is still worth posting | The **Niche report**: the formats of the niche (each by how many creators use it and how far it lifts them, rising or fading), which fade, a gallery of the formats with the posts that prove each, the posts that beat their own creator's usual, the hooks the winning posts open with, who to watch, a recipe per format — plus an optional **Topic check** verdict (48h saturation, 6h momentum, lateness, `TOPIC.md`, and `r6` card) |
 | **Words only**: "how do they write", "what hooks work in X", or a draft | How an account or a niche writes | A voice sheet or the niche's hooks; drafts in that voice, each checked; your own draft checked against general craft |
 
 ## What comes out
@@ -29,11 +29,11 @@ Each run writes a folder `rea-viral/<the run>/` beside your own files:
   it shows (covers, the first seconds of watched videos) are small copies inside it, each linked to the original
   post; no video is embedded. It stays under 3 MB.
 - **`report-light.html`**: the same report with no pictures, for a chat app that passes a page as text.
-- **`ACCOUNT.md`, `POST.md`, `NICHE.md` or `GROWTH.md`**: the same findings for agents, in layers (the answer, where
-  each answer is, the detail). Growth mode ("REA Viral: why is @handle growing") adds `GROWTH.md` and a "Why it grows"
-  block with mechanisms, what doesn't move, what to copy, and a ready-to-paste reply draft.
-- **`post-card.png` and `post-card.html`** (optional, `post_card.py`): a 1080 × 1350 shareable card from an account
-  teardown or niche run (10 layouts × 7 styles).
+- **`ACCOUNT.md`, `POST.md`, `NICHE.md`, `TOPIC.md` or `GROWTH.md`**: the same findings for agents, in layers (the answer, where
+  each answer is, the detail). Growth mode ("REA Viral: why is @handle growing") adds `GROWTH.md`, a "Why it grows"
+  block with mechanisms, what doesn't move, what to copy, a ready-to-paste reply draft, and `post-card.png`.
+- **`post-card.png` and `post-card.html`** (`post_card.py`): a 1080 × 1350 shareable card for every report type
+  (**22 layouts across 9 report types × 7 styles**).
 - **The data files** the numbers come from (`analysis.json`, `radar.json`, `trends.json`, `writing.json`, …), a recipe
   per format (`formats/<id>.md`), and the voice sheet or the niche's hooks.
 - **The planner files**: `report_record.json` (the report's record), `brief.json` (its short view: the answer, a few
@@ -91,16 +91,17 @@ In a chat app that takes skills as uploads, zip the `skill` folder and upload th
 
 ## Post cards (1080 × 1350)
 
-Turn any growth-mode account teardown or niche run into a shareable 4:5 PNG card for X, Threads and Instagram — 10
-layouts (5 account teardowns `t1`–`t5`, 5 niche reports `r1`–`r5`) in 7 styles (`cobalt` default, `redword`, `night`,
-`holo`, `paper`, `warm`, `glass`), with real numbers filled from the run's files, verbatim quote checks, and automatic
-text fitting.
+Turn any REA Viral run — growth teardown, niche report, topic check, post review, format recipe, plain account run,
+draft check, voice sheet, comment playbook, or head-to-head comparison — into a shareable 4:5 PNG card for X, Threads
+and Instagram: **22 layouts across 9 report types** (`t1`–`t5`, `r1`–`r6`, `p1`–`p3`, `f1`–`f2`, `a1`–`a2`, `d1`, `w1`,
+`c1`, `x1`) in **7 styles** (`cobalt` default, `redword`, `night`, `holo`, `paper`, `warm`, `glass`), with real numbers
+filled from the run's files, verbatim quote checks, and automatic text fitting.
 
-- **Interactive preview (all 10 layouts × 7 styles):**
+- **Interactive design lab (all 22 layouts × 7 styles):**
   [Open live preview](https://raw.githack.com/wpsoul/rea-viral/main/skill/templates/post/card.html) ·
   local file: [skill/templates/post/card.html](skill/templates/post/card.html) (double-click to preview offline; fonts
   and icons are bundled inside).
-- **Generate from a run:** `python3 skill/scripts/post_card.py <run folder> --layout t3 --skin cobalt` (details in
+- **Generate from a run:** `python3 skill/scripts/post_card.py <run folder> --layout t1 --skin cobalt` (details in
   [skill/references/post.md](skill/references/post.md)).
 
 ## What it needs
@@ -159,18 +160,18 @@ else.
 
 ```
 skill/SKILL.md          the map: pick the way in, the rules, the shared steps (start here)
-skill/references/       account-run, post-run, niche, writing (hooks and words only), data shape, connections,
-                        numbers, deep read, comments, radar (one account's Format map, the formats of a niche),
-                        hand-over (the reports, what did not work, the planner files), growth (why an account grows),
-                        post (1080 × 1350 post cards: 10 layouts × 7 styles), remake, watch
-skill/scripts/          validate, analyze, post_probe, trends, video_probe, covers_sheet, comment_tactics, text_probe,
-                        draft_check, formats_check, radar, growth, post_card, render_card.mjs, build_report
+skill/references/       account-run, post-run, niche (incl. Topic check), writing (hooks and words only), data shape,
+                        connections, numbers, deep read, comments, radar (one account's Format map, the formats of a
+                        niche), hand-over (the reports, what did not work, the planner files), growth (why an account
+                        grows + post-card.png), post (1080 × 1350 post cards: 22 layouts × 7 styles), remake, watch
+skill/scripts/          validate, analyze, post_probe, trends, topic_check, video_probe, covers_sheet, comment_tactics,
+                        text_probe, draft_check, formats_check, radar, growth, post_card, render_card.mjs, build_report
                         (+ report_post, report_niche, page_kit, brief, hand_over), ledger, watch, render_page.mjs,
-                        remake_check, check_app, readers/ytdlp_reader
+                        remake_check, check_app, readers/ytdlp_reader, readers/x_windows
 skill/data/             writing-words.json and growth-words.json: the word lists (English today; files to extend and
                         translate)
 skill/templates/        basic-format.html (Basic page to start from), post/card.html (+ bundled OFL fonts and glass
-                        icons: 10 post card layouts × 7 styles, also an interactive preview gallery)
+                        icons: 22 post card layouts × 7 styles, also an interactive preview lab)
 tests/                  the test suite and its made-up data
 OVERVIEW.md             the two-minute read
 ```
@@ -192,6 +193,28 @@ With the GreenLight Pulse connector's source at hand, `PULSE_MODEL=<its model.mj
 record against the connector's own model; without it that part says it is skipped.
 
 ## Status
+
+0.5.1 (2026-11-26): **Niche Topic Check workflow, 22 post-card templates (9 report types × 7 styles), and 12 field bug
+fixes**:
+
+- **Niche Topic Check (`topic_check.py`):** answers "is `<topic>` still worth posting?" from cheap search windows —
+  48h saturation (including large-account 100K+ breakouts), 6h vs prior-6h momentum, lateness since the first 100K+
+  post, `sampled` honesty caveat, plain 1-line verdict, `TOPIC.md`, standalone `report.html` or embedded `#topic-check`
+  block in Niche reports, and the `r6` post card.
+- **22 post-card layouts across 9 report types × 7 styles** (`post_card.py` + `templates/post/card.html` interactive
+  lab): adds `p1`–`p3` (Post review), `f1`–`f2` (Format recipe), `a1`–`a2` (Account without growth), `d1` (Draft check
+  with enforced `ESTIMATE` badge), `w1` (Writing & voice), `c1` (Comment tactics), `x1` (Compare two formats or
+  accounts), and `r6` (Topic check), with open-canvas hairline lists and refined `600`-weight Cobalt typography.
+- **Growth mode reply card & generic handle:** `growth.md` explicitly renders `post-card.png` (`t1`, `cobalt`) to
+  attach to the reply draft, and `REPLY_LAST` uses generic `@handle`.
+- **Fresh breakout scoring:** posts under the settling window (3d on X/Threads, 7d elsewhere) are scored against the
+  settled baseline (`status: "fresh"`, marked `"fresh / still growing"`, eligible for partial measured follower
+  attribution at `>= 6h`) while staying out of baselines and flops so immature counts cannot skew medians.
+- **Field fixes:** `video_probe.py` subtitle parsing & embedded subtitle extraction + optional `--transcribe` + safe
+  `--not-read`; `covers_sheet.py` exact tile-cell RGB verification; `trends.py` & `post_probe.py` `suspect_reach`
+  warnings (`>= 1000×` followers); `readers/x_windows.py` `end_time` date-window fallback when X pagination stops
+  empty; `post_card.py` `:x` integer rounding `>= 10×`, safe `<b>`/`<mark>` rendering, `@handle`-with-digits exemption,
+  clean `t2` unit subtitle layout; `basic-format.html` `"Overused"` corner fix.
 
 0.5.0 (2026-11-26): **growth mode** ("REA Viral: why is @handle growing"), **Study view** for formats, and **1080 × 1350
 post cards** (`post_card.py` + `render_card.mjs` + `templates/post/card.html`):

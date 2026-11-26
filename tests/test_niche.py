@@ -132,12 +132,15 @@ class Niche(unittest.TestCase):
         self.assertTrue(all(0.75 <= self.P[p]["ratio"] <= 1.33 for p in dr["ordinary"]))
         self.assertTrue(all(self.P[p]["ratio"] < 0.75 for p in dr["flops"]))
 
-    def test_too_new_never_ranked(self):
+    def test_fresh_posts_scored_and_marked(self):
         for pid in self.known["too_new"]:
-            self.assertEqual(self.P[pid]["status"], "too_new")
-            self.assertNotIn(pid, self.tr["ranked"])
-            self.assertIsNone(self.P[pid]["ratio"])
+            self.assertEqual(self.P[pid]["status"], "fresh")
+            self.assertTrue(self.P[pid]["fresh"])
+            self.assertEqual(self.P[pid]["fresh_label"], "fresh / still growing")
+            self.assertIn(pid, self.tr["ranked"])
+            self.assertIsNotNone(self.P[pid]["ratio"])
             self.assertIsNotNone(self.P[pid]["ratio_so_far"])
+            self.assertNotIn(pid, self.tr["deep_read"]["flops"])
 
     def test_weaker_basis_creator(self):
         fresh = [p for p in self.tr["posts"] if p["creator"] == self.known["weaker_basis_creator"]]
@@ -473,14 +476,16 @@ class PostRun(unittest.TestCase):
         self.assertTrue(b["not_worked"][0]["stat"].startswith("0."))
         self.assertNotIn("This post", [x["title"] for x in b["worked"]])
 
-    def test_too_new_post_is_a_floor(self):
+    def test_fresh_post_is_scored_with_floor(self):
         d = copy("post_c3")
         young = [r["post_id"] for r in rows(d, "posts.csv") if r["published_at"] >= "2026-11-10"][0]
         write_json(os.path.join(d, "post.json"), {"post_id": young, "url": "https://www.youtube.com/shorts/" + young})
         run("post_probe.py", d)
         pp = jload(d, "post_probe.json")
-        self.assertEqual(pp["status"], "too_new")
-        self.assertIsNone(pp["post"]["ratio"])
+        self.assertEqual(pp["status"], "fresh")
+        self.assertTrue(pp["post"]["fresh"])
+        self.assertEqual(pp["post"]["fresh_label"], "fresh / still growing")
+        self.assertIsNotNone(pp["post"]["ratio"])
         self.assertIsNotNone(pp["post"]["ratio_so_far"])
 
     def test_few_creator_posts_is_the_weaker_basis(self):

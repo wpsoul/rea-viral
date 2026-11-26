@@ -134,6 +134,7 @@ def measure(folder, an, fdoc):
             "basis": f.get("basis"),
             "recipe": "formats/%s.md" % f["id"],
             "posts_total": len(win), "posts_scored": len(sc),
+            "fresh_posts": sum(1 for p in sc if p.get("fresh") or p.get("status") == "fresh"),
             "share": rnd(len(win) / float(n_window), 3) if n_window else 0.0,
             "lift": rnd(lift, 3) if lift is not None else None,
             "hit_rate": rnd(hit, 3),
@@ -148,7 +149,8 @@ def measure(folder, an, fdoc):
             "length_s_median": rnd(median(durs), 1),
             "probe": pn, "videos_read": n_probed,
             "examples": [{"post_id": p["post_id"], "url": p["url"], "ratio": p["ratio"], "views": p["views"],
-                          "published_at": p["published_at"], "cover_file": p["cover_file"]} for p in examples],
+                          "published_at": p["published_at"], "cover_file": p["cover_file"],
+                          "fresh": bool(p.get("fresh") or p.get("status") == "fresh")} for p in examples],
             "post_ids": ids,
         }
         if lift is None:
@@ -193,7 +195,8 @@ def measured_table(f):
         "All MEASURED by radar.py from posts.csv (lift = median of each post's views over the median of the 20 posts "
         "before it). Follower pull is %s." % (pull.get("evidence") or "unknown"),
         "",
-        "Examples (best first): " + ", ".join("[%s](%s) %s" % (e["post_id"], e["url"], x(e["ratio"])) for e in f["examples"]),
+        "Examples (best first): " + ", ".join("[%s](%s) %s%s" % (
+            e["post_id"], e["url"], x(e["ratio"]), " (fresh / still growing)" if e.get("fresh") else "") for e in f["examples"]),
     ]
     return "\n".join(rows)
 
@@ -369,7 +372,7 @@ def measure_shared(folder, tr, fdoc):
     hi = parse_time(tr["window"]["to"]) + _dt.timedelta(days=1)
     mid = lo + (hi - lo) / 2
     inw_all = [p for p in tr["posts"] if p["in_window"]]
-    scored_creators = sorted(set(p["creator"] for p in tr["posts"] if p["status"] == "scored"))
+    scored_creators = sorted(set(p["creator"] for p in tr["posts"] if p["status"] in ("scored", "fresh")))
     n_creators = len(scored_creators)
     early_all = sum(1 for p in inw_all if parse_time(p["published_at"]) < mid)
     late_all = len(inw_all) - early_all
@@ -378,7 +381,7 @@ def measure_shared(folder, tr, fdoc):
         ids = [i for i in f.get("posts") or [] if i in P]
         owned |= set(ids)
         win = [P[i] for i in ids if P[i]["in_window"]]
-        sc = sorted([p for p in win if p["status"] == "scored"], key=lambda p: p["published_at"])
+        sc = sorted([p for p in win if p["status"] in ("scored", "fresh")], key=lambda p: p["published_at"])
         by_c = {}
         for p in sc:
             by_c.setdefault(p["creator"], []).append(p)
@@ -421,7 +424,7 @@ def measure_shared(folder, tr, fdoc):
         # The proof spans creators: each creator's best post, best first.
         best_each = sorted([max(by_c[c], key=lambda p: p["ratio"]) for c in by_c], key=lambda p: -p["ratio"])
         weak = [p for p in win if p["status"] == "weaker_basis"]
-        young = [p for p in win if p["status"] == "too_new"]
+        young = [p for p in win if p.get("fresh") or p["status"] in ("too_new", "fresh")]
         pn, n_probed = probe_numbers_shared(folder, P, ids)
         durs = [p["duration_s"] for p in win if p["duration_s"] is not None]
         rec = {
@@ -430,6 +433,7 @@ def measure_shared(folder, tr, fdoc):
             "basis": f.get("basis"),
             "recipe": "formats/%s.md" % f["id"],
             "posts_total": len(win), "posts_scored": len(sc),
+            "fresh_posts": len(young),
             "creators": n_c, "creators_share": rnd(n_c / float(n_creators), 3) if n_creators else 0.0,
             "creators_all": len(set(p["creator"] for p in win)),
             "by_creator": by_creator,
@@ -455,8 +459,10 @@ def measure_shared(folder, tr, fdoc):
             "probe": pn, "videos_read": n_probed,
             "examples": [{"post_id": p["post_id"], "account": p["account"], "creator": p["creator"], "url": p["url"],
                           "ratio": p["ratio"], "views": p["views"], "published_at": p["published_at"],
-                          "cover_file": p["cover_file"]} for p in best_each[:6]],
-            "proof": [{"post_id": p["post_id"], "account": p["account"], "ratio": p["ratio"]}
+                          "cover_file": p["cover_file"],
+                          "fresh": bool(p.get("fresh") or p["status"] == "fresh")} for p in best_each[:6]],
+            "proof": [{"post_id": p["post_id"], "account": p["account"], "ratio": p["ratio"],
+                       "fresh": bool(p.get("fresh") or p["status"] == "fresh")}
                       for p in sorted(sc, key=lambda p: -p["ratio"])],
             "post_ids": ids,
         }
@@ -517,7 +523,7 @@ def run_shared(folder):
         out["status"], out["status_note"] = tr["status"], tr["status_note"]
         out["formats"] = []
         out["posts"] = [{"post_id": p["post_id"], "account": p["account"], "url": p["url"], "published_at": p["published_at"],
-                         "views": p["views"], "ratio": p["ratio"]} for p in tr["posts"] if p["status"] == "scored"]
+                         "views": p["views"], "ratio": p["ratio"], "fresh": bool(p.get("fresh"))} for p in tr["posts"] if p["status"] in ("scored", "fresh")]
         return out, [], tr
     if not fdoc or not fdoc.get("formats"):
         out["status"] = "no_formats"

@@ -72,9 +72,9 @@ def not_working(pp):
     with them do worse. With one creator's posts these are leads: under 6 posts on a side is marked so. Never a cause."""
     p, rp, w = pp.get("post") or {}, pp.get("repeats") or {}, pp.get("words") or {}
     out = {"status": pp.get("status"), "note": None, "post_below": None}
-    if pp.get("status") != "ok":
+    if pp.get("status") not in ("ok", "fresh"):
         out["note"] = "Not enough data: %s" % (pp.get("status_note") or pp.get("status"))
-    elif p.get("ratio") is not None and p["ratio"] < 1.0:
+    elif pp.get("status") == "ok" and p.get("ratio") is not None and p["ratio"] < 1.0:
         out["post_below"] = {"ratio": p["ratio"], "usual": p.get("usual"), "from": "post_probe.json#post.ratio"}
     rep = {"format": rp.get("format"), "name": rp.get("name"), "scored": rp.get("scored") or 0, "below": [],
            "from": "post_probe.json#repeats", "note": None}
@@ -130,11 +130,12 @@ def post_md(d):
     if pp.get("status") != "ok":
         L.append("- Status: %s. %s" % (pp.get("status"), pp.get("status_note") or ""))
     if p.get("ratio") is not None:
-        L.append("- [MEASURED] %s its creator's usual: %s %s against the median %s of %d other posts; #%s of %d scored posts "
-                 "(post_probe.json#post.ratio)." % (_x(p["ratio"]), p.get("views"), p.get("metric"), p.get("usual"),
+        L.append("- [MEASURED] %s its creator's usual%s: %s %s against the median %s of %d other posts; #%s of %d scored posts "
+                 "(post_probe.json#post.ratio)." % (_x(p["ratio"]), " (fresh / still growing)" if p.get("fresh") else "",
+                                                    p.get("views"), p.get("metric"), p.get("usual"),
                                                     p.get("usual_from_posts") or 0, p.get("rank_among_creator"), p.get("creator_scored")))
     elif p.get("ratio_so_far") is not None:
-        L.append("- [MEASURED] %s its creator's usual so far (too new: a floor) (post_probe.json#post.ratio_so_far)." % _x(p["ratio_so_far"]))
+        L.append("- [MEASURED] %s its creator's usual so far (fresh / still growing: a floor) (post_probe.json#post.ratio_so_far)." % _x(p["ratio_so_far"]))
     if fi.get("headline"):
         L.append("- " + build_report.claim_line(fi["headline"]))
     L.append("- [MEASURED] Repeats: %s (post_probe.json#repeats)." % pp["repeats"]["label"])
@@ -215,7 +216,7 @@ app.appendChild(el('header', {cls: 'top'},
     el('div', {cls: 'sub'}, el('a', {href: P.url, text: P.url}), Wd.first_line ? ' · "' + Wd.first_line + '"' : '')),
   el('div', {cls: 'row'}, themeButton())));
 app.appendChild(el('div', {cls: 'stats'},
-  stat(P.ratio != null ? xr(P.ratio) : (P.ratio_so_far != null ? xr(P.ratio_so_far) + ' so far' : '—'), 'its creator\'s usual'),
+  stat(P.ratio != null ? xr(P.ratio) + (P.fresh ? ' so far' : '') : (P.ratio_so_far != null ? xr(P.ratio_so_far) + ' so far' : '—'), 'its creator\'s usual' + (P.fresh ? ' (fresh / still growing)' : '')),
   stat(num(P.usual), 'usual ' + (P.metric || 'views') + ', the median of ' + (P.usual_from_posts || 0) + ' other posts'),
   stat(num(P.views), 'views'),
   stat(P.rank_among_creator ? '#' + P.rank_among_creator : '—', 'of ' + (P.creator_scored || 0) + ' scored posts of the creator'),
@@ -331,7 +332,7 @@ def hand_over_files(folder, d):
     p, c, rp = pp["post"], pp["creator"], pp.get("repeats") or {}
     net = c.get("network")
     rows, note = [], None
-    if rp.get("format") and pp.get("status") in ("ok", "too_new", "weaker_basis"):
+    if rp.get("format") and pp.get("status") in ("ok", "fresh", "too_new", "weaker_basis"):
         rec = d.get("recipe") or {}
         fmt = {"id": rp["format"], "name": rp.get("name") or rec.get("name"),
                "lift": (rec.get("measured") or {}).get("lift"), "container": {"hook": rec.get("hook_pattern")}}

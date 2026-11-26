@@ -162,8 +162,9 @@ def ts(s):
 
 def parse_subs(path):
     """Words with times from a WebVTT or SRT file. Inline word times (YouTube's auto captions) are used when present;
-    otherwise each cue's words are spread over the cue. Repeated rolling lines are dropped."""
-    text = open(path, encoding="utf-8", errors="replace").read()
+    otherwise each cue's words are spread over the cue. Repeated rolling lines are dropped without losing plain cues."""
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        text = fh.read()
     cues = []
     for block in re.split(r"\n\s*\n", text.replace("\r\n", "\n")):
         lines = [l for l in block.split("\n") if l.strip()]
@@ -173,13 +174,11 @@ def parse_subs(path):
                 cues.append((ts(m.group(1)), ts(m.group(3)), lines[i + 1:]))
                 break
     words = []
-    tagged = any("<c>" in "".join(c[2]) or re.search(r"<" + TS + r">", "".join(c[2])) for c in cues)
-    last_line = None
+    last_plain = None
     for start, end, lines in cues:
-        if tagged:
-            for l in lines:
-                if not re.search(r"<" + TS + r">", l):
-                    continue
+        cue_tagged = [l for l in lines if re.search(r"<" + TS + r">", l)]
+        if cue_tagged:
+            for l in cue_tagged:
                 pieces = re.split(r"<(" + TS + r")>", l)
                 # pieces: text0, ts1, (group), text1, ts2, (group), text2, ...
                 t = start
@@ -195,13 +194,17 @@ def parse_subs(path):
                     t1 = seq[j + 1][0] if j + 1 < len(seq) else end
                     for w in clean.split():
                         words.append({"w": w, "start": round(t0, 3), "end": round(t1, 3)})
+            last_plain = " ".join(re.sub(r"<[^>]+>", "", l).strip() for l in cue_tagged).strip()
         else:
             body = " ".join(re.sub(r"<[^>]+>", "", l).strip() for l in lines).strip()
-            if not body or body == last_line:
+            if not body or body == last_plain:
                 continue
-            last_line = body
+            # YouTube auto-VTT often emits a short 0.01 s echo cue repeating the previous line
+            if (end - start) < 0.05 and last_plain and body in last_plain:
+                continue
+            last_plain = body
             ws = body.split()
-            step = (end - start) / max(1, len(ws))
+            step = max(0.01, (end - start)) / max(1, len(ws))
             for j, w in enumerate(ws):
                 words.append({"w": w, "start": round(start + j * step, 3), "end": round(start + (j + 1) * step, 3)})
     return words
@@ -212,11 +215,50 @@ def find_subs(folder, pid, post):
     if post and post.get("transcript_file"):
         cands.append(os.path.join(folder, post["transcript_file"]))
     vdir = os.path.join(folder, "videos", pid)
-    cands += sorted(glob.glob(os.path.join(vdir, "*.vtt")) + glob.glob(os.path.join(vdir, "*.srt")))
+    files = sorted(glob.glob(os.path.join(vdir, "*.vtt")) + glob.glob(os.path.join(vdir, "*.srt")))
+    # Prefer English tracks (e.g. .en.vtt, .en-US.vtt, .en-orig.vtt) before other languages.
+    en_files = [f for f in files if re.search(r"\.en(?:[-_][a-z0-9]+)?\.(?:vtt|srt)$", f, re.I)]
+    other_files = [f for f in files if f not in en_files]
+    cands += en_files + other_files
     for c in cands:
-        if os.path.exists(c) and c.lower().endswith((".vtt", ".srt")):
-            # prefer English, then the first
+        if os.path.exists(c) and c.lower().endswith((".vtt", ".srt")) and os.path.getsize(c) > 0:
             return c
+    return None
+
+
+def extract_embedded_subs(video, vdir):
+    """Extract an embedded subtitle stream (mov_text / webvtt / subrip) from the video file if present."""
+    code, out, _ = sh(["ffprobe", "-v", "error", "-select_streams", "s", "-show_entries", "stream=index:stream_tags=language",
+                       "-of", "json", video], 30)
+    if code != 0 or not out.strip():
+        return None
+    try:
+        streams = json.loads(out).get("streams") or []
+    except ValueError:
+        return None
+    if not streams:
+        return None
+    dest = os.path.join(vdir, "embedded.vtt")
+    c2, _, _ = sh(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", video, "-map", "0:s:0", dest], 60)
+    if c2 == 0 and os.path.exists(dest) and os.path.getsize(dest) > 0:
+        return dest
+    return None
+
+
+def local_transcribe(video, vdir):
+    """Optional free local speech-to-text when --transcribe is passed (mlx_whisper, whisper, or whisper-cli on PATH)."""
+    if shutil.which("mlx_whisper"):
+        code, _, _ = sh(["mlx_whisper", video, "--output-dir", vdir, "--output-format", "vtt"], 300)
+        if code == 0:
+            vtts = sorted(glob.glob(os.path.join(vdir, "*.vtt")))
+            if vtts:
+                return vtts[0]
+    if shutil.which("whisper"):
+        code, _, _ = sh(["whisper", video, "--output_dir", vdir, "--output_format", "vtt", "--model", "base"], 300)
+        if code == 0:
+            vtts = sorted(glob.glob(os.path.join(vdir, "*.vtt")))
+            if vtts:
+                return vtts[0]
     return None
 
 
@@ -225,25 +267,36 @@ def find_subs(folder, pid, post):
 def fetch(folder, pid, url):
     ytdlp = shutil.which("yt-dlp")
     if not ytdlp:
-        return None, "yt-dlp is not on PATH"
+        return None, "yt-dlp is not on PATH", None
     vdir = os.path.join(folder, "videos", pid)
     os.makedirs(vdir, exist_ok=True)
     base = [ytdlp, "--no-update", "--no-playlist", "--no-progress", "--retries", "2", "--socket-timeout", "20",
             "-o", os.path.join(vdir, "video.%(ext)s")]
     # The video first, on its own: a failed subtitle request (HTTP 429 is common) must not cost the video.
     err = ""
+    vids = []
     for fmt in ("bv*[height<=720]+ba/b[height<=720]/bv*+ba/b", "18/b"):  # 18 = a plain 360p MP4, when 720p gets a 403
         code, out, err = sh(base + ["-f", fmt, "--merge-output-format", "mp4", url], 600)
         vids = [p for p in glob.glob(os.path.join(vdir, "video.*")) if not p.endswith((".vtt", ".srt", ".part", ".json", ".ytdl"))]
         if vids:
             break
     if not vids:
-        return None, "yt-dlp: " + (err.strip().splitlines() or ["failed"])[-1][:300]
-    # Then the words, if there are any; a failure here only means the words were not read.
-    sh(base + ["--skip-download", "--write-subs", "--write-auto-subs", "--sub-langs", "en.*,en,-live_chat",
-               "--sub-format", "vtt", "--sleep-subtitles", "2", url], 300)
+        return None, "yt-dlp: " + (err.strip().splitlines() or ["failed"])[-1][:300], None
+    # Then the words: try English first (vtt or srt), then fall back to any available language if none arrived.
+    sub_err = None
+    c1, _, e1 = sh(base + ["--skip-download", "--write-subs", "--write-auto-subs", "--sub-langs", "en.*,en,-live_chat",
+                           "--sub-format", "vtt/srt/best", "--sleep-subtitles", "2", url], 300)
+    have_subs = glob.glob(os.path.join(vdir, "*.vtt")) + glob.glob(os.path.join(vdir, "*.srt"))
+    if not have_subs:
+        c2, _, e2 = sh(base + ["--skip-download", "--write-subs", "--write-auto-subs", "--sub-langs", "all,-live_chat",
+                               "--sub-format", "vtt/srt/best", "--sleep-subtitles", "2", url], 300)
+        have_subs = glob.glob(os.path.join(vdir, "*.vtt")) + glob.glob(os.path.join(vdir, "*.srt"))
+        if not have_subs and (e1 or e2):
+            tail = ((e1 or e2).strip().splitlines() or [""])[-1][:200]
+            if "429" in tail or "ERROR:" in tail:
+                sub_err = tail
     time.sleep(2.0)  # polite between videos
-    return vids[0], None
+    return vids[0], None, sub_err
 
 
 def find_video(folder, pid, post):
@@ -256,13 +309,14 @@ def find_video(folder, pid, post):
     return vids[0] if vids else None
 
 
-def probe_one(folder, pid, post, threshold, do_fetch):
+def probe_one(folder, pid, post, threshold, do_fetch, do_transcribe=False):
     vdir = os.path.join(folder, "videos", pid)
     os.makedirs(vdir, exist_ok=True)
     video = find_video(folder, pid, post)
     why = None
+    sub_err = None
     if video is None and do_fetch and post and post.get("url"):
-        video, why = fetch(folder, pid, post["url"])
+        video, why, sub_err = fetch(folder, pid, post["url"])
     res = {"schema": "rea-viral/probe@1", "post_id": pid, "url": (post or {}).get("url")}
     if video is None:
         res.update({"read": False, "not_read_reason": why or "no video file (run with --fetch, or save it as videos/%s/video.mp4)" % pid})
@@ -283,6 +337,10 @@ def probe_one(folder, pid, post, threshold, do_fetch):
     })
     m.update(audio_numbers(video, length) if info["has_audio"] else {"non_silent_share": 0.0, "loudness_lufs": None})
     subs = find_subs(folder, pid, post)
+    if not subs:
+        subs = extract_embedded_subs(video, vdir)
+    if not subs and do_transcribe and info.get("has_audio"):
+        subs = local_transcribe(video, vdir)
     if subs:
         words = parse_subs(subs)
         if words:
@@ -291,12 +349,17 @@ def probe_one(folder, pid, post, threshold, do_fetch):
             m["words_per_minute"] = rnd(len(words) / (span / 60.0), 1)
             m["first_words_3s"] = " ".join(w["w"] for w in words if w["start"] < FIRST_SECONDS)
             m["first_word_at_s"] = words[0]["start"]
+            m["transcript"] = " ".join(w["w"] for w in words)[:4000]
             m["transcript_file"] = os.path.relpath(subs, folder).replace(os.sep, "/")
             write_json(os.path.join(vdir, "words.json"), {"source": m["transcript_file"], "words": words})
+        else:
+            m["words"] = None
+            m["words_per_minute"] = None
+            m["transcript_note"] = "subtitle file had no readable words"
     else:
         m["words"] = None
         m["words_per_minute"] = None
-        m["transcript_note"] = "no subtitles found; the words were not read"
+        m["transcript_note"] = ("subtitles not fetched (%s); run with --transcribe or add a .vtt/.srt file" % sub_err) if sub_err else "no subtitles found; the words were not read"
     files = {"video": os.path.relpath(video, folder).replace(os.sep, "/"), "first_seconds": [], "shots": []}
     fdir = os.path.join(vdir, "first")
     sdir = os.path.join(vdir, "shots")
@@ -388,6 +451,7 @@ def main(argv):
     if "--scene" in argv:
         threshold = float(argv[argv.index("--scene") + 1])
     do_fetch = "--fetch" in argv
+    do_transcribe = "--transcribe" in argv
     not_read = argv[argv.index("--not-read") + 1] if "--not-read" in argv else None
     posts = dict((p["post_id"], p) for p in load_posts(folder))
     try:
@@ -441,22 +505,28 @@ def main(argv):
             vdir = os.path.join(folder, "videos", pid)
             os.makedirs(vdir, exist_ok=True)
             ppath = os.path.join(vdir, "probe.json")
-            old = read_json(ppath) if os.path.exists(ppath) else None
-            if old and old.get("read"):
+            npath = os.path.join(vdir, "notes.json")
+            try:
+                old = read_json(ppath) if os.path.exists(ppath) else None
+            except ValueError:
+                old = None
+            try:
+                n = read_json(npath) if os.path.exists(npath) else None
+            except ValueError:
+                n = None
+            if (old and old.get("read")) or (n and n.get("read") is True):
                 # A video already read keeps its probe and notes: --not-read only marks the ones never read.
                 print("%s: already read, kept" % pid)
                 continue
             res = {"schema": "rea-viral/probe@1", "post_id": pid, "url": posts[pid].get("url"), "read": False,
                    "not_read_reason": not_read}
             write_json(ppath, res)
-            npath = os.path.join(vdir, "notes.json")
-            n = read_json(npath) if os.path.exists(npath) else None
             if n is None or n.get("read") is None:
                 write_json(npath, {"post_id": pid, "read": False, "not_read_reason": not_read, "seen": {}, "beats": []})
             print("%s: marked not read (%s)" % (pid, not_read))
             continue
         try:
-            r = probe_one(folder, pid, posts[pid], threshold, do_fetch)
+            r = probe_one(folder, pid, posts[pid], threshold, do_fetch, do_transcribe)
         except RuntimeError as e:
             print("%s: not read: %s" % (pid, e))
             bad += 1

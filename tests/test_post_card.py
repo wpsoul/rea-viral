@@ -284,10 +284,117 @@ def main(argv):
     res = run_card([sn, "--card", huge_p, "--layout", "r2", "--skin", "cobalt", "--out", os.path.join(work, "huge-r2.png")], env=env)
     ok(res.returncode == 1 and "DOES NOT FIT" in res.stdout, "impossible overflow fails loudly: " + res.stdout + res.stderr)
 
-    # 6. Template gallery smoke check (sample + long)
+    # 6. 0.5.1 bug fixes (#9 :x rounding, #10 safe <b>/<mark> tags, #11 @handle digits ignored, #12 t2 clean .u layout)
+    sys.path.insert(0, SK)
+    try:
+        import post_card as pc
+    finally:
+        sys.path.remove(SK)
+    ok(pc.fmt_x(510.88) == "511×", "Bug #9 fmt_x(510.88) -> 511×, got " + pc.fmt_x(510.88))
+    ok(pc.fmt_x(10.0) == "10×", "Bug #9 fmt_x(10.0) -> 10×, got " + pc.fmt_x(10.0))
+    ok(pc.fmt_x(2.71) == "2.7×", "Bug #9 fmt_x(2.71) -> 2.7×, got " + pc.fmt_x(2.71))
+    ok(pc.fmt_x(0.97) == "0.97×", "Bug #9 fmt_x(0.97) -> 0.97×, got " + pc.fmt_x(0.97))
+
+    md_out = pc.md("Why <b>@b1rkh0ff</b> <mark>wins</mark> **fast** <script>x</script>")
+    ok("<b>@b1rkh0ff</b>" in md_out and "<mark>wins</mark>" in md_out and "<b>fast</b>" in md_out and "&lt;script&gt;" in md_out,
+       "Bug #10 safe tags & bold: " + md_out)
+
+    # Bug #11: @handle with digits (e.g. @b1rkh0ff) triggers zero typed-number warnings
+    hcard = json.loads(json.dumps(base_card))
+    hcard["title"] = "Why <b>@b1rkh0ff</b> is growing"
+    hcard_p = os.path.join(work, "handle_digits.json")
+    write_json(hcard_p, hcard)
+    res = run_card([gx, "--card", hcard_p, "--check"])
+    ok(res.returncode == 0 and "note:" not in res.stdout, "Bug #11 @b1rkh0ff emits zero typed-digit warnings: " + res.stdout)
+
+    # Bug #12: t2 renders clean .u unit subtitle, never "unit: line" colon mashup
+    t2_html_png = os.path.join(work, "t2-check.png")
+    res = run_card([gx, "--layout", "t2", "--skin", "cobalt", "--out", t2_html_png, "--html-only"])
+    ok(res.returncode == 0, "t2 --html-only failed: " + res.stdout + res.stderr)
+    t2_src = open(t2_html_png[:-4] + ".html", encoding="utf-8").read()
+    ok(".t2 .c .u{" in t2_src and "el('div', 'u', c.unit)" in t2_src, "Bug #12 t2 template uses .u unit div")
+
+    # 7. All 12 new 0.5.1 card layouts end-to-end (post p1-p3, format f1-f2, account a1-a2, draft d1, writing w1, comments c1, compare x1, topic r6)
+    fx_root = os.path.join(work, "fx_cards")
+    subprocess.run([sys.executable, "-I", os.path.join(HERE, "make_fixtures.py"), "--out", fx_root],
+                   check=True, stdout=subprocess.DEVNULL, env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
+    main_run = os.path.join(fx_root, "main")
+    writing_run = os.path.join(fx_root, "writing_x")
+    for s in ("analyze.py", "radar.py", "comment_tactics.py", "text_probe.py"):
+        subprocess.run([sys.executable, "-I", os.path.join(SK, s), main_run], check=True, stdout=subprocess.DEVNULL)
+    for s in ("analyze.py", "radar.py", "text_probe.py"):
+        subprocess.run([sys.executable, "-I", os.path.join(SK, s), writing_run], check=True, stdout=subprocess.DEVNULL)
+    post_run = os.path.join(nfx_root, "post_c3")
+    subprocess.run([sys.executable, "-I", os.path.join(SK, "post_probe.py"), post_run], check=True, stdout=subprocess.DEVNULL)
+
+    # Post review p1..p3
+    post_out = os.path.join(work, "post-all")
+    res = run_card([post_run, "--type", "post", "--layout", "all", "--skin", "cobalt", "--out", post_out], env=env)
+    ok(res.returncode == 0, "post p1..p3 failed: " + res.stdout + res.stderr)
+    for lid in ("p1", "p2", "p3"):
+        p = os.path.join(post_out, "cobalt-%s.png" % lid)
+        ok(os.path.exists(p) and png_size(p) == (1080, 1350), "post %s PNG is 1080x1350" % lid)
+
+    # Format recipe f1..f2
+    fmt_out = os.path.join(work, "fmt-all")
+    res = run_card([main_run, "--type", "format", "--format", "three-mistakes", "--layout", "all", "--skin", "cobalt", "--out", fmt_out], env=env)
+    ok(res.returncode == 0, "format f1..f2 failed: " + res.stdout + res.stderr)
+    for lid in ("f1", "f2"):
+        p = os.path.join(fmt_out, "cobalt-%s.png" % lid)
+        ok(os.path.exists(p) and png_size(p) == (1080, 1350), "format %s PNG is 1080x1350" % lid)
+
+    # Account without growth mode (a1..a2) — main_run has NO growth.json
+    ok(not os.path.exists(os.path.join(main_run, "growth.json")), "main_run has no growth.json")
+    acct_out = os.path.join(work, "acct-all")
+    res = run_card([main_run, "--type", "account", "--layout", "all", "--skin", "paper", "--out", acct_out], env=env)
+    ok(res.returncode == 0, "account a1..a2 failed: " + res.stdout + res.stderr)
+    for lid in ("a1", "a2"):
+        p = os.path.join(acct_out, "paper-%s.png" % lid)
+        ok(os.path.exists(p) and png_size(p) == (1080, 1350), "account %s PNG is 1080x1350" % lid)
+
+    # Draft check (d1) + explicit ESTIMATE rule enforcement
+    draft_md = os.path.join(work, "sample_draft.md")
+    with open(draft_md, "w", encoding="utf-8") as f:
+        f.write("---\nfor: solo builders\nnetwork: x\npurpose: followers\nask: follow\nopenings: [opens_number]\n---\n"
+                "7 pricing mistakes that cut revenue in half.\n\nCharge for outcomes, not hours.\n\nFollow for the next batch.\n")
+    d1_png = os.path.join(work, "draft-d1.png")
+    res = run_card([writing_run, "--type", "draft", "--draft", draft_md, "--layout", "d1", "--skin", "cobalt", "--out", d1_png], env=env)
+    ok(res.returncode == 0 and os.path.exists(d1_png) and png_size(d1_png) == (1080, 1350),
+       "draft d1 PNG is 1080x1350: " + res.stdout + res.stderr)
+    bad_d1 = os.path.join(work, "bad_d1.json")
+    write_json(bad_d1, {
+        "schema": "rea-viral/card@1", "type": "draft", "layout": "d1", "draft_file": draft_md,
+        "estimate": {"badge": "GUARANTEED", "range": "2x - 3x", "label": "Guaranteed outcome"},
+    })
+    res = run_card([writing_run, "--type", "draft", "--card", bad_d1, "--check"])
+    ok(res.returncode == 1 and "estimate" in res.stdout.lower(), "d1 without explicit estimate rejected: " + res.stdout)
+
+    # Writing / voice (w1)
+    w1_png = os.path.join(work, "writing-w1.png")
+    res = run_card([writing_run, "--type", "writing", "--layout", "w1", "--skin", "warm", "--out", w1_png], env=env)
+    ok(res.returncode == 0 and os.path.exists(w1_png) and png_size(w1_png) == (1080, 1350),
+       "writing w1 PNG is 1080x1350: " + res.stdout + res.stderr)
+
+    # Comment tactics (c1)
+    c1_png = os.path.join(work, "comments-c1.png")
+    res = run_card([main_run, "--type", "comments", "--layout", "c1", "--skin", "redword", "--out", c1_png], env=env)
+    ok(res.returncode == 0 and os.path.exists(c1_png) and png_size(c1_png) == (1080, 1350),
+       "comments c1 PNG is 1080x1350: " + res.stdout + res.stderr)
+
+    # Compare two (x1): two formats (--pair) AND two accounts (--vs)
+    x1_pair = os.path.join(work, "compare-pair-x1.png")
+    res = run_card([main_run, "--type", "compare", "--pair", "three-mistakes,long-story", "--layout", "x1", "--skin", "cobalt", "--out", x1_pair], env=env)
+    ok(res.returncode == 0 and os.path.exists(x1_pair) and png_size(x1_pair) == (1080, 1350),
+       "compare --pair x1 PNG is 1080x1350: " + res.stdout + res.stderr)
+    x1_vs = os.path.join(work, "compare-vs-x1.png")
+    res = run_card([main_run, "--type", "compare", "--vs", writing_run, "--layout", "x1", "--skin", "night", "--out", x1_vs], env=env)
+    ok(res.returncode == 0 and os.path.exists(x1_vs) and png_size(x1_vs) == (1080, 1350),
+       "compare --vs x1 PNG is 1080x1350: " + res.stdout + res.stderr)
+
+    # 8. Template gallery smoke check across ALL 12 new layouts + core layouts in sample & long modes
     gal_out = os.path.join(work, "gallery")
-    res = subprocess.run(["node", RENDER_CARD, "--gallery", gal_out, "--skins", "cobalt,night,holo,paper,warm,glass",
-                          "--layouts", "t1,t5,r1,r5", "--content", "long"],
+    res = subprocess.run(["node", RENDER_CARD, "--gallery", gal_out, "--skins", "cobalt,paper",
+                          "--layouts", "t1,t2,t5,r1,r5,r6,p1,p2,p3,f1,f2,a1,a2,d1,w1,c1,x1", "--content", "long"],
                          capture_output=True, text=True, env=dict(os.environ, **env))
     ok(res.returncode == 0, "gallery long smoke failed: " + res.stdout + res.stderr)
 

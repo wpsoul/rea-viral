@@ -325,18 +325,20 @@ function studyFormats(host, o){
     s.appendChild(sv('rect', {x: 0, y: 19.5, width: '100%', height: 1, fill: 'var(--line)'}));
     s.appendChild(sv('line', {x1: X(1) + '%', x2: X(1) + '%', y1: 0, y2: 40, stroke: 'var(--faint)', 'stroke-dasharray': '3 3'}));
     F.sc.forEach(function(p){
+      var isFr = !!(p.fresh || p.status === 'fresh');
       var c = sv('circle', {cx: X(p.ratio) + '%', cy: 5 + 30 * hsh(String(p.id)), r: 4, fill: p.ratio >= 1 ? 'var(--scale)' : 'var(--drop)',
-        'fill-opacity': p.ratio >= 2 ? 0.95 : 0.55, stroke: 'var(--panel)', 'stroke-width': 1, 'data-post': p.id});
-      c.appendChild(sv('title', {text: xr(p.ratio) + ' · ' + num(p.views) + ' views · ' + date(p.at) + (p.account ? ' · @' + p.account : '')}));
+        'fill-opacity': p.ratio >= 2 ? 0.95 : 0.55, stroke: isFr ? 'var(--inferred)' : 'var(--panel)', 'stroke-width': isFr ? 1.5 : 1, 'data-post': p.id});
+      c.appendChild(sv('title', {text: xr(p.ratio) + ' · ' + num(p.views) + ' views · ' + date(p.at) + (p.account ? ' · @' + p.account : '') + (isFr ? ' · fresh / still growing' : '')}));
       s.appendChild(c);
     });
     if (F.lift != null) s.appendChild(sv('rect', {x: X(F.lift) + '%', y: 1, width: 3, height: 38, rx: 1.5, fill: 'var(--text)', transform: 'translate(-1.5 0)'}));
     return el('div', {cls: 'st-strip'}, s);
   }
   function tile(p){
+    var isFr = !!(p.fresh || p.status === 'fresh');
     var img = el('span', {cls: 'img'}, p.cover ? el('img', {src: p.cover, alt: ''}) : el('span', {cls: 't', text: p.caption || p.text || ''}),
-      el('span', {cls: 'r', text: p.ratio != null ? xr(p.ratio) : 'new'}));
-    return el('a', {cls: 'st-tile' + (p.ratio != null && p.ratio < 1 ? ' w' : ''), href: p.url, title: (p.caption || '').slice(0, 140)},
+      el('span', {cls: 'r', text: p.ratio != null ? xr(p.ratio) + (isFr ? ' · fresh' : '') : 'new'}));
+    return el('a', {cls: 'st-tile' + (p.ratio != null && p.ratio < 1 ? ' w' : ''), href: p.url, title: (p.caption || '').slice(0, 140) + (isFr ? ' (fresh / still growing)' : '')},
       img, el('span', {cls: 'who', text: num(p.views) + ' · ' + date(p.at).slice(5)}), niche && p.account ? el('span', {cls: 'who', text: '@' + p.account}) : null);
   }
   function kv(F){

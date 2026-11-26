@@ -58,31 +58,60 @@ def run(folder):
     lo = anchor - dt.timedelta(days=30)
     summary = trends.creator_numbers(posts, acc, lo, read_at, trends.RULES, read_at)
     me = P[pid]
-    scored = sorted([p for p in posts if p["status"] == "scored"], key=lambda p: -p["ratio"])
+    scored = sorted([p for p in posts if p["status"] in ("scored", "fresh")], key=lambda p: -p["ratio"])
     rank = ([p["post_id"] for p in scored].index(pid) + 1) if pid in [p["post_id"] for p in scored] else None
     others_settled = sum(1 for p in posts if p["state"] == "settled" and p is not me)
+    min_age = analyze.MIN_AGE_DAYS.get(acc.get("network"), analyze.DEFAULT_MIN_AGE_DAYS)
     if me["basis"] == "own" and me["status"] == "scored":
         status, note = "ok", None
+    elif me["basis"] == "own" and me["status"] == "fresh":
+        status = "fresh"
+        note = ("The post is under %d days old (fresh / still growing): scored against the creator's usual, and its "
+                "ratio is a floor while views keep coming in." % min_age)
     elif me["status"] == "too_new":
         status = "too_new"
-        note = ("The post is under %d days old: its views are still growing, so its ratio so far is a floor." %
-                analyze.MIN_AGE_DAYS.get(acc.get("network"), analyze.DEFAULT_MIN_AGE_DAYS))
+        note = ("The post is under %d days old (fresh / still growing): views are still coming in, and fewer than 8 "
+                "other settled posts were read for a usual." % min_age)
     elif me["basis"] == "followers":
         status = "weaker_basis"
         note = ("Only %d other settled posts of the creator were read (8 needed for its usual): the post is measured on "
                 "views per follower, a weaker basis." % others_settled)
+        if me.get("fresh"):
+            note += " Also under %d days old (fresh / still growing)." % min_age
     else:
         status = "no_baseline"
         note = "The creator's usual could not be measured: read more of its recent posts (8 or more, settled)."
     post = {
         "post_id": pid, "url": me["url"], "published_at": iso(me["published_at"]), "type": me["type"],
         "duration_s": me["duration_s"], "views": me["views"], "likes": me["likes"], "comments": me["comments"],
+        "reposts": me.get("reposts"), "bookmarks": me.get("bookmarks"),
         "metric": me["metric"], "basis": me["basis"], "usual": rnd(me["baseline"], 1), "usual_from_posts": me["baseline_n"],
         "ratio": rnd(me["ratio"], 3), "ratio_so_far": rnd(me["ratio_so_far"], 3),
+        "fresh": bool(me.get("fresh")), "fresh_label": me.get("fresh_label"),
         "views_per_follower": rnd(me["views_per_follower"], 4), "rank_among_creator": rank,
         "creator_scored": len(scored), "hit": bool(me["ratio"] is not None and me["ratio"] >= trends.RULES["hit_ratio"]),
         "cover_file": me["cover_file"] or None, "caption": (me["caption"] or "")[:1000],
     }
+    warnings = [w["where"] + ": " + w["problem"] for w in rep.warnings]
+    sus = sorted([p for p in posts if p.get("views_per_follower") is not None and p["views_per_follower"] >= analyze.SUSPECT_REACH],
+                 key=lambda p: -p["views_per_follower"])
+    suspect_reach = None
+    if sus:
+        top = sus[0]
+        suspect_reach = {
+            "rule": "views >= %d x the creator's followers" % analyze.SUSPECT_REACH,
+            "count": len(sus),
+            "includes_focus": any(p["post_id"] == pid for p in sus),
+            "posts": [{"post_id": p["post_id"], "views": p["views"], "followers": summary["followers"],
+                       "views_per_follower": rnd(p["views_per_follower"], 0), "published_at": iso(p["published_at"])}
+                      for p in sus[:10]],
+        }
+        warnings.append(
+            "check the outliers: %d post%s ha%s views %d x the follower count or more (top: %s views on %s followers, "
+            "%s). The follower count may belong to a reset or renamed account, the clip a repost, or views bought; "
+            "open before calling it a finding (post_probe.json#suspect_reach)" % (
+                len(sus), "" if len(sus) == 1 else "s", "s" if len(sus) == 1 else "ve", analyze.SUSPECT_REACH,
+                "{:,}".format(int(top["views"])), "{:,}".format(int(summary["followers"] or 0)), top["post_id"]))
     words = words_beside_usual(posts, me)
     repeats, fmt = repeats_of(folder, posts, pid)
     out = {
@@ -91,6 +120,7 @@ def run(folder):
         "generated_at": iso(now_utc()),
         "inputs": analyze.input_fingerprint(folder, INPUTS),
         "status": status, "status_note": note,
+        "warnings": warnings,
         "creator": {"network": acc.get("network"), "handle": acc.get("handle"), "name": acc.get("name"),
                     "usual_since": summary["usual_since"], "older_posts_left_out": summary["older_posts_left_out"],
                     "url": acc.get("url"), "followers": summary["followers"], "followers_exact": summary["followers_exact"],
@@ -101,10 +131,13 @@ def run(folder):
         "words": words,
         "repeats": repeats,
         "creator_posts": [{"post_id": p["post_id"], "url": p["url"], "published_at": iso(p["published_at"]),
-                           "ratio": rnd(p["ratio"], 3), "status": p["status"], "views": p["views"],
-                           "cover_file": p["cover_file"] or None, "caption": (p["caption"] or "")[:160]}
+                           "ratio": rnd(p["ratio"], 3), "status": p["status"], "fresh": bool(p.get("fresh")),
+                           "views": p["views"], "cover_file": p["cover_file"] or None,
+                           "caption": (p["caption"] or "")[:160]}
                           for p in sorted(posts, key=lambda p: (p["published_at"] is None, p["published_at"] or read_at))],
     }
+    if suspect_reach:
+        out["suspect_reach"] = suspect_reach
     written = None
     if fmt is not None:
         out["recipe"] = "formats/%s.md" % fmt["id"]
@@ -123,7 +156,7 @@ def words_beside_usual(posts, me):
     if mine.get("empty"):
         return {"status": "no_text", "note": "The post has no words to read (no caption or title)."}
     others = [p for p in posts if p is not me and not feats[p["post_id"]].get("empty")]
-    scored = [p for p in others if p["status"] == "scored"]
+    scored = [p for p in others if p["status"] in ("scored", "fresh")]
     flags = []
     for fid, group, label, _ in tp.BOOL_FEATURES:
         v = mine.get(fid)
@@ -177,7 +210,7 @@ def repeats_of(folder, posts, pid):
         if pid not in ids:
             continue
         others = [P[i] for i in ids if i != pid]
-        sc = [p for p in others if p["status"] == "scored"]
+        sc = [p for p in others if p["status"] in ("scored", "fresh")]
         rs = [p["ratio"] for p in sc]
         above = sum(1 for r in rs if r >= 1.0)
         hits = sum(1 for r in rs if r >= trends.RULES["hit_ratio"])
@@ -199,7 +232,7 @@ def repeats_of(folder, posts, pid):
 def write_recipe(folder, f, posts, repeats):
     P = dict((p["post_id"], p) for p in posts)
     ids = [i for i in f.get("posts") or [] if i in P]
-    sc = sorted([P[i] for i in ids if P[i]["status"] == "scored"], key=lambda p: -p["ratio"])
+    sc = sorted([P[i] for i in ids if P[i]["status"] in ("scored", "fresh")], key=lambda p: -p["ratio"])
     rs = [p["ratio"] for p in sc]
     pn, n_probed = radar.probe_numbers(folder, ids)
     durs = [P[i]["duration_s"] for i in ids if P[i]["duration_s"] is not None]
@@ -231,11 +264,11 @@ def main(argv):
     write_json(os.path.join(folder, "post_probe.json"), out)
     p, c = out["post"], out["creator"]
     if p["ratio"] is not None:
-        line = "%sx its creator's usual (the median of %d other posts: %s %s); #%s of %d scored posts" % (
-            ("%.2f" % p["ratio"]), p["usual_from_posts"] or 0, p["usual"], p["metric"], p["rank_among_creator"],
-            p["creator_scored"])
+        line = "%sx its creator's usual%s (the median of %d other posts: %s %s); #%s of %d scored posts" % (
+            ("%.2f" % p["ratio"]), " (fresh / still growing)" if p.get("fresh") else "",
+            p["usual_from_posts"] or 0, p["usual"], p["metric"], p["rank_among_creator"], p["creator_scored"])
     elif p["ratio_so_far"] is not None:
-        line = "%sx its creator's usual so far (too new: a floor)" % ("%.2f" % p["ratio_so_far"])
+        line = "%sx its creator's usual so far (fresh / still growing: a floor)" % ("%.2f" % p["ratio_so_far"])
     elif p["views_per_follower"] is not None:
         line = "%s views per follower (weaker basis)" % p["views_per_follower"]
     else:
@@ -252,6 +285,8 @@ def main(argv):
                 print("  differs: %s: %s" % (f["label"], f["differs"]))
     if written:
         print("  %s %s" % ("wrote" if written[1] else "updated", os.path.relpath(written[0], folder)))
+    for wrn in (out.get("warnings") or [])[:8]:
+        print("warning: " + wrn)
     return 0
 
 

@@ -60,11 +60,12 @@ const gallery = opt('--gallery', null);
 if (gallery) {
   const tpl = path.join(here, '..', 'templates', 'post', 'card.html');
   const skins = opt('--skins', 'cobalt,redword,night,holo,paper,warm,glass').split(',');
-  const want = opt('--layouts', 't1,t2,t3,t4,t5,r1,r2,r3,r4,r5').split(',');
+  const want = opt('--layouts', 't1,t2,t3,t4,t5,r1,r2,r3,r4,r5,r6,p1,p2,p3,f1,f2,a1,a2,d1,w1,c1,x1').split(',');
   const content = opt('--content', 'sample');
+  const KIND_OF = { t: 'teardown', r: 'report', p: 'post', f: 'format', a: 'account', d: 'draft', w: 'writing', c: 'comments', x: 'compare' };
   fs.mkdirSync(gallery, { recursive: true });
   for (const skin of skins) for (const id of want) {
-    const kind = id[0] === 'r' ? 'report' : 'teardown';
+    const kind = id === 'r6' ? 'topic' : (KIND_OF[id[0]] || 'teardown');
     jobs.push({ url: pathToFileURL(tpl).href + `#${kind}&skin=${skin}&c=${content}&l=${id}`, png: path.join(gallery, `${skin}-${kind}-${id}${content === 'sample' ? '' : '-' + content}.png`), ready: kind, gallery: true });
   }
 } else {

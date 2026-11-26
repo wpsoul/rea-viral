@@ -25,6 +25,7 @@ Decide from what the user gave, before any setup question. Show no menu when the
 | "REA Viral: why is @x growing", "REA Viral growth @x", "why is @x growing (REA Viral)", `/rea-viral growth @x` | **An account + growth mode** | The above, plus the growth mechanisms with their evidence (cadence, where the views come from, crowd calls, who reposts, replies, speed, what doesn't move), what to copy and a reply draft: `GROWTH.md` and a "Why it grows" block | `references/account-run.md`, then `references/growth.md` |
 | One link to a post or a video, "why did this blow up" | **A post**: the **Post report** | Why it beat its own creator's usual, and what in it sits under that usual; its words taken apart; whether the creator repeats it; its recipe | `references/post-run.md` |
 | A niche, a topic, keywords or tags, a list of accounts, "what works now in X", "what's trending in X" | **A niche**: the **Niche report** | Which formats and hooks work NOW across many creators (**the niche's formats**) and which fade; the trends behind them; recipes; who to watch | `references/niche.md` |
+| "REA Viral: is `<topic>` still worth posting", "REA Viral topic check `<topic>`", "is `<topic>` saturated?" | **A topic check** (standalone or inside a niche run) | Saturation (how many posts & big accounts already broke out), 6h vs prior 6h momentum (rising / flat / fading), lateness vs first 100K+ post, one-line verdict, `TOPIC.md`, report block & `r6` card | `references/niche.md` ("Topic check") |
 | "How do they write?", "what hooks work in X?", a draft to check | **Words only** | How an account or a niche writes, its voice sheet or hooks, drafts; the user's own draft checked | `references/writing.md`, "Words only" |
 
 - Several accounts and no question about one of them: a niche, with those accounts as its seeds.
@@ -85,11 +86,12 @@ Each way uses these in its own order (its reference has the exact commands):
 | Look | Covers on numbered sheets (each checked); each post's own video cut and measured, then you look (hits, ordinary posts and flops) | `covers_sheet.py`, `video_probe.py` | `deep-read.md` |
 | Words | Openings, shape, voice, asks against the usual | `text_probe.py` | `writing.md` |
 | Formats | You group posts into formats and check the grouping; the script measures and places them | `formats_check.py`, `radar.py` | `radar.md` |
-| Growth | Why an account grows: its mechanisms measured, your reading, the reply draft (growth mode) | `growth.py` | `growth.md` |
+| Growth | Why an account grows: its mechanisms measured, your reading, the reply draft + `post-card.png` (growth mode) | `growth.py`, `post_card.py` | `growth.md` |
+| Topic check | Is a niche topic still worth posting: saturation, 6h momentum, lateness, plain verdict | `topic_check.py` | `niche.md` |
 | Comments | The comment section as a tactic (account run) | `comment_tactics.py` | `comments.md` |
 | Reading | Your claims, each labelled: what worked and what did not | `findings.json` | `handover.md` |
 | Hand-over | The report (one file), the file for agents, the planner files | `build_report.py` | `handover.md` |
-| Post picture | Make a 1080 × 1350 post card (account teardown `t1`–`t5` or niche report `r1`–`r5`, 7 styles) | `post_card.py`, `render_card.mjs` | `post.md` |
+| Post picture | Make a 1080 × 1350 post card (22 layouts across 9 report types: `t1`–`t5`, `r1`–`r6`, `p1`–`p3`, `f1`–`f2`, `a1`–`a2`, `d1`, `w1`, `c1`, `x1` × 7 styles) | `post_card.py`, `render_card.mjs` | `post.md` |
 | Making | A format as a video, checked against its recipe | `render_page.mjs`, `remake_check.py`, `check_app.py` | `remake.md` |
 
 Always `validate.py <run>` after writing the corpus, and go on only at 0 errors.
@@ -99,9 +101,7 @@ Always `validate.py <run>` after writing the corpus, and go on only at 0 errors.
 **An account** (`rea-viral/<network>-<handle>/`, the main way): setup → the corpus → `analyze.py` → watch the
 deep-read picks (outliers, ordinary posts, flops) → comments → `text_probe.py` (`voice.md`) → `formats.json` →
 `formats_check.py` (fix overlaps and misfits) → `radar.py` (its Format map) → `findings.json` (what worked, and `did_not_work`) → `build_report.py` (the Account
-report, `report.html`; `ACCOUNT.md`; `report_record.json`, `radar_rows.json` with its strongest format). Growth mode
-adds, after `radar.py`: the growth reads → `growth.py` → `findings.json` `growth` → `growth.py` (the reply draft) →
-`build_report.py` (`GROWTH.md` and the "Why it grows" block): `references/growth.md`.
+report, `report.html`; `ACCOUNT.md`; `report_record.json`, `radar_rows.json` with its strongest format). Growth mode adds, after `radar.py`: the growth reads → `growth.py` → `findings.json` `growth` → `growth.py` (the reply draft) → `post_card.py <run> --layout t1 --skin cobalt` (`post-card.png` to attach to the reply) → `build_report.py` (`GROWTH.md` and the "Why it grows" block): `references/growth.md`.
 
 **A post** (`rea-viral/post-<network>-<post_id>/`): the post and its creator's 25 to 40 recent posts → watch it →
 mark its format in `formats.json` → `post_probe.py` → `findings.json` (why it worked, and what did not) →
@@ -117,6 +117,8 @@ creator's recent posts into `accounts/<network>-<handle>/` → `trends.py` → `
 voice sheet) → `findings.json` → `build_report.py` (the
 Niche report; `NICHE.md`; `radar_rows.json`, one row per format of the niche). `trends.py` also writes the trends as
 planner rows (`planner_rows.json`).
+
+**A topic check** (`rea-viral/topic-<slug>/`, or inside a niche folder): write `topic.json` and `topic_posts.csv` (one cheap search page per 6h window, top 10) → `validate.py` → `topic_check.py` (saturation, 6h momentum, lateness, plain verdict, `topic_check.json`, `TOPIC.md`) → `build_report.py` (standalone `report.html`, or embedded inside Niche `report.html` + `NICHE.md`) → optional `post_card.py <run> --layout r6`.
 
 **Words only**: the words of an account (`text_probe.py` on its folder, `voice.md`) or of a niche (`hooks.md`), drafts
 checked by `draft_check.py`; the user's own draft with no reference: the editor's pass and `draft_check.py <folder>
@@ -159,7 +161,7 @@ and 3 formats (Format Radar)"; nothing saved, no line.
   videos (Scale it or Underused first): **Basic** (an HTML page rendered to MP4), **Standard** (an editable video:
   GreenLight Motion or HyperFrames, the user's pick) or **Advanced** (GreenLight Dash's Rebuild by Style). Every
   result passes `remake_check.py` against the recipe (`references/remake.md`).
-- **Draft posts** in the voice or with the hooks measured, checked by `draft_check.py`, or **make a 1080 × 1350 post picture** (`post_card.py`, `references/post.md`) for an account teardown or niche report.
+- **Draft posts** in the voice or with the hooks measured, checked by `draft_check.py`, or **make a 1080 × 1350 post picture** (`post_card.py`, `references/post.md`: 22 layouts across teardowns, niche reports, topic checks, post reviews, format recipes, accounts, draft checks, voice, comments and comparisons).
 - **The next way in**, in one line: an account run offers the niche run for its niche; a post run offers its
   creator's account or its niche; a niche run starts from its strongest format and offers to go deeper into a creator
   who owns it.
@@ -191,7 +193,10 @@ rea-viral/niche-<slug>/                 a niche: niche.json, found.csv, accounts
                                         trends.json trends.csv watchlist.csv planner_rows.json, formats.json radar.json
                                         formats/<id>.md, writing.json hooks.md, findings.json, NICHE.md, report.html
                                         report-light.html report_record.json brief.json radar_rows.json
-                                        (post picture: card.json post-card.html post-card.png)
+                                        (optional topic check: topic_posts.csv topic_check.json TOPIC.md;
+                                        post picture: card.json post-card.html post-card.png)
+rea-viral/topic-<slug>/                 a topic check: topic.json, topic_posts.csv, topic_check.json, TOPIC.md,
+                                        report.html report-light.html (post picture: card.json post-card.png)
 rea-viral/watch/                        Watch for every account
 ```
 
@@ -205,7 +210,8 @@ Every file and column: `references/data-shape.md`. Version 1 and 2 account folde
 | A niche's `status: too_few_creators` or `too_few_posts` | List the trends, call no format of the niche, say "not enough creators" or "not enough posts", offer to read more |
 | A format sits at one or two creators | It is that creator's habit (`scope_status`), never a format of the niche |
 | A creator has under 9 settled posts read | Its posts are on the weaker basis (views per follower) and count toward no format: read more of its posts |
-| A post is under 7 days old (3 on X, Threads) | Its ratio so far is a floor, never ranked |
+| A post is under 7 days old (3 on X, Threads) | Scored against the settled baseline (`status: "fresh"`) and marked `"fresh / still growing"` so a fresh breakout is never dropped; kept out of baselines and flops so immature counts cannot skew medians |
+| An X reader's cursor pagination stops empty after page 2 | Fall back to `end_time` date-window queries with `scripts/readers/x_windows.py` (`connections.md`, "Paginated X readers stopping early") |
 | `status: private`, `empty`, `no_dates`, `too_few_posts` (an account) | Build the report anyway; it says so, and "What did not work" says "not enough data". A source without dates: read again with one that has them |
 | A download fails (403, "No video") or subtitles fail (429) | `video_probe.py` marks that pick `read: false` with the error and goes on to the next; never describe it |
 | A video or quote row on X, Threads or LinkedIn has no `own_media` | It is not watched ("does not say whether the video is this post's own"). Write `own_media` from the post's own media (`connections.md`, "Own media and quoted media"); a quote's video is never this post's |
@@ -233,6 +239,5 @@ Every file and column: `references/data-shape.md`. Version 1 and 2 account folde
 creators, finding posts) · `writing.md` (words, hooks, voice sheet, drafts, words only) · `data-shape.md` (every file
 and column) · `connections.md` (readers, what each costs in depth, a planner connector) · `numbers.md` (every measure)
 · `deep-read.md` (watching videos) · `comments.md` · `radar.md` (formats: one account's Format map, the formats of a
-niche, recipes) · `handover.md` (findings.json, what did not work, the reports, the planner files) · `growth.md` (growth mode: why an
-account grows, what to copy, the reply draft) · `post.md` (1080 × 1350 post cards: 10 layouts × 7 styles) · `remake.md`
+niche, recipes) · `handover.md` (findings.json, what did not work, the reports, the planner files) · `growth.md` (growth mode: why an account grows, what to copy, the reply draft + `post-card.png`) · `post.md` (1080 × 1350 post cards: 22 layouts × 7 styles) · `remake.md`
 (Basic, Standard: GreenLight Motion or HyperFrames, Advanced) · `watch.md` (Scout and Watch).

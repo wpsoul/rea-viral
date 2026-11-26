@@ -841,7 +841,8 @@ def run(folder):
     s = dict(SETTINGS)
     o = an["settings"]
     hit_ratio, flop_ratio = o["hit_ratio"], o["flop_ratio"]
-    scored = [r for r in rows if r["status"] == "scored" and r["ratio"] is not None and not feats[r["post_id"]].get("empty")]
+    scored = [r for r in rows if r["status"] in ("scored", "fresh") and r["ratio"] is not None and not feats[r["post_id"]].get("empty")]
+    settled_scored = [r for r in scored if r["status"] == "scored"]
     inwin = [r for r in rows if r["in_window"] and not feats[r["post_id"]].get("empty")]
     names = signal_names(rows)
     langs = {}
@@ -900,9 +901,10 @@ def run(folder):
         return {"post_id": r["post_id"], "url": r["url"], "ratio": rnd(r["ratio"], 3), "views": r["views"],
                 "first_line": f.get("first_line"), "chars": f.get("first_line_chars"), "type": r["type"],
                 "openings": [k for k, v in f.items() if k.startswith("opens_") and v is True],
-                "first_part_only": bool(f.get("first_part_only"))}
+                "first_part_only": bool(f.get("first_part_only")),
+                "fresh": bool(r.get("fresh") or r.get("status") == "fresh")}
     by = sorted(scored, key=lambda r: -r["ratio"])
-    out["first_lines"] = {"best": [fl(r) for r in by[:8]], "worst": [fl(r) for r in sorted(scored, key=lambda r: r["ratio"])[:8]],
+    out["first_lines"] = {"best": [fl(r) for r in by[:8]], "worst": [fl(r) for r in sorted(settled_scored, key=lambda r: r["ratio"])[:8]],
                           "evidence": "SEEN"}
     with_ask = [r for r in inwin if feats[r["post_id"]].get("has_ask") is True]
     known = [r for r in inwin if feats[r["post_id"]].get("has_ask") is not None]
@@ -990,7 +992,8 @@ def run_niche(folder):
     s = dict(SETTINGS)
     s["min_creators"] = NICHE_MIN_CREATORS
     hit_ratio, flop_ratio = tr["rules"]["hit_ratio"], tr["rules"]["flop_ratio"]
-    scored = [r for r in rows if r["status"] == "scored" and r["ratio"] is not None and not feats[r["post_id"]].get("empty")]
+    scored = [r for r in rows if r["status"] in ("scored", "fresh") and r["ratio"] is not None and not feats[r["post_id"]].get("empty")]
+    settled_scored = [r for r in scored if r["status"] == "scored"]
     inwin = [r for r in rows if r["in_window"] and not feats[r["post_id"]].get("empty")]
     langs, hows = {}, {}
     for r in inwin:
@@ -1048,7 +1051,8 @@ def run_niche(folder):
                 "ratio": rnd(r["ratio"], 3), "views": r["views"], "first_line": f.get("first_line"),
                 "chars": f.get("first_line_chars"), "type": r["type"],
                 "openings": [k for k, v in f.items() if k.startswith("opens_") and v is True],
-                "first_part_only": bool(f.get("first_part_only"))}
+                "first_part_only": bool(f.get("first_part_only")),
+                "fresh": bool(r.get("fresh") or r.get("status") == "fresh")}
 
     def spread(ps, n=8, per=2):
         """The first n, at most `per` of any one creator, so one creator's lines cannot fill the list."""
@@ -1062,7 +1066,7 @@ def run_niche(folder):
                 break
         return out_
     out["first_lines"] = {"best": spread(sorted(scored, key=lambda r: -r["ratio"])),
-                          "worst": spread(sorted(scored, key=lambda r: r["ratio"])), "evidence": "SEEN",
+                          "worst": spread(sorted(settled_scored, key=lambda r: r["ratio"])), "evidence": "SEEN",
                           "note": "at most 2 lines of any one creator on each side"}
     with_ask = [r for r in inwin if feats[r["post_id"]].get("has_ask") is True]
     known = [r for r in inwin if feats[r["post_id"]].get("has_ask") is not None]

@@ -71,30 +71,52 @@ def build_sheet(tmp, first, count, cols, out):
     """A sheet from the tiles first .. first+count-1 (numbered files), with no more frames than it holds."""
     rows = (count + cols - 1) // cols
     ok, _, err = ff(["-framerate", "1", "-start_number", str(first), "-i", os.path.join(tmp, "%05d.png"),
-                     "-frames:v", str(count), "-vf",
-                     "tile=%dx%d:padding=%d:margin=%d:color=0x111111" % (cols, rows, PAD, PAD),
+                     "-vf", "tile=%dx%d:nb_frames=%d:padding=%d:margin=%d:color=0x111111" % (cols, rows, count, PAD, PAD),
                      "-frames:v", "1", "-q:v", "3", out], 300)
     if not ok:
         die("ffmpeg could not tile the covers: " + err.decode("utf-8", "replace")[-300:], 1)
     return rows
 
 
+def _mean_rgb(buf):
+    n = len(buf) // 3
+    if not n:
+        return (0, 0, 0)
+    return (sum(buf[0::3]) / float(n), sum(buf[1::3]) / float(n), sum(buf[2::3]) / float(n))
+
+
 def check_sheet(tmp, first, count, cols, rows, sheet):
-    """How many of the sheet's tiles are really on it: each cell of the sheet against the tile meant for it."""
-    # The tiles' own colours, in order (one frame each, read as a sequence starting at `first`).
-    ok, out, _ = ff(["-framerate", "1", "-start_number", str(first), "-i", os.path.join(tmp, "%05d.png"),
-                     "-frames:v", str(count), "-vf", "format=rgb24,scale=1:1:flags=area", "-f", "rawvideo",
-                     "-pix_fmt", "rgb24", "pipe:1"])
-    want = [tuple(out[i:i + 3]) for i in range(0, len(out) - 2, 3)] if ok else []
-    # The sheet without its margin, cut into its cells by area (the 4 px gaps are a few % of a cell).
-    w = cols * TILE_W + (cols - 1) * PAD
-    h = rows * TILE_H + (rows - 1) * PAD
-    ok, out, _ = ff(["-i", sheet, "-vf", "crop=%d:%d:%d:%d,format=rgb24,scale=%d:%d:flags=area" % (w, h, PAD, PAD, cols, rows),
-                     "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"])
-    got = [tuple(out[i:i + 3]) for i in range(0, len(out) - 2, 3)] if ok else []
+    """How many of the sheet's tiles are really on it: each cell's exact pixel rectangle compared with its tile."""
+    # Exact RGB mean of each tile (avoids swscale area-downsampling drift on high-contrast tiles and partial last rows).
+    want = []
+    for k in range(count):
+        ok, raw, _ = ff(["-i", os.path.join(tmp, "%05d.png" % (first + k)), "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"])
+        want.append(_mean_rgb(raw) if ok and raw else None)
+    sw = 2 * PAD + cols * TILE_W + (cols - 1) * PAD
+    sh = 2 * PAD + rows * TILE_H + (rows - 1) * PAD
+    ok, raw, _ = ff(["-i", sheet, "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"])
+    if not ok or len(raw) != sw * sh * 3:
+        return 0
     drawn = 0
+    row_stride = sw * 3
+    cell_pixels = TILE_W * TILE_H
     for k, c in enumerate(want):
-        if k < len(got) and max(abs(a - b) for a, b in zip(c, got[k])) <= 28:
+        if c is None:
+            continue
+        col, row = k % cols, k // cols
+        x0 = PAD + col * (TILE_W + PAD)
+        y0 = PAD + row * (TILE_H + PAD)
+        r_sum = g_sum = b_sum = 0
+        x_start = x0 * 3
+        x_end = (x0 + TILE_W) * 3
+        for y in range(y0, y0 + TILE_H):
+            off = y * row_stride
+            line = raw[off + x_start:off + x_end]
+            r_sum += sum(line[0::3])
+            g_sum += sum(line[1::3])
+            b_sum += sum(line[2::3])
+        got = (r_sum / float(cell_pixels), g_sum / float(cell_pixels), b_sum / float(cell_pixels))
+        if max(abs(a - b) for a, b in zip(c, got)) <= 28:
             drawn += 1
     return drawn
 

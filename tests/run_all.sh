@@ -27,7 +27,9 @@ step "cases a real run met (0.4.1): covers sheets, own videos, speech rate, name
 python3 "$HERE/test_field_cases.py"; check $? test_field_cases.py
 step "growth mode (0.5.0): growth.py on a made-up X account with planted answers, its files, its checks, the reply draft"
 python3 "$HERE/test_growth.py"; check $? test_growth.py
-step "post cards: post_card.py rules, standalone HTML, all 10 layouts and 7 styles at 1080x1350, fit step"
+step "topic check (0.5.1): saturation, 6h momentum, lateness, standalone & niche reports, r6 card"
+python3 "$HERE/test_topic_check.py"; check $? test_topic_check.py
+step "post cards: post_card.py rules, standalone HTML, all 22 layouts and 7 styles at 1080x1350, fit step"
 python3 "$HERE/test_post_card.py" --work "$WORK/post-card"; check $? test_post_card.py
 step "Basic remake renderer: frame-exact (WebM clip, Playwright's Chromium)"
 python3 "$HERE/test_render.py" --work "$WORK/render-webm"; check $? "test_render.py webm"

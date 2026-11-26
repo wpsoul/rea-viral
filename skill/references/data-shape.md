@@ -361,6 +361,46 @@ An account folder (the post's creator: `account.json`, `posts.csv` with the post
 `post_id` must be a row of `posts.csv`. `formats.json` (optional) holds the post's format: the post and the creator's
 other posts with the same container.
 
+## A topic check (0.5.1, standalone or inside a niche run)
+
+A standalone topic check lives in `rea-viral/topic-<slug>/` with `topic.json` and `topic_posts.csv`. Inside a niche
+folder (`rea-viral/niche-<slug>/`), adding `topic_posts.csv` (and optional `topic.json`) lets `topic_check.py` run on
+the niche folder and embed its results into the Niche report.
+
+### topic.json
+
+```json
+{
+  "schema": "rea-viral/topic@1",
+  "topic": "Seedance 2.0",
+  "slug": "seedance-2",
+  "network": "x",
+  "query": "Seedance 2.0",
+  "read_at": "2026-11-26T15:00:00Z",
+  "user": {"handle": "myhandle", "followers": 4200},
+  "time_filter_supported": false,
+  "sources": [{"what": "topic search", "via": "data connector", "cost_usd": 0.003}]
+}
+```
+
+### topic_posts.csv
+
+Header: `post_id,url,network,author,author_followers,published_at,views,likes,comments,reposts,caption,window_tag,sampled,source`
+
+| Column | Required | Meaning |
+|---|---|---|
+| `post_id` | yes | Unique post id |
+| `published_at` | yes | ISO UTC timestamp (needed for 6h momentum and lateness) |
+| `views` | no | Whole number (used for 100K+ breakout & lateness checks) |
+| `author`, `author_followers` | no | Creator handle (without `@`) and follower count (whole number) for large-account saturation |
+| `window_tag` | no | Fallback window tag when `published_at` is missing: `last_6h`, `prev_6h`, `24h`, `48h` |
+| `sampled` | no | `true` when the reader could not filter strictly by time window (marks the whole run as a sample) |
+| `url`, `network`, `likes`, `comments`, `reposts`, `caption`, `source` | no | As read |
+
+`validate.py` checks `topic.json` and `topic_posts.csv`. `topic_check.py` writes `topic_check.json`
+(`rea-viral/topic-check@1`: `status`, `topic`, `read_at`, `sampled`, `sample_note`, `sample_sizes`, `saturation`,
+`momentum`, `lateness`, `verdict`, `posts`) and `TOPIC.md`.
+
 ## The scripts' outputs
 
 `covers_sheet.json` (the sheets and, per tile, its sheet, post, ratio, and `cover` read or not read with `why`),
@@ -380,8 +420,8 @@ A niche run adds:
 - `trends.json` (`rea-viral/trends@1`): `status`, `counts` (`creators` read, `creators_active` with posts in the
   window, `replies_left_out`, …), `seeds` (`found`, `not_found`, `inactive`, `unchecked`), `rules`, `window`, `creators` (per creator, `id` =
   `<network>-<handle>`: posts read, settled, scored, hits, `usual` and how many posts it is from, `basis`, `best`),
-  `ranked` (post ids, best first), `leads_weaker_basis`, `too_new`, and `posts` (each with `id`, `creator`, `account`,
-  `status` `scored`, `too_new`, `weaker_basis`, `no_baseline`, `baseline_only`, `no_date` or `no_metric`, `basis`
+  `ranked` (post ids, best first), `leads_weaker_basis`, `too_new`, `suspect_reach`, `warnings`, and `posts` (each with `id`, `creator`, `account`,
+  `status` `scored`, `fresh`, `too_new`, `weaker_basis`, `no_baseline`, `baseline_only`, `no_date` or `no_metric`, `fresh` bool, `fresh_label`, `basis`
   `own` or `followers`, `baseline`, `baseline_n`, `ratio`, `ratio_so_far`, `views_per_follower`, `rank`, `found_by`,
   `format`). Cite it as `trends.json#creators.<id>.hits` or `trends.json#posts.<post_id>.ratio`.
 - `trends.csv`: the same posts flat, best first.

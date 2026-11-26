@@ -44,6 +44,29 @@ which links are links out, the quoted post, an article's title. Checked 2026-11-
 rows cost $0.0027, and the rows mixed in reposts, replies to others and the author's own replies, so map them with the
 rules in `data-shape.md` ("Text networks", "Replies") and below ("Own media and quoted media").
 
+### Paginated X readers stopping early (`x_windows.py`)
+
+Some X timeline tools (such as `get_users_posts`) silently return an empty page after page 2 even when the account has
+hundreds of older posts in the window. Whenever cursor pagination stops empty before reaching `window.from` (or the
+target post count), fall back to **`end_time` date-windowed queries** using `scripts/readers/x_windows.py`:
+
+```
+python3 SKILL_DIR/scripts/readers/x_windows.py plan --from 2026-08-01 --to 2026-11-26 --step-days 14
+python3 SKILL_DIR/scripts/readers/x_windows.py next-end <posts.csv | page.json> [--backoff-seconds 1]
+python3 SKILL_DIR/scripts/readers/x_windows.py merge <out.csv> <page1.csv> <page2.csv> ...
+```
+
+Pass the earliest post's timestamp minus 1 second (`next-end`) as `end_time` on the next call, stop once a window
+reaches `window.from` or returns 0 new posts twice in a row, then deduplicate by post id (`merge`) before writing
+`posts.csv`. Python callers can also use `x_windows.collect_with_end_time_fallback()`.
+
+### Topic check reads (`niche.md`, "Topic check")
+
+A topic check needs only **one search page per 6-hour window** (last 6h, prior 6h, and top posts over 48h — top 10–20
+per call), written to `topic_posts.csv`. When the search connector cannot filter strictly by time window, set
+`"time_filter_supported": false` in `topic.json` (or `sampled: true` on rows in `topic_posts.csv`) so `topic_check.py`
+labels every count as a sample.
+
 ## Growth reads (growth mode)
 
 Growth mode (`growth.md`) reads four small things beside the posts. Search a data connector by the job: "x post

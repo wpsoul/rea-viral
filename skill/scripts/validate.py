@@ -24,8 +24,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (  # noqa: E402
     ACCOUNT_SCHEMAS, COMMENT_COLUMNS, COUNT_COLUMNS, EVIDENCE, NETWORKS, ORIGINAL_COLUMNS, OWN_MEDIA, POST_COLUMNS,
     POST_TYPES, REPLY_OUT_COLUMNS, REPOSTER_COLUMNS, REQUIRED_COMMENT_COLUMNS, REQUIRED_POST_COLUMNS, TEXT_NETWORKS,
-    UNKNOWN_WORDS, V2_POST_COLUMNS, ShapeError, parse_author_replies, parse_bool, parse_count, parse_float, parse_parts,
-    parse_time, read_csv, read_json,
+    TOPIC_POST_COLUMNS, UNKNOWN_WORDS, V2_POST_COLUMNS, ShapeError, parse_author_replies, parse_bool, parse_count,
+    parse_float, parse_parts, parse_time, read_csv, read_json,
 )
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
@@ -930,6 +930,66 @@ def check_found(folder, ids, rep):
                               "cannot be scored against their own usual" % missing)
 
 
+def check_topic_posts(folder, rep):
+    path = os.path.join(folder, "topic_posts.csv")
+    if not os.path.exists(path):
+        return {}
+    header, rows = read_csv(path)
+    for c in ("post_id", "published_at"):
+        if c not in header:
+            rep.err("topic_posts.csv:header", "column %r is missing (references/data-shape.md, \"Topic check\")" % c)
+    for c in header:
+        if c not in TOPIC_POST_COLUMNS:
+            rep.warn("topic_posts.csv:header", "column %r is not in the shape; it is ignored" % c)
+    if any(c not in header for c in ("post_id", "published_at")):
+        return {}
+    ids = {}
+    for i, r in enumerate(rows):
+        where = "topic_posts.csv:row %d" % (i + 2)
+        pid = (r.get("post_id") or "").strip()
+        if not pid:
+            rep.err(where + ":post_id", "empty")
+        else:
+            ids[pid] = i + 2
+        _cell(rep, where, parse_time, r.get("published_at"), "published_at")
+        for c in ("author_followers", "views", "likes", "comments", "reposts"):
+            if c in header:
+                _cell(rep, where, parse_count, r.get(c), c)
+        if "sampled" in header:
+            _cell(rep, where, parse_bool, r.get("sampled"), "sampled")
+    return ids
+
+
+def validate_topic(folder, inputs_only, rep):
+    path = os.path.join(folder, "topic.json")
+    try:
+        doc = read_json(path)
+    except ValueError as e:
+        rep.err("topic.json", "not valid JSON: %s" % e)
+        return rep
+    if not isinstance(doc, dict):
+        rep.err("topic.json", "must be one JSON object")
+        return rep
+    if doc.get("schema") != "rea-viral/topic@1":
+        rep.warn("topic.json:schema", 'write "schema": "rea-viral/topic@1"')
+    if not str(doc.get("topic") or doc.get("name") or "").strip():
+        rep.err("topic.json:topic", "missing; the topic checked (e.g. \"GPT-5 launch\")")
+    try:
+        if parse_time(doc.get("read_at")) is None:
+            rep.err("topic.json:read_at", "missing; when the posts were read, ISO 8601 UTC")
+    except ShapeError as e:
+        rep.err("topic.json:read_at", str(e))
+    if not os.path.exists(os.path.join(folder, "topic_posts.csv")):
+        rep.err("topic_posts.csv", "missing; write the recent posts read for this topic (references/niche.md, \"Topic check\")")
+        ids = {}
+    else:
+        ids = check_topic_posts(folder, rep)
+    if not inputs_only:
+        check_findings(folder, ids, rep)
+        check_cost(folder, doc, rep)
+    return rep
+
+
 def validate_niche(folder, inputs_only, rep):
     from common import niche_creator_dirs
     n = check_niche(folder, rep)
@@ -956,6 +1016,7 @@ def validate_niche(folder, inputs_only, rep):
             check_comments(cf, acc, posts, sub)
             check_notes(cf, posts, sub)
     check_found(folder, ids, rep)
+    check_topic_posts(folder, rep)
     check_formats(folder, ids, rep)
     if not inputs_only:
         check_findings(folder, ids, rep)
@@ -973,6 +1034,8 @@ def validate(folder, inputs_only=False):
         return rep
     if os.path.exists(os.path.join(folder, "niche.json")):
         return validate_niche(folder, inputs_only, rep)
+    if os.path.exists(os.path.join(folder, "topic.json")):
+        return validate_topic(folder, inputs_only, rep)
     acc = check_account(folder, rep)
     posts = check_posts(folder, acc, rep)
     check_comments(folder, acc, posts, rep)

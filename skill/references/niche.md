@@ -123,7 +123,11 @@ python3 SKILL_DIR/scripts/trends.py <niche>
 ```
 
 Writes `trends.json`, `trends.csv` (every post with its ratio and its basis, best first), `watchlist.csv` and
-`planner_rows.json`. Definitions: `numbers.md`, "A niche". Read `status` first:
+`planner_rows.json`. Definitions: `numbers.md`, "A niche". Posts younger than the settling time are still scored
+against the settled baseline (`status: "fresh"`, marked `"fresh / still growing"`) so a fresh breakout is never hidden,
+while staying out of baselines and flops. Posts with views `>= 1000×` their creator's followers are flagged in
+`trends.json#suspect_reach` and warned in `NICHE.md` and the Niche report — open them before calling them a finding.
+Read `status` first:
 
 | Status | What you may say |
 |---|---|
@@ -261,3 +265,52 @@ message opens with what was saved:
 (c) starts `account-run.md` from that creator's folder: copy `accounts/<network>-<handle>/` to
 `rea-viral/<network>-<handle>/` and read the rest of its window there. With no format worth making, offer only what
 applies; with nothing, ask nothing.
+
+## Topic check: is this topic still worth posting?
+
+When a creator spots a fast-moving topic, product launch, or news hook (e.g. a new model release or trend), a full
+30-day niche run is too slow — what matters is whether the window is still open **right now**.
+
+**Trigger phrases:**
+
+- `"REA Viral: is <topic> still worth posting"`
+- `"REA Viral topic check <topic>"`
+- `"is <topic> saturated?"`
+
+Can run **standalone** (`rea-viral/topic-<slug>/` with `topic.json` + `topic_posts.csv`) or **inside a niche run**
+(`rea-viral/niche-<slug>/topic_posts.csv`, which automatically embeds a `#topic-check` block in the Niche `report.html`
+and `NICHE.md`).
+
+### Step 1: Cheap reads (say when sampled)
+
+Keep reads cheap: **one search page per 6-hour window** (the last 6h and the prior 6h, plus any top posts in the last
+48h — top 10–20 results per query). Write `topic.json` and `topic_posts.csv` (`data-shape.md`, "A topic check").
+Whenever the search API cannot filter strictly by time window, set `"time_filter_supported": false` in `topic.json` (or
+`sampled: true` on rows in `topic_posts.csv`) so every count is reported honestly as a sample. Log every paid call with
+`ledger.py`, then run `validate.py <run>`.
+
+### Step 2: Measure saturation, momentum, and lateness
+
+```
+python3 SKILL_DIR/scripts/topic_check.py <run>
+```
+
+Writes `topic_check.json` (`rea-viral/topic-check@1`) and `TOPIC.md`. Every number is MEASURED:
+
+| Signal | Levels | Rule |
+|---|---|---|
+| **Saturation** (last 48h) | `low`, `medium`, `taken` | Total posts in 48h, how many hit `>= 100K` views, and how many **large accounts** (`followers >= max(10,000, 10 × user_followers)`, defaulting to `100,000` when `user.followers` is unknown) already broke out (`>= 100K`). `taken` when 1+ large account already broke out or 3+ posts passed 100K; `medium` when any breakout or 2+ posts >= 25K; else `low`. |
+| **Momentum** (last 6h vs prev 6h) | `rising`, `flat`, `fading`, `not_enough_data` | Compares post count and posts/hour in `[read_at - 6h, read_at]` against `[read_at - 12h, read_at - 6h]`. `rising` at `>= 1.33×` (or `prev_6h == 0` with `>= 4` posts), `fading` at `<= 0.75×`, else `flat`; `not_enough_data` when total posts across both windows `< 4`. |
+| **Lateness** (hours since first 100K+ post) | `none_yet`, `early`, `tight`, `late` | Hours from the earliest post with `>= 100K` views in the last 48h to `read_at`. `none_yet` (no 100K+ post yet), `early` (`< 2h`), `tight` (`2–6h`), `late` (`>= 6h`). Benchmark from a real X run (`@b1rkh0ff`): follow-up 2h after a 666K breakout got 3.9K; an explainer 13h late flopped. |
+| **Verdict** | plain 1-line string | Combines saturation, momentum, lateness, and the biggest proof post, plus `sample_sizes` and `(from sample)` caveat when sampled. |
+
+### Step 3: Report and post card
+
+```
+python3 SKILL_DIR/scripts/build_report.py <run>                      # standalone report.html or Niche #topic-check block
+python3 SKILL_DIR/scripts/post_card.py <run> --layout r6 --skin cobalt
+```
+
+Tell the user the verdict line, the three measured numbers (saturation, 6h momentum, hours since first 100K+ post),
+whether the search was sampled, the top breakouts already live, and the paths to `TOPIC.md`, `report.html`, and
+`post-card.png` (when rendered).

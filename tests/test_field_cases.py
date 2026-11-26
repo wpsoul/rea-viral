@@ -795,5 +795,260 @@ class NotReadFromWhatHappened(unittest.TestCase):
             self.assertNotIn(what, lim)
 
 
+# ---------------------------------------------------------------------------------------------- 11. 0.5.1 field bug fixes
+
+class FieldFixes051(unittest.TestCase):
+    """Bugs 1–8 from 0.4.x and @b1rkh0ff runs, fixed in 0.5.1."""
+
+    def test_bug1_video_probe_not_read_keeps_existing_read_probes(self):
+        h = "fixture_keep_probe"
+        rows = [x_row("v1", 1, "First own video", "video", handle=h, own_media="video"),
+                x_row("v2", 2, "Second own video", "video", handle=h, own_media="video")]
+        d = account_folder("keep-probe", h, rows)
+        probe_without_words(d, "v1")
+        before_probe = jload(d, "videos", "v1", "probe.json")
+        before_notes = jload(d, "videos", "v1", "notes.json")
+        code, out = run("video_probe.py", d, "v1", "v2", "--not-read", "network offline")
+        self.assertEqual(code, 0, out)
+        # v1 already had read=True and probe.json: must stay completely intact!
+        self.assertEqual(jload(d, "videos", "v1", "probe.json"), before_probe)
+        self.assertEqual(jload(d, "videos", "v1", "notes.json"), before_notes)
+        self.assertTrue(jload(d, "videos", "v1", "notes.json")["read"])
+        # v2 had nothing yet: marked not read
+        n2 = jload(d, "videos", "v2", "notes.json")
+        self.assertIs(n2["read"], False)
+        self.assertEqual(n2["not_read_reason"], "network offline")
+
+    def test_bug2_basic_format_template_uses_overused_not_fading(self):
+        tpl = text(os.path.dirname(SK), "templates", "basic-format.html")
+        self.assertIn("Overused", tpl)
+        self.assertNotIn("Fading", tpl)
+
+    def test_bug4_suspect_reach_warning_in_trends_and_post_probe(self):
+        # Niche trends.py warning + report surfacing
+        d = copy("niche_main")
+        cdir = os.path.join(d, "accounts", "youtube-tinyreels")
+        acc = jload(cdir, "account.json")
+        acc["followers"] = 500
+        jsave(os.path.join(cdir, "account.json"), acc)
+        pcsv = os.path.join(cdir, "posts.csv")
+        with open(pcsv, encoding="utf-8") as f:
+            rs = list(csv.DictReader(f))
+        rs[0]["views"] = str(500 * 1500)  # 750,000 views on 500 followers = 1500x
+        with open(pcsv, "w", encoding="utf-8", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(rs[0].keys()))
+            w.writeheader()
+            w.writerows(rs)
+        run("trends.py", d)
+        tr = jload(d, "trends.json")
+        self.assertIsNotNone(tr.get("suspect_reach"))
+        self.assertGreaterEqual(tr["suspect_reach"]["count"], 1)
+        self.assertTrue(any("1000 x" in w for w in tr["warnings"]), tr["warnings"])
+        run("radar.py", d)
+        run("text_probe.py", d)
+        shutil.copy(os.path.join(d, "findings.example.json"), os.path.join(d, "findings.json"))
+        run("build_report.py", d)
+        self.assertIn("trends.json#suspect_reach", text(d, "NICHE.md"))
+        self.assertIn("check the outliers", text(d, "report.html"))
+
+        # Single post_probe.py warning
+        dp = copy("post_c3")
+        accp = jload(dp, "account.json")
+        accp["followers"] = 100
+        jsave(os.path.join(dp, "account.json"), accp)
+        focus = jload(dp, "post.json")["post_id"]
+        pcsv2 = os.path.join(dp, "posts.csv")
+        with open(pcsv2, encoding="utf-8") as f:
+            rs2 = list(csv.DictReader(f))
+        for r in rs2:
+            if r["post_id"] == focus:
+                r["views"] = str(100 * 2000)
+        with open(pcsv2, "w", encoding="utf-8", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(rs2[0].keys()))
+            w.writeheader()
+            w.writerows(rs2)
+        run("post_probe.py", dp)
+        pp = jload(dp, "post_probe.json")
+        self.assertIsNotNone(pp.get("suspect_reach"))
+        self.assertTrue(pp["suspect_reach"]["includes_focus"])
+        self.assertTrue(any("post_probe.json#suspect_reach" in w for w in pp["warnings"]))
+
+    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "needs ffmpeg and ffprobe")
+    def test_bug5_subtitles_untagged_english_and_embedded(self):
+        import video_probe
+        # 1. parse_subs keeps untagged plain cues alongside <TS>-tagged cues
+        vtt = os.path.join(TMP, "mixed.vtt")
+        with open(vtt, "w", encoding="utf-8") as f:
+            f.write(
+                "WEBVTT\n\n"
+                "00:00:00.000 --> 00:00:02.000\n"
+                "first<00:00:00.500><c> two</c> words\n\n"
+                "00:00:02.500 --> 00:00:04.500\n"
+                "plain cue without inline timestamps\n"
+            )
+        words = video_probe.parse_subs(vtt)
+        got = [w["w"] for w in words]
+        self.assertEqual(got, ["first", "two", "words", "plain", "cue", "without", "inline", "timestamps"])
+
+        # 2. find_subs skips 0-byte files and prefers English .en*.vtt over other languages
+        sroot = tempfile.mkdtemp(prefix="subs-", dir=TMP)
+        sdir = os.path.join(sroot, "videos", "p1")
+        os.makedirs(sdir, exist_ok=True)
+        open(os.path.join(sdir, "video.en.vtt"), "w", encoding="utf-8").close()  # 0 bytes
+        with open(os.path.join(sdir, "video.es.vtt"), "w", encoding="utf-8") as f:
+            f.write("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhola mundo\n")
+        with open(os.path.join(sdir, "video.en-US.vtt"), "w", encoding="utf-8") as f:
+            f.write("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello world\n")
+        self.assertTrue(video_probe.find_subs(sroot, "p1", {}).endswith("video.en-US.vtt"))
+
+        # 3. Embedded subtitle stream extracted automatically when no external .vtt/.srt exists
+        srt = os.path.join(TMP, "embed.srt")
+        with open(srt, "w", encoding="utf-8") as f:
+            f.write("1\n00:00:00,200 --> 00:00:02,600\nThree cuts make this hook work fast\n")
+        h = "fixture_embed_sub"
+        d = account_folder("embed-sub", h, [x_row("e1", 1, "Clip with embedded subs", "video", handle=h, own_media="video")])
+        vdir = os.path.join(d, "videos", "e1")
+        os.makedirs(vdir, exist_ok=True)
+        clip = os.path.join(vdir, "video.mp4")
+        ff("-f", "lavfi", "-i", "testsrc=d=3:s=180x320:r=25", "-i", srt,
+           "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:s", "mov_text", clip)
+        code, out = run("video_probe.py", d, "e1")
+        self.assertEqual(code, 0, out)
+        pr = jload(vdir, "probe.json")
+        self.assertEqual(pr["measured"]["words"], 7)
+        self.assertIsNotNone(pr["measured"]["words_per_minute"])
+        self.assertIn("Three cuts make this hook work fast", pr["measured"].get("transcript") or "")
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "needs ffmpeg")
+    def test_bug6_covers_sheet_279_tiles_high_contrast_last_tile(self):
+        # 279 covers = 5 sheets of 50 + 6th sheet of 29 (partial last row of 9); 279th cover is high-contrast split color
+        rows = [x_row("c%03d" % i, i, "Post %d" % i, kind="image", own_media="image") for i in range(279)]
+        d = account_folder("covers279", "fixture_279", rows)
+        cdir = os.path.join(d, "covers")
+        os.makedirs(cdir)
+        make_covers(cdir, 0, 278, "90x160", "jpg")
+        # Tile 279 (index 278): sharp split white/black/red pattern that previously triggered scale=cols:rows area drift
+        ff("-f", "lavfi", "-i", "color=c=black:s=180x320:r=1", "-frames:v", "1",
+           "-vf", "geq=r='if(lt(Y,160),255,0)':g='if(lt(X,90),255,0)':b='if(gt(Y,200),255,0)'",
+           os.path.join(cdir, "c278.jpg"))
+        for i, r in enumerate(rows):
+            r["cover_file"] = "covers/c%03d.jpg" % i
+        with open(os.path.join(d, "posts.csv"), "w", encoding="utf-8", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=common.POST_COLUMNS)
+            w.writeheader()
+            for r in rows:
+                w.writerow(dict((k, "" if r.get(k) is None else r.get(k)) for k in common.POST_COLUMNS))
+        code, out = run("covers_sheet.py", d)
+        self.assertEqual(code, 0, out)
+        self.assertIn("covers_sheet: drew 279 of 279 on 6 sheets", out)
+        cs = jload(d, "covers_sheet.json")
+        self.assertEqual((cs["drawn"], cs["of"], len(cs["sheets"])), (279, 279, 6))
+
+    def test_bug7_fresh_breakout_scored_format_counted_and_partial_followers(self):
+        h = "fixture_fresh_breakout"
+        rows = []
+        # 25 settled posts in the window, baseline ~1,000 views
+        for i in range(25):
+            t = READ_AT - dt.timedelta(days=35 - i)
+            rows.append(x_row("s%02d" % i, i, "Settled post %d" % i, "video", views=1000 + (i % 3) * 50,
+                              handle=h, own_media="video", published_at=iso(t)))
+        # Fresh 3.07M breakout posted 24h before READ_AT (under X's 3-day settling window)
+        rows.append(x_row("fresh_hit", 99, "3.07M breakout demo posted yesterday", "video", views=3070000,
+                          handle=h, own_media="video", published_at=iso(READ_AT - dt.timedelta(hours=24))))
+        # Fresh low-view post posted 12h before READ_AT (must NOT be called a flop!)
+        rows.append(x_row("fresh_low", 100, "Posted 12 hours ago still ramping", "text", views=100,
+                          handle=h, own_media="none", published_at=iso(READ_AT - dt.timedelta(hours=12))))
+        # Daily follower history spanning the breakout up to READ_AT (+1500 jump after fresh_hit!)
+        fh = [{"at": iso(READ_AT - dt.timedelta(days=k)), "followers": 10000 + (35 - k) * 10, "source": "watch"}
+              for k in range(35, 0, -1)]
+        fh.append({"at": iso(READ_AT), "followers": fh[-1]["followers"] + 1500, "source": "watch"})
+        d = account_folder("fresh-breakout", h, rows, followers=fh[-1]["followers"],
+                           window={"from": "2026-10-15", "to": "2026-11-20"}, follower_history=fh)
+        jsave(os.path.join(d, "formats.json"), {
+            "schema": "rea-viral/formats@1",
+            "formats": [
+                {"id": "breakout-fmt", "name": "Breakout demo", "hook": "demo", "structure": "demo", "look": "screen",
+                 "length": "20s", "effort": "low", "basis": "fixture", "posts": ["s24", "fresh_hit"]},
+            ],
+        })
+        run("analyze.py", d)
+        an = jload(d, "analysis.json")
+        P = dict((p["post_id"], p) for p in an["posts"])
+        # Fresh breakout is scored, marked fresh / still growing, in outliers, and gets partial measured followers
+        fh_p = P["fresh_hit"]
+        self.assertEqual(fh_p["status"], "fresh")
+        self.assertTrue(fh_p["fresh"])
+        self.assertEqual(fh_p["fresh_label"], "fresh / still growing")
+        self.assertGreater(fh_p["ratio"], 2000)
+        self.assertIn("fresh_hit", an["outliers"])
+        self.assertIn("fresh_hit", an["deep_read"]["outliers"])
+        self.assertEqual(fh_p["followers"]["level"], "measured")
+        self.assertTrue(fh_p["followers"]["fresh"])
+        self.assertGreaterEqual(fh_p["followers"]["hours_covered"], 20)
+        self.assertGreater(fh_p["followers"]["gain_72h"], 1000)
+        # Fresh low-view post is scored as fresh but NEVER counted as a flop
+        fl_p = P["fresh_low"]
+        self.assertEqual(fl_p["status"], "fresh")
+        self.assertNotIn("fresh_low", an["flops"])
+        self.assertNotIn("fresh_low", an["deep_read"]["flops"])
+        # Format includes the fresh breakout so it has 2 scored posts, not 1
+        run("radar.py", d)
+        bf = jload(d, "radar.json")["formats"][0]
+        self.assertEqual(bf["posts_scored"], 2)
+        self.assertEqual(bf["fresh_posts"], 1)
+        self.assertGreater(bf["lift"], 10)
+
+    def test_bug8_x_windows_end_time_fallback_and_cli(self):
+        sys.path.insert(0, os.path.join(SK, "readers"))
+        try:
+            import x_windows
+        finally:
+            sys.path.remove(os.path.join(SK, "readers"))
+        # Build 45 synthetic posts spaced 1 day apart (newest first)
+        all_posts = [
+            {"post_id": "tw%03d" % i, "published_at": iso(READ_AT - dt.timedelta(days=i))}
+            for i in range(45)
+        ]
+
+        # Simulated buggy get_users_posts: cursor pagination returns page 1 (0..9), page 2 (10..19), then EMPTY on page 3!
+        # When called with end_time, it returns up to 10 posts <= end_time.
+        def fake_fetch(cursor=None, end_time=None, start_time=None):
+            if end_time is None:
+                if cursor is None:
+                    return {"posts": all_posts[0:10], "next_cursor": "p2"}
+                if cursor == "p2":
+                    return {"posts": all_posts[10:20], "next_cursor": "p3"}
+                return {"posts": [], "next_cursor": None}  # buggy empty page 3!
+            end_dt = common.parse_time(end_time)
+            older = [p for p in all_posts if common.parse_time(p["published_at"]) <= end_dt]
+            return {"posts": older[:10], "next_cursor": None}
+
+        res = x_windows.collect_with_end_time_fallback(
+            fake_fetch, start_time=iso(READ_AT - dt.timedelta(days=44)), max_posts=100, max_calls=20
+        )
+        self.assertTrue(res["used_end_time_fallback"])
+        self.assertEqual(len(res["posts"]), 45)
+        self.assertEqual([p["post_id"] for p in res["posts"]], [p["post_id"] for p in all_posts])
+
+        # CLI checks: plan, next-end, merge
+        code, out = run(os.path.join("readers", "x_windows.py"), "plan", "--from", "2026-10-01", "--to", "2026-11-01", "--step-days", "14")
+        wins = json.loads(out)
+        self.assertGreaterEqual(len(wins), 3)
+        p1, p2, merged = os.path.join(TMP, "xw1.csv"), os.path.join(TMP, "xw2.csv"), os.path.join(TMP, "xwm.csv")
+        common.write_csv(p1, ["post_id", "published_at"], [
+            {"post_id": "a1", "published_at": "2026-11-10T10:00:00Z"},
+            {"post_id": "a2", "published_at": "2026-11-08T10:00:00Z"},
+        ])
+        common.write_csv(p2, ["post_id", "published_at"], [
+            {"post_id": "a2", "published_at": "2026-11-08T10:00:00Z"},
+            {"post_id": "a3", "published_at": "2026-11-05T10:00:00Z"},
+        ])
+        code, ne = run(os.path.join("readers", "x_windows.py"), "next-end", p1)
+        self.assertEqual(ne.strip(), "2026-11-08T09:59:59Z")
+        code, mo = run(os.path.join("readers", "x_windows.py"), "merge", merged, p1, p2)
+        self.assertIn("merged 3 unique posts", mo)
+        self.assertEqual([r["post_id"] for r in common.read_csv(merged)[1]], ["a1", "a2", "a3"])
+
+
 if __name__ == "__main__":
     unittest.main()

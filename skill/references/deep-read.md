@@ -38,17 +38,21 @@ can also come from your data reader: save them as `videos/<id>/<name>.vtt` or `.
 
 - `probe.json` (MEASURED): `length_s`, `fps`, size, `cuts` (scene changes over 0.3, two within 0.2 s count once),
   `cuts_per_10s`, `first_cut_s`, `average_shot_s`, `words`, `words_per_minute` (over the spoken span),
-  `first_words_3s`, `non_silent_share`, `loudness_lufs`.
+  `first_words_3s`, `transcript` (up to 4,000 characters when subtitles/transcript exist), `transcript_note`,
+  `non_silent_share`, `loudness_lufs`.
 - `first.jpg`: the first 3 seconds, a frame every 0.25 s, numbered 1-12 (tile n is at (n-1) × 0.25 s).
 - `shots.jpg`: a frame 0.12 s after each cut, numbered; `probe.json` `files.shots[n-1].t` is tile n's time.
 - `words.json`: every word with its start and end, when subtitles were found.
 
-**No subtitles, no speech rate.** Without subtitles `words` and `words_per_minute` stay `null`: the report says "words
-per minute not measured: no subtitles", and a missing rate is never read as 0 (the format's medians, the recipe's
-`words_per_minute` and `remake_check.py` leave it out and say so). To measure it anyway, run a local speech-to-text
-tool (a Whisper-style transcriber, on the user's machine, free) on `videos/<id>/video.mp4`, write its output as
-`videos/<id>/<name>.vtt` or `.srt`, and run `video_probe.py <run> <id>` again: the words and the rate are read from it.
-This is optional and costs nothing; never send the user's or a creator's video to a paid service for it without asking.
+**Subtitles & speech rate.** `video_probe.py` checks subtitles in order: (1) English `.en*.vtt`/`.srt` files in
+`videos/<id>/` (skipping 0-byte files and preserving both `<TS>` word-timed cues and untagged plain cues), (2) any other
+non-empty `.vtt`/`.srt` file (fetching `en.*,en,-live_chat` first, then falling back to `all,-live_chat`), (3) embedded
+subtitle tracks inside `video.mp4` extracted automatically via `ffprobe` + `ffmpeg -map 0:s:0`, and (4) optional local
+transcription when `--transcribe` is passed and `mlx_whisper` or `whisper` is installed locally on the user's machine.
+Without subtitles or transcription, `words` and `words_per_minute` stay `null` (with `transcript_note` explaining why):
+the report says "words per minute not measured: no subtitles", and a missing rate is never read as 0 (the format's
+medians, the recipe's `words_per_minute` and `remake_check.py` leave it out and say so). Never send the user's or a
+creator's video to a paid service for transcription without asking.
 - `notes.json`: the template you fill.
 
 ## The fixed list (fill notes.json for every picked video)
